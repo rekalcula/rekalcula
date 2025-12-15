@@ -24,7 +24,7 @@ export default async function UploadPage() {
             </p>
           </div>
 
-          <UploadForm userId={userId} />
+          <UploadForm />
         </div>
       </div>
     </>
