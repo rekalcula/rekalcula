@@ -3,6 +3,7 @@
 :root {
   --background: #b1ada1;
   --foreground: #171717;
+  --card: #f4f3ee;
 }
 
 @theme inline {
@@ -16,4 +17,13 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Sobrescribir fondos blancos con el color crema */
+.bg-white {
+  background-color: var(--card) !important;
+}
+
+.bg-gray-50 {
+  background-color: var(--card) !important;
 }
