@@ -20,17 +20,25 @@ export default async function SalesPage() {
     .order('created_at', { ascending: false })
     .limit(100)
 
-  const totalSales = (sales || []).reduce((sum, sale) => sum + (sale.total || 0), 0)
+  const salesList = sales || []
+  const totalSales = salesList.reduce((sum: number, sale: any) => sum + (sale.total || 0), 0)
 
   // Agrupar ventas por fecha
-  const salesByDate = (sales || []).reduce((acc, sale) => {
+  const salesByDate: { [key: string]: any[] } = {}
+  
+  salesList.forEach((sale: any) => {
     const date = sale.sale_date || 'sin-fecha'
-    if (!acc[date]) {
-      acc[date] = []
+    if (!salesByDate[date]) {
+      salesByDate[date] = []
     }
-    acc[date].push(sale)
-    return acc
-  }, {} as Record<string, typeof sales>)
+    salesByDate[date].push(sale)
+  })
+
+  const sortedDates = Object.keys(salesByDate).sort((a, b) => {
+    if (a === 'sin-fecha') return 1
+    if (b === 'sin-fecha') return -1
+    return new Date(b).getTime() - new Date(a).getTime()
+  })
 
   return (
     <>
@@ -59,12 +67,12 @@ export default async function SalesPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Número de Ventas</p>
-                <p className="text-2xl font-bold text-gray-900">{sales?.length || 0}</p>
+                <p className="text-2xl font-bold text-gray-900">{salesList.length}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Promedio por Venta</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  €{sales && sales.length > 0 ? (totalSales / sales.length).toFixed(2) : '0.00'}
+                  €{salesList.length > 0 ? (totalSales / salesList.length).toFixed(2) : '0.00'}
                 </p>
               </div>
             </div>
@@ -72,7 +80,7 @@ export default async function SalesPage() {
 
           {/* Lista de ventas agrupadas por fecha */}
           <div className="space-y-6">
-            {Object.keys(salesByDate).length === 0 ? (
+            {sortedDates.length === 0 ? (
               <div className="bg-white rounded-xl shadow-sm p-12 text-center">
                 <span className="text-4xl block mb-2">🧾</span>
                 <p className="text-gray-500">No hay ventas registradas</p>
@@ -84,8 +92,9 @@ export default async function SalesPage() {
                 </Link>
               </div>
             ) : (
-              Object.entries(salesByDate).map(([date, dateSales]) => {
-                const dateTotal = (dateSales || []).reduce((sum, s) => sum + (s.total || 0), 0)
+              sortedDates.map((date) => {
+                const dateSales = salesByDate[date]
+                const dateTotal = dateSales.reduce((sum: number, s: any) => sum + (s.total || 0), 0)
                 const formattedDate = date !== 'sin-fecha'
                   ? new Date(date).toLocaleDateString('es-ES', {
                       weekday: 'long',
@@ -97,7 +106,6 @@ export default async function SalesPage() {
 
                 return (
                   <div key={date} className="bg-white rounded-xl shadow-sm overflow-hidden">
-                    {/* Cabecera de fecha */}
                     <div className="px-6 py-4 bg-gray-50 border-b flex justify-between items-center">
                       <h3 className="font-semibold text-gray-900 capitalize">
                         📅 {formattedDate}
@@ -107,9 +115,8 @@ export default async function SalesPage() {
                       </span>
                     </div>
 
-                    {/* Ventas del día */}
                     <div className="divide-y">
-                      {(dateSales || []).map((sale) => (
+                      {dateSales.map((sale: any) => (
                         <div key={sale.id} className="px-6 py-4">
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
@@ -133,7 +140,6 @@ export default async function SalesPage() {
                                 )}
                               </div>
                               
-                              {/* Items */}
                               <div className="mt-2 space-y-1">
                                 {sale.sale_items?.map((item: any, index: number) => (
                                   <div key={index} className="flex justify-between text-sm">
