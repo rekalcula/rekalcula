@@ -25,8 +25,35 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer()
     const base64 = Buffer.from(bytes).toString('base64')
     
-    // Determinar tipo de medio
-    const mediaType = file.type as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp' | 'application/pdf'
+    const isPDF = file.type === 'application/pdf'
+
+    // Construir el contenido según el tipo de archivo
+    let fileContent: any
+
+    if (isPDF) {
+      fileContent = {
+        type: 'document',
+        source: {
+          type: 'base64',
+          media_type: 'application/pdf',
+          data: base64
+        }
+      }
+    } else {
+      let mediaType: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp' = 'image/jpeg'
+      if (file.type === 'image/png') mediaType = 'image/png'
+      else if (file.type === 'image/gif') mediaType = 'image/gif'
+      else if (file.type === 'image/webp') mediaType = 'image/webp'
+
+      fileContent = {
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: mediaType,
+          data: base64
+        }
+      }
+    }
 
     // Procesar con Claude
     const message = await anthropic.messages.create({
@@ -36,14 +63,7 @@ export async function POST(request: NextRequest) {
         {
           role: 'user',
           content: [
-            {
-              type: 'image',
-              source: {
-                type: 'base64',
-                media_type: mediaType,
-                data: base64
-              }
-            },
+            fileContent,
             {
               type: 'text',
               text: `Analiza este ticket o factura de VENTA y extrae la información en formato JSON.
