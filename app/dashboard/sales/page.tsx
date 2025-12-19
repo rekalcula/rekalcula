@@ -1,8 +1,13 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import DashboardNav from '@/components/DashboardNav'
 import Link from 'next/link'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export default async function SalesPage() {
   const { userId } = await auth()
@@ -12,7 +17,7 @@ export default async function SalesPage() {
   }
 
   // Obtener ventas ordenadas por fecha
-  const { data: sales } = await supabase
+  const { data: sales, error } = await supabase
     .from('sales')
     .select('*, sale_items(*)')
     .eq('user_id', userId)
@@ -20,14 +25,18 @@ export default async function SalesPage() {
     .order('created_at', { ascending: false })
     .limit(100)
 
-  const salesList = sales || []
-  const totalSales = salesList.reduce((sum: number, sale: any) => sum + (sale.total || 0), 0)
+  if (error) {
+    console.error('Error fetching sales:', error)
+  }
+
+  const salesList: any[] = sales || []
+  const totalSales = salesList.reduce((sum, sale) => sum + (sale.total || 0), 0)
 
   // Agrupar ventas por fecha
   const salesByDate: { [key: string]: any[] } = {}
   
-  salesList.forEach((sale: any) => {
-    const date = sale.sale_date || 'sin-fecha'
+  salesList.forEach((sale) => {
+    const date = sale.sale_date || sale.created_at?.split('T')[0] || 'sin-fecha'
     if (!salesByDate[date]) {
       salesByDate[date] = []
     }
@@ -106,6 +115,7 @@ export default async function SalesPage() {
 
                 return (
                   <div key={date} className="bg-white rounded-xl shadow-sm overflow-hidden">
+                    {/* Cabecera de fecha */}
                     <div className="px-6 py-4 bg-gray-50 border-b flex justify-between items-center">
                       <h3 className="font-semibold text-gray-900 capitalize">
                         📅 {formattedDate}
@@ -115,56 +125,49 @@ export default async function SalesPage() {
                       </span>
                     </div>
 
+                    {/* Ventas del día */}
                     <div className="divide-y">
                       {dateSales.map((sale: any) => (
-                        <div key={sale.id} className="px-6 py-4">
+                        <Link 
+                          key={sale.id} 
+                          href={`/dashboard/sales/${sale.id}`}
+                          className="block px-6 py-4 hover:bg-gray-50 transition-colors"
+                        >
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
                               <div className="flex items-center space-x-2">
                                 <span className={`text-xs px-2 py-1 rounded-full ${
                                   sale.source === 'ticket' 
-                                    ? 'bg-blue-100 text-blue-700' 
+                                    ? 'bg-blue-100 text-blue-700'
                                     : 'bg-gray-100 text-gray-600'
                                 }`}>
-                                  {sale.source === 'ticket' ? '🧾 Ticket' : '✏️ Manual'}
+                                  {sale.source === 'ticket' ? 'Ticket' : 'Manual'}
                                 </span>
-                                {sale.sale_time && (
-                                  <span className="text-sm text-gray-500">
-                                    {sale.sale_time.slice(0, 5)}
-                                  </span>
-                                )}
-                                {sale.payment_method && (
-                                  <span className="text-sm text-gray-400">
-                                    • {sale.payment_method}
+                                {sale.payment_method && sale.payment_method !== 'desconocido' && (
+                                  <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
+                                    {sale.payment_method}
                                   </span>
                                 )}
                               </div>
                               
-                              <div className="mt-2 space-y-1">
-                                {sale.sale_items?.map((item: any, index: number) => (
-                                  <div key={index} className="flex justify-between text-sm">
-                                    <span className="text-gray-600">
-                                      {item.quantity}x {item.product_name}
-                                    </span>
-                                    <span className="text-gray-500">
-                                      €{item.total?.toFixed(2)}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-
-                              {sale.notes && (
-                                <p className="text-xs text-gray-400 mt-2">{sale.notes}</p>
+                              <p className="font-medium text-gray-900 mt-2">
+                                {sale.notes?.replace('Negocio: ', '') || 'Venta'}
+                              </p>
+                              
+                              {sale.sale_items && sale.sale_items.length > 0 && (
+                                <p className="text-sm text-gray-500 mt-1">
+                                  {sale.sale_items.length} item{sale.sale_items.length > 1 ? 's' : ''}
+                                </p>
                               )}
                             </div>
                             
                             <div className="text-right ml-4">
                               <p className="text-lg font-bold text-gray-900">
-                                €{sale.total?.toFixed(2)}
+                                €{sale.total?.toFixed(2) || '0.00'}
                               </p>
                             </div>
                           </div>
-                        </div>
+                        </Link>
                       ))}
                     </div>
                   </div>
