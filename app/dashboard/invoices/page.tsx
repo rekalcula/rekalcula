@@ -1,20 +1,13 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import DashboardNav from '@/components/DashboardNav'
 import Link from 'next/link'
 
-interface Invoice {
-  id: string
-  user_id: string
-  date: string | null
-  created_at: string
-  total: number | null
-  tax: number | null
-  vendor: string | null
-  description: string | null
-  category: string | null
-}
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export default async function InvoicesPage() {
   const { userId } = await auth()
@@ -24,26 +17,36 @@ export default async function InvoicesPage() {
   }
 
   // Obtener facturas ordenadas por fecha
-  const { data: invoices } = await supabase
+  const { data: invoices, error } = await supabase
     .from('invoices')
     .select('*')
     .eq('user_id', userId)
-    .order('date', { ascending: false })
+    .order('invoice_date', { ascending: false })
     .order('created_at', { ascending: false })
     .limit(100)
 
-  const invoiceList: Invoice[] = invoices || []
-  const totalGasto = invoiceList.reduce((sum, inv) => sum + (inv.total || 0), 0)
+  if (error) {
+    console.error('Error fetching invoices:', error)
+  }
+
+  const invoiceList: any[] = invoices || []
+  const totalGasto = invoiceList.reduce((sum, inv) => sum + (inv.total_amount || 0), 0)
 
   // Agrupar facturas por fecha
-  const invoicesByDate: Record<string, Invoice[]> = {}
+  const invoicesByDate: { [key: string]: any[] } = {}
   
   invoiceList.forEach((invoice) => {
-    const date = invoice.date || invoice.created_at?.split('T')[0] || 'sin-fecha'
+    const date = invoice.invoice_date || invoice.created_at?.split('T')[0] || 'sin-fecha'
     if (!invoicesByDate[date]) {
       invoicesByDate[date] = []
     }
     invoicesByDate[date].push(invoice)
+  })
+
+  const sortedDates = Object.keys(invoicesByDate).sort((a, b) => {
+    if (a === 'sin-fecha') return 1
+    if (b === 'sin-fecha') return -1
+    return new Date(b).getTime() - new Date(a).getTime()
   })
 
   return (
@@ -86,7 +89,7 @@ export default async function InvoicesPage() {
 
           {/* Lista de facturas agrupadas por fecha */}
           <div className="space-y-6">
-            {Object.keys(invoicesByDate).length === 0 ? (
+            {sortedDates.length === 0 ? (
               <div className="bg-white rounded-xl shadow-sm p-12 text-center">
                 <span className="text-4xl block mb-2">📄</span>
                 <p className="text-gray-500">No hay facturas registradas</p>
@@ -98,8 +101,9 @@ export default async function InvoicesPage() {
                 </Link>
               </div>
             ) : (
-              Object.entries(invoicesByDate).map(([date, dateInvoices]) => {
-                const dateTotal = dateInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
+              sortedDates.map((date) => {
+                const dateInvoices = invoicesByDate[date]
+                const dateTotal = dateInvoices.reduce((sum: number, inv: any) => sum + (inv.total_amount || 0), 0)
                 const formattedDate = date !== 'sin-fecha' 
                   ? new Date(date).toLocaleDateString('es-ES', {
                       weekday: 'long',
@@ -123,7 +127,7 @@ export default async function InvoicesPage() {
 
                     {/* Facturas del día */}
                     <div className="divide-y">
-                      {dateInvoices.map((invoice) => (
+                      {dateInvoices.map((invoice: any) => (
                         <Link 
                           key={invoice.id} 
                           href={`/dashboard/invoices/${invoice.id}`}
@@ -144,25 +148,20 @@ export default async function InvoicesPage() {
                               </div>
                               
                               <p className="font-medium text-gray-900 mt-2">
-                                {invoice.vendor || 'Proveedor desconocido'}
+                                {invoice.supplier || 'Proveedor desconocido'}
                               </p>
                               
-                              {invoice.description && (
-                                <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                                  {invoice.description}
+                              {invoice.items && invoice.items.length > 0 && (
+                                <p className="text-sm text-gray-500 mt-1">
+                                  {invoice.items.length} item{invoice.items.length > 1 ? 's' : ''}
                                 </p>
                               )}
                             </div>
                             
                             <div className="text-right ml-4">
                               <p className="text-lg font-bold text-gray-900">
-                                €{invoice.total?.toFixed(2)}
+                                €{invoice.total_amount?.toFixed(2) || '0.00'}
                               </p>
-                              {invoice.tax && (
-                                <p className="text-xs text-gray-400">
-                                  IVA: €{invoice.tax.toFixed(2)}
-                                </p>
-                              )}
                             </div>
                           </div>
                         </Link>
