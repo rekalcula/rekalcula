@@ -1,5 +1,4 @@
 'use client'
-
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { UserButton } from '@clerk/nextjs'
@@ -7,14 +6,13 @@ import { UserButton } from '@clerk/nextjs'
 export default function DashboardNav() {
   const pathname = usePathname()
 
-const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: '📊' },
-  { href: '/dashboard/upload', label: 'Subir Factura', icon: '📤' },
-  { href: '/dashboard/invoices', label: 'Facturas', icon: '📄' },
-  { href: '/dashboard/sales', label: 'Ventas', icon: '🛒' },
-  { href: '/dashboard/costs', label: 'Costos Fijos', icon: '💸' },
-  { href: '/dashboard/analytics', label: 'Análisis', icon: '📈' },
-]
+  const navItems = [
+    { href: '/dashboard', label: 'Dashboard', icon: '📊' },
+    { href: '/dashboard/invoices', label: 'Facturas', icon: '📄' },
+    { href: '/dashboard/sales', label: 'Ventas', icon: '🛒' },
+    { href: '/dashboard/costs', label: 'Costos Fijos', icon: '💸' },
+    { href: '/dashboard/analytics', label: 'Análisis', icon: '📈' },
+  ]
 
   return (
     <nav className="bg-white shadow-sm border-b">
