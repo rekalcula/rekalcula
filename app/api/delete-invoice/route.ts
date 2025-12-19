@@ -1,5 +1,5 @@
-import { auth } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -16,59 +16,80 @@ export async function DELETE(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const invoiceId = searchParams.get('id')
+    const id = searchParams.get('id')
+    const ids = searchParams.get('ids') // Para eliminación múltiple
 
-    if (!invoiceId) {
-      return NextResponse.json({ error: 'ID de factura requerido' }, { status: 400 })
-    }
-
-    console.log('Eliminando factura:', invoiceId, 'para usuario:', userId)
-
-    // Primero obtener la factura para verificar propiedad y obtener file_url
-    const { data: invoice, error: fetchError } = await supabase
-      .from('invoices')
-      .select('*')
-      .eq('id', invoiceId)
-      .eq('user_id', userId)
-      .single()
-
-    if (fetchError || !invoice) {
-      console.error('Error obteniendo factura:', fetchError)
-      return NextResponse.json({ error: 'Factura no encontrada' }, { status: 404 })
-    }
-
-    console.log('Factura encontrada:', invoice.file_name)
-
-    // Eliminar archivo de Storage
-    if (invoice.file_url) {
-      const filePath = invoice.file_url.split('/').slice(-2).join('/')
-      console.log('Eliminando archivo de storage:', filePath)
-      const { error: storageError } = await supabase.storage
-        .from('invoices')
-        .remove([filePath])
+    if (ids) {
+      // Eliminación múltiple
+      const idsArray = ids.split(',')
       
-      if (storageError) {
-        console.error('Error eliminando de storage:', storageError)
+      // Eliminar archivos de Storage
+      for (const invoiceId of idsArray) {
+        const { data: invoice } = await supabase
+          .from('invoices')
+          .select('file_url')
+          .eq('id', invoiceId)
+          .eq('user_id', userId)
+          .single()
+
+        if (invoice?.file_url) {
+          const fileName = invoice.file_url.split('/').pop()
+          if (fileName) {
+            await supabase.storage
+              .from('invoices')
+              .remove([`${userId}/${fileName}`])
+          }
+        }
       }
+
+      // Eliminar las facturas de la base de datos
+      const { error } = await supabase
+        .from('invoices')
+        .delete()
+        .in('id', idsArray)
+        .eq('user_id', userId)
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
+
+      return NextResponse.json({ success: true, deleted: idsArray.length })
+    } else if (id) {
+      // Eliminación individual
+      // Obtener la factura para eliminar el archivo
+      const { data: invoice } = await supabase
+        .from('invoices')
+        .select('file_url')
+        .eq('id', id)
+        .eq('user_id', userId)
+        .single()
+
+      if (invoice?.file_url) {
+        const fileName = invoice.file_url.split('/').pop()
+        if (fileName) {
+          await supabase.storage
+            .from('invoices')
+            .remove([`${userId}/${fileName}`])
+        }
+      }
+
+      // Eliminar la factura
+      const { error } = await supabase
+        .from('invoices')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', userId)
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
+
+      return NextResponse.json({ success: true })
+    } else {
+      return NextResponse.json({ error: 'ID requerido' }, { status: 400 })
     }
-
-    // Eliminar registro de la base de datos
-    const { error: deleteError } = await supabase
-      .from('invoices')
-      .delete()
-      .eq('id', invoiceId)
-      .eq('user_id', userId)
-
-    if (deleteError) {
-      console.error('Error eliminando factura de BD:', deleteError)
-      return NextResponse.json({ error: 'Error al eliminar factura' }, { status: 500 })
-    }
-
-    console.log('Factura eliminada exitosamente')
-    return NextResponse.json({ success: true, message: 'Factura eliminada correctamente' })
-
   } catch (error) {
-    console.error('Error general:', error)
-    return NextResponse.json({ error: 'Error del servidor' }, { status: 500 })
+    console.error('Error eliminando factura:', error)
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 })
   }
 }

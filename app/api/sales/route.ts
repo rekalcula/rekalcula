@@ -1,54 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 // GET - Obtener ventas
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const { userId } = await auth()
+    
     if (!userId) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    const { searchParams } = new URL(request.url)
-    const startDate = searchParams.get('startDate')
-    const endDate = searchParams.get('endDate')
-    const limit = searchParams.get('limit') || '50'
-
-    let query = supabase
+    const { data: sales, error } = await supabase
       .from('sales')
       .select('*, sale_items(*)')
       .eq('user_id', userId)
       .order('sale_date', { ascending: false })
-      .limit(parseInt(limit))
 
-    if (startDate) {
-      query = query.gte('sale_date', startDate)
-    }
-    if (endDate) {
-      query = query.lte('sale_date', endDate)
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    const { data: sales, error } = await query
-
-    if (error) throw error
-
-    // Calcular totales
-    const totalSales = (sales || []).reduce((sum, sale) => sum + (sale.total || 0), 0)
-    const totalCost = (sales || []).reduce((sum, sale) => {
-      return sum + (sale.sale_items || []).reduce((itemSum: number, item: any) => 
-        itemSum + ((item.cost_price || 0) * (item.quantity || 0)), 0)
-    }, 0)
-
-    return NextResponse.json({ 
-      sales: sales || [], 
-      totalSales,
-      totalCost,
-      grossProfit: totalSales - totalCost
-    })
-
+    return NextResponse.json(sales)
   } catch (error) {
-    console.error('Error:', error)
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })
   }
 }
@@ -57,87 +36,110 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth()
+    
     if (!userId) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
     const body = await request.json()
-    const { sale_date, items, payment_method, notes, source } = body
 
-    // Calcular totales
-    const subtotal = items.reduce((sum: number, item: any) => 
-      sum + (item.unit_price * item.quantity), 0)
-    const totalCost = items.reduce((sum: number, item: any) => 
-      sum + ((item.cost_price || 0) * item.quantity), 0)
-
-    // Crear venta
     const { data: sale, error: saleError } = await supabase
       .from('sales')
       .insert({
         user_id: userId,
-        sale_date: sale_date || new Date().toISOString().split('T')[0],
-        subtotal,
-        total: subtotal,
-        payment_method,
-        notes,
-        source: source || 'manual'
+        sale_date: body.sale_date,
+        total: body.total,
+        payment_method: body.payment_method,
+        notes: body.notes,
+        source: 'manual'
       })
       .select()
       .single()
 
-    if (saleError) throw saleError
+    if (saleError) {
+      return NextResponse.json({ error: saleError.message }, { status: 500 })
+    }
 
-    // Crear items de la venta
-    const saleItems = items.map((item: any) => ({
-      sale_id: sale.id,
-      product_id: item.product_id,
-      product_name: item.product_name,
-      quantity: item.quantity,
-      unit_price: item.unit_price,
-      cost_price: item.cost_price || 0,
-      total: item.unit_price * item.quantity
-    }))
+    // Insertar items si existen
+    if (body.items && body.items.length > 0) {
+      const saleItems = body.items.map((item: any) => ({
+        sale_id: sale.id,
+        product_name: item.product_name,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        total: item.total
+      }))
 
-    const { error: itemsError } = await supabase
-      .from('sale_items')
-      .insert(saleItems)
-
-    if (itemsError) throw itemsError
+      await supabase.from('sale_items').insert(saleItems)
+    }
 
     return NextResponse.json({ success: true, sale })
-
   } catch (error) {
-    console.error('Error:', error)
-    return NextResponse.json({ error: 'Error al guardar venta' }, { status: 500 })
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 })
   }
 }
 
-// DELETE - Eliminar venta
+// DELETE - Eliminar venta(s)
 export async function DELETE(request: NextRequest) {
   try {
     const { userId } = await auth()
+    
     if (!userId) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
+    const ids = searchParams.get('ids') // Para eliminación múltiple
 
-    if (!id) {
+    if (ids) {
+      // Eliminación múltiple
+      const idsArray = ids.split(',')
+      
+      // Primero eliminar los items
+      for (const saleId of idsArray) {
+        await supabase
+          .from('sale_items')
+          .delete()
+          .eq('sale_id', saleId)
+      }
+
+      // Luego eliminar las ventas
+      const { error } = await supabase
+        .from('sales')
+        .delete()
+        .in('id', idsArray)
+        .eq('user_id', userId)
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
+
+      return NextResponse.json({ success: true, deleted: idsArray.length })
+    } else if (id) {
+      // Eliminación individual
+      // Primero eliminar los items
+      await supabase
+        .from('sale_items')
+        .delete()
+        .eq('sale_id', id)
+
+      // Luego eliminar la venta
+      const { error } = await supabase
+        .from('sales')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', userId)
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
+
+      return NextResponse.json({ success: true })
+    } else {
       return NextResponse.json({ error: 'ID requerido' }, { status: 400 })
     }
-
-    // Los items se eliminan automáticamente por CASCADE
-    await supabase
-      .from('sales')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', userId)
-
-    return NextResponse.json({ success: true })
-
   } catch (error) {
-    console.error('Error:', error)
-    return NextResponse.json({ error: 'Error al eliminar' }, { status: 500 })
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 })
   }
 }

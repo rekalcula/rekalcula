@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import DashboardNav from '@/components/DashboardNav'
+import DeleteSaleButton from '@/components/DeleteSaleButton'
 import Link from 'next/link'
 
 const supabase = createClient(
@@ -158,17 +159,37 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
               )}
             </div>
 
-            {/* Columna derecha - Acciones */}
+            {/* Columna derecha - Imagen y Acciones */}
             <div className="space-y-6">
+              {/* Imagen del ticket */}
+              {sale.file_url && (
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <h2 className="text-lg font-bold text-gray-900 mb-4">Ticket</h2>
+                  <div className="rounded-lg overflow-hidden border">
+                    <img 
+                      src={sale.file_url} 
+                      alt="Ticket de venta"
+                      className="w-full h-auto"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Acciones */}
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h2 className="text-lg font-bold text-gray-900 mb-4">Acciones</h2>
                 <div className="space-y-3">
-                  <Link
-                    href="/dashboard/sales"
-                    className="block w-full text-center bg-gray-100 text-gray-700 px-4 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors"
-                  >
-                    ← Volver a la lista
-                  </Link>
+                  {sale.file_url && (
+                    <a
+                      href={sale.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full text-center bg-blue-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      Abrir en nueva pestaña
+                    </a>
+                  )}
+                  <DeleteSaleButton saleId={id} />
                 </div>
               </div>
             </div>
