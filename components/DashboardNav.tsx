@@ -13,6 +13,7 @@ export default function DashboardNav() {
     { href: '/dashboard/costs', label: 'Costos Fijos', icon: '💸' },
     { href: '/dashboard/analytics', label: 'Análisis', icon: '📈' },
     { href: '/dashboard/analytics/sales', label: 'Análisis Ventas', icon: '📉' },
+    { href: '/dashboard/advisor', label: 'Asesor', icon: '💡' },
   ]
 
   return (
