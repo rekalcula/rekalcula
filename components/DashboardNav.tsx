@@ -12,6 +12,7 @@ export default function DashboardNav() {
     { href: '/dashboard/sales', label: 'Ventas', icon: '🛒' },
     { href: '/dashboard/costs', label: 'Costos Fijos', icon: '💸' },
     { href: '/dashboard/analytics', label: 'Análisis', icon: '📈' },
+    { href: '/dashboard/analytics/sales', label: 'Análisis Ventas', icon: '📉' },
   ]
 
   return (
@@ -31,7 +32,7 @@ export default function DashboardNav() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 ${
+                  className={`px-3 py-2 rounded-lg font-medium transition-colors flex items-center space-x-1 text-sm ${
                     isActive
                       ? 'bg-blue-100 text-blue-700'
                       : 'text-gray-600 hover:bg-gray-100'
