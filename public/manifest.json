@@ -1,0 +1,58 @@
+{
+  "name": "reKalcula - Gestión de Negocios",
+  "short_name": "reKalcula",
+  "description": "Optimiza tu negocio con análisis inteligente de facturas y ventas",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0d0d0d",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["business", "finance", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Subir Factura",
+      "short_name": "Factura",
+      "description": "Subir una nueva factura",
+      "url": "/dashboard/upload"
+    },
+    {
+      "name": "Subir Ticket",
+      "short_name": "Ticket", 
+      "description": "Subir un ticket de venta",
+      "url": "/dashboard/sales/upload"
+    },
+    {
+      "name": "Asesor IA",
+      "short_name": "Asesor",
+      "description": "Ver recomendaciones",
+      "url": "/dashboard/advisor"
+    }
+  ]
+}
