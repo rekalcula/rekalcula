@@ -26,11 +26,11 @@ export default function UploadForm() {
     setDragActive(false)
 
     const droppedFiles = Array.from(e.dataTransfer.files)
-    const validFiles = droppedFiles.filter(file => 
-      file.type === 'application/pdf' || 
+    const validFiles = droppedFiles.filter(file =>
+      file.type === 'application/pdf' ||
       file.type.startsWith('image/')
     )
-    
+
     if (validFiles.length > 0) {
       setFiles(prev => [...prev, ...validFiles])
     } else {
@@ -118,8 +118,8 @@ export default function UploadForm() {
         onDrop={handleDrop}
         className={`
           border-2 border-dashed rounded-lg p-12 text-center transition-colors
-          ${dragActive 
-            ? 'border-blue-500 bg-blue-50' 
+          ${dragActive
+            ? 'border-[#0d0d0d] bg-gray-100'
             : 'border-gray-300 hover:border-gray-400'
           }
         `}
@@ -142,7 +142,7 @@ export default function UploadForm() {
         />
         <label
           htmlFor="file-upload"
-          className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
+          className="inline-block bg-[#0d0d0d] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#2d2d2d] transition-colors cursor-pointer"
         >
           Seleccionar Archivos
         </label>
@@ -193,13 +193,13 @@ export default function UploadForm() {
             <span className="text-sm font-medium text-gray-700">
               Procesando archivos...
             </span>
-            <span className="text-sm font-semibold text-blue-600">
+            <span className="text-sm font-semibold text-[#0d0d0d]">
               {progress}%
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-3">
             <div
-              className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+              className="bg-[#0d0d0d] h-3 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -217,12 +217,12 @@ export default function UploadForm() {
           w-full py-4 px-6 rounded-lg font-semibold text-lg transition-colors
           ${files.length === 0 || uploading
             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            : 'bg-blue-600 text-white hover:bg-blue-700'
+            : 'bg-[#0d0d0d] text-white hover:bg-[#2d2d2d]'
           }
         `}
       >
-        {uploading 
-          ? `Procesando ${files.length} archivo${files.length > 1 ? 's' : ''}...` 
+        {uploading
+          ? `Procesando ${files.length} archivo${files.length > 1 ? 's' : ''}...`
           : `Subir ${files.length > 0 ? files.length : ''} Archivo${files.length > 1 ? 's' : files.length === 1 ? '' : 's'}`
         }
       </button>

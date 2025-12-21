@@ -7,14 +7,13 @@ interface Category {
   id: string
   name: string
   icon: string
-  color: string
   is_system: boolean
 }
 
 interface FixedCost {
   id: string
   name: string
-  description: string
+  description?: string
   amount: number
   frequency: string
   category_id: string
@@ -108,7 +107,7 @@ export default function FixedCostsManager({ initialCategories, initialCosts }: P
       <div className="flex justify-end">
         <button
           onClick={() => setShowAddCost(true)}
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700"
+          className="bg-[#0d0d0d] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2d2d2d]"
         >
           + Añadir Costo Fijo
         </button>
@@ -199,7 +198,7 @@ export default function FixedCostsManager({ initialCategories, initialCosts }: P
             <button
               onClick={handleAddCost}
               disabled={saving || !newCost.name || !newCost.amount || !newCost.category_id}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
+              className="px-6 py-2 bg-[#0d0d0d] text-white rounded-lg font-medium hover:bg-[#2d2d2d] disabled:opacity-50"
             >
               {saving ? 'Guardando...' : 'Guardar'}
             </button>

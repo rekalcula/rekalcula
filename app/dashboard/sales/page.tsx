@@ -35,7 +35,6 @@ export default async function SalesPage() {
 
   // Agrupar ventas por fecha
   const salesByDate: { [key: string]: any[] } = {}
-  
   salesList.forEach((sale) => {
     const date = sale.sale_date || sale.created_at?.split('T')[0] || 'sin-fecha'
     if (!salesByDate[date]) {
@@ -62,7 +61,7 @@ export default async function SalesPage() {
             </div>
             <Link
               href="/dashboard/sales/upload"
-              className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700"
+              className="bg-[#0d0d0d] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2d2d2d]"
             >
               📤 Subir Ticket
             </Link>
@@ -89,9 +88,9 @@ export default async function SalesPage() {
           </div>
 
           {/* Lista con selección */}
-          <SalesListWithSelection 
-            salesByDate={salesByDate} 
-            sortedDates={sortedDates} 
+          <SalesListWithSelection
+            salesByDate={salesByDate}
+            sortedDates={sortedDates}
           />
         </div>
       </div>

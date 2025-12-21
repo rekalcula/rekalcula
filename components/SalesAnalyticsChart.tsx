@@ -97,7 +97,7 @@ export default function SalesAnalyticsChart() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#c15f3c]"></div>
       </div>
     )
   }
@@ -114,7 +114,7 @@ export default function SalesAnalyticsChart() {
               <button
                 onClick={() => setPeriod('day')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  period === 'day' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'
+                  period === 'day' ? 'bg-white shadow text-[#c15f3c]' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 Día
@@ -122,7 +122,7 @@ export default function SalesAnalyticsChart() {
               <button
                 onClick={() => setPeriod('week')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  period === 'week' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'
+                  period === 'week' ? 'bg-white shadow text-[#c15f3c]' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 Semana
@@ -130,7 +130,7 @@ export default function SalesAnalyticsChart() {
               <button
                 onClick={() => setPeriod('month')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  period === 'month' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'
+                  period === 'month' ? 'bg-white shadow text-[#c15f3c]' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 Mes
@@ -144,7 +144,7 @@ export default function SalesAnalyticsChart() {
               type="checkbox"
               checked={compare}
               onChange={(e) => setCompare(e.target.checked)}
-              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="w-5 h-5 rounded border-gray-300 text-[#c15f3c] focus:ring-[#c15f3c]"
             />
             <span className="text-sm font-medium text-gray-700">
               Comparar {getCompareLabel()}
@@ -158,7 +158,7 @@ export default function SalesAnalyticsChart() {
               <button
                 onClick={() => setViewMode('quantity')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  viewMode === 'quantity' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'
+                  viewMode === 'quantity' ? 'bg-white shadow text-[#c15f3c]' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 Cantidad
@@ -166,7 +166,7 @@ export default function SalesAnalyticsChart() {
               <button
                 onClick={() => setViewMode('revenue')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  viewMode === 'revenue' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'
+                  viewMode === 'revenue' ? 'bg-white shadow text-[#c15f3c]' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 Ingresos
@@ -210,7 +210,7 @@ export default function SalesAnalyticsChart() {
 
         <div className="bg-white rounded-xl shadow-sm p-6">
           <p className="text-sm text-gray-500">Producto Más Vendido</p>
-          <p className="text-2xl font-bold text-blue-600">{data?.topProduct?.name || '-'}</p>
+          <p className="text-2xl font-bold text-[#c15f3c]">{data?.topProduct?.name || '-'}</p>
           {data?.topProduct && (
             <p className="text-sm mt-1 text-gray-500">
               {data.topProduct.quantity} uds · €{data.topProduct.revenue.toFixed(2)}
@@ -246,14 +246,14 @@ export default function SalesAnalyticsChart() {
                     <span className="font-medium text-gray-900">{product.name}</span>
                     <div className="flex items-center space-x-4">
                       <span className="text-gray-600">
-                        {viewMode === 'quantity' 
-                          ? `${product.quantity} uds` 
+                        {viewMode === 'quantity'
+                          ? `${product.quantity} uds`
                           : `€${product.revenue.toFixed(2)}`
                         }
                       </span>
                       <span className="text-sm text-gray-400">
-                        ({viewMode === 'quantity' 
-                          ? product.percentage.toFixed(1) 
+                        ({viewMode === 'quantity'
+                          ? product.percentage.toFixed(1)
                           : product.revenuePercentage.toFixed(1)
                         }%)
                       </span>
@@ -264,11 +264,11 @@ export default function SalesAnalyticsChart() {
                       )}
                     </div>
                   </div>
-                  
+
                   {/* Barra actual */}
                   <div className="h-6 bg-gray-100 rounded-full overflow-hidden relative">
                     <div
-                      className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                      className="h-full bg-[#c15f3c] rounded-full transition-all duration-500"
                       style={{ width: `${barWidth}%` }}
                     />
                     {/* Barra anterior (comparativa) */}
@@ -292,7 +292,7 @@ export default function SalesAnalyticsChart() {
         <div className="px-6 py-4 border-b">
           <h3 className="text-lg font-bold text-gray-900">Detalle por Producto</h3>
         </div>
-        
+
         {!data || data.products.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500">No hay datos disponibles</p>

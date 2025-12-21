@@ -35,7 +35,6 @@ export default async function InvoicesPage() {
 
   // Agrupar facturas por fecha
   const invoicesByDate: { [key: string]: any[] } = {}
-  
   invoiceList.forEach((invoice) => {
     const date = invoice.invoice_date || invoice.created_at?.split('T')[0] || 'sin-fecha'
     if (!invoicesByDate[date]) {
@@ -62,7 +61,7 @@ export default async function InvoicesPage() {
             </div>
             <Link
               href="/dashboard/upload"
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700"
+              className="bg-[#0d0d0d] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2d2d2d]"
             >
               📤 Subir Factura
             </Link>
@@ -89,9 +88,9 @@ export default async function InvoicesPage() {
           </div>
 
           {/* Lista con selección */}
-          <InvoicesListWithSelection 
-            invoicesByDate={invoicesByDate} 
-            sortedDates={sortedDates} 
+          <InvoicesListWithSelection
+            invoicesByDate={invoicesByDate}
+            sortedDates={sortedDates}
           />
         </div>
       </div>

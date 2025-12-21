@@ -26,7 +26,7 @@ export default async function SalesAnalyticsPage() {
             </div>
             <Link
               href="/dashboard/sales/upload"
-              className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700"
+              className="bg-[#0d0d0d] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2d2d2d]"
             >
               📤 Subir Ticket
             </Link>
