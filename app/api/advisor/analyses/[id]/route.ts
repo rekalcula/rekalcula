@@ -7,7 +7,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// GET: Obtener un análisis específico con sus recomendaciones
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
