@@ -1,5 +1,4 @@
-const CACHE_NAME = 'rekalcula-v1';
-
+﻿const CACHE_NAME = 'rekalcula-v1';
 // Archivos a cachear para offline
 const urlsToCache = [
   '/',
@@ -41,12 +40,12 @@ self.addEventListener('activate', (event) => {
 
 // Estrategia: Network first, fallback to cache
 self.addEventListener('fetch', (event) => {
-  // Solo cachear peticiones GET
-  if (event.request.method !== 'GET') return;
-  
-  // No cachear peticiones a APIs
-  if (event.request.url.includes('/api/')) return;
-  
+  // No cachear peticiones que no sean GET o que sean a APIs
+  if (event.request.method !== 'GET' || event.request.url.includes('/api/')) {
+    // Dejar que el navegador maneje la petición normalmente
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
