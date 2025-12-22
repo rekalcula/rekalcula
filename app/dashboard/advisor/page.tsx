@@ -478,7 +478,7 @@ export default function AdvisorPage() {
                             )}
                           </div>
                           <h4 className="font-semibold text-gray-900 mb-2">{rec.titulo}</h4>
-                          <p className="text-sm text-gray-600 mb-3">{rec.descripcion}</p>
+                          <p className="text-sm text-gray-600 mb-3">{rec.mensaje}</p>
                           <div className="flex flex-wrap gap-4 text-xs text-gray-500">
                             <span>Ventas: {rec.datosReales?.ventas || 0}</span>
                             <span>Ingresos: �{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
@@ -665,7 +665,7 @@ export default function AdvisorPage() {
                           )}
                         </div>
                         <h4 className="font-semibold text-gray-900 mb-2">{rec.titulo}</h4>
-                        <p className="text-sm text-gray-600 mb-3">{rec.descripcion}</p>
+                        <p className="text-sm text-gray-600 mb-3">{rec.mensaje}</p>
                         <div className="flex flex-wrap gap-4 text-xs text-gray-500">
                           <span>Ventas: {rec.datosReales?.ventas || 0}</span>
                           <span>Ingresos: �{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
