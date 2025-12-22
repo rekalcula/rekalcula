@@ -7,17 +7,24 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+type RouteContext = {
+  params: Promise<{ id: string }>
+}
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+  context: RouteContext
+): Promise<NextResponse> {
   try {
     const { userId } = await auth()
     if (!userId) {
-      return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 })
+      return NextResponse.json(
+        { success: false, error: 'No autorizado' },
+        { status: 401 }
+      )
     }
 
-    const { id } = await params
+    const { id } = await context.params
 
     const { data, error } = await supabase
       .from('advisor_analyses')
@@ -28,11 +35,17 @@ export async function GET(
 
     if (error) throw error
     if (!data) {
-      return NextResponse.json({ success: false, error: 'Analisis no encontrado' }, { status: 404 })
+      return NextResponse.json(
+        { success: false, error: 'Analisis no encontrado' },
+        { status: 404 }
+      )
     }
 
     return NextResponse.json({ success: true, analysis: data })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    )
   }
 }
