@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -57,29 +57,16 @@ const IconX = () => (
   </svg>
 )
 
-const IconBook = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
-  </svg>
-)
-
-const IconDownload = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-    <polyline points="7 10 12 15 17 10"/>
-    <line x1="12" y1="15" x2="12" y2="3"/>
-  </svg>
-)
-
-const IconBell = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+const IconTrash = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 6h18"/>
+    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
   </svg>
 )
 
 const IconHistory = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
     <path d="M3 3v5h5"/>
     <path d="M12 7v5l4 2"/>
@@ -87,10 +74,22 @@ const IconHistory = () => (
 )
 
 const IconChart = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="18" y1="20" x2="18" y2="10"/>
     <line x1="12" y1="20" x2="12" y2="4"/>
     <line x1="6" y1="20" x2="6" y2="14"/>
+  </svg>
+)
+
+const IconFolder = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+  </svg>
+)
+
+const IconPlay = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="5 3 19 12 5 21 5 3"/>
   </svg>
 )
 
@@ -105,178 +104,227 @@ interface AdvisorResponse {
   recomendaciones: Recomendacion[]
   sinRecomendaciones?: boolean
   mensaje?: string
+  resumen?: any
 }
 
-interface HistorialItem {
+interface AnalysisItem {
   id: string
-  producto: string
-  principio_nombre: string
-  prioridad: number
-  accion: string
   created_at: string
+  periodo: string
+  sector: string
+  total_ventas: number
+  total_ingresos: number
+  num_recomendaciones: number
 }
 
-interface ImpactoItem {
+interface AnalysisDetail {
   id: string
-  producto: string
-  principio: string
-  diasTranscurridos: number
-  antes: { cantidad: number; ingresos: number }
-  despues: { cantidad: number; ingresos: number }
-  cambio: { cantidad: number; ingresos: number }
-  tendencia: string
-}
-
-interface Notificacion {
-  id: string
-  titulo: string
-  mensaje: string
-  producto: string
-  tendencia: number
+  created_at: string
+  periodo: string
+  sector: string
+  total_ventas: number
+  total_ingresos: number
+  num_recomendaciones: number
+  recomendaciones: Recomendacion[]
+  resumen: any
 }
 
 // ============================================================
 // COMPONENTE PRINCIPAL
 // ============================================================
 export default function AdvisorPage() {
-  const [data, setData] = useState<AdvisorResponse | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  // Estados principales
+  const [tabActiva, setTabActiva] = useState<'nuevo' | 'guardados'>('guardados')
   const [periodo, setPeriodo] = useState<'dia' | 'semana' | 'mes'>('mes')
-  const [filtroprioridad, setFiltroPrioridad] = useState<Prioridad | 'todas'>('todas')
-  const [recomendacionesDescartadas, setRecomendacionesDescartadas] = useState<Set<string>>(new Set())
-  const [recomendacionesAplicadas, setRecomendacionesAplicadas] = useState<Set<string>>(new Set())
-  const [mostrarPrincipio, setMostrarPrincipio] = useState<string | null>(null)
-  const [tabActiva, setTabActiva] = useState<'recomendaciones' | 'historial' | 'impacto'>('recomendaciones')
-  const [historial, setHistorial] = useState<HistorialItem[]>([])
-  const [estadisticasHistorial, setEstadisticasHistorial] = useState({ totalAplicadas: 0, totalDescartadas: 0 })
-  const [impactos, setImpactos] = useState<ImpactoItem[]>([])
-  const [resumenImpacto, setResumenImpacto] = useState<any>(null)
-  const [notificaciones, setNotificaciones] = useState<Notificacion[]>([])
-  const [mostrarNotificaciones, setMostrarNotificaciones] = useState(false)
-  const [exportando, setExportando] = useState(false)
-  const [guardando, setGuardando] = useState<string | null>(null)
+  
+  // Estados para nuevo análisis
+  const [generando, setGenerando] = useState(false)
+  const [guardando, setGuardando] = useState(false)
+  const [analisisActual, setAnalisisActual] = useState<AdvisorResponse | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  
+  // Estados para análisis guardados
+  const [analisisGuardados, setAnalisisGuardados] = useState<AnalysisItem[]>([])
+  const [cargandoGuardados, setCargandoGuardados] = useState(true)
+  const [seleccionados, setSeleccionados] = useState<Set<string>>(new Set())
+  const [borrando, setBorrando] = useState(false)
+  
+  // Estados para ver detalle
+  const [analisisDetalle, setAnalisisDetalle] = useState<AnalysisDetail | null>(null)
+  const [cargandoDetalle, setCargandoDetalle] = useState(false)
 
-  const cargarRecomendaciones = async () => {
-    setLoading(true)
+  // Cargar análisis guardados al inicio
+  useEffect(() => {
+    cargarAnalisisGuardados()
+  }, [])
+
+  const cargarAnalisisGuardados = async () => {
+    setCargandoGuardados(true)
+    try {
+      const response = await fetch('/api/advisor/analyses')
+      const result = await response.json()
+      if (result.success) {
+        setAnalisisGuardados(result.analyses || [])
+      }
+    } catch (err) {
+      console.error('Error cargando análisis:', err)
+    } finally {
+      setCargandoGuardados(false)
+    }
+  }
+
+  const generarNuevoAnalisis = async () => {
+    setGenerando(true)
     setError(null)
+    setAnalisisActual(null)
+    
     try {
       const response = await fetch(`/api/advisor?periodo=${periodo}`)
       const result = await response.json()
-      if (!result.success) throw new Error(result.error || 'Error desconocido')
-      setData(result)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error cargando recomendaciones')
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Error generando análisis')
+      }
+      
+      setAnalisisActual(result)
+    } catch (err: any) {
+      setError(err.message || 'Error generando análisis')
     } finally {
-      setLoading(false)
+      setGenerando(false)
     }
   }
 
-  const cargarHistorial = async () => {
+  const guardarAnalisis = async () => {
+    if (!analisisActual) return
+    
+    setGuardando(true)
     try {
-      const response = await fetch('/api/advisor/history')
-      const result = await response.json()
-      if (result.success) {
-        setHistorial(result.historial || [])
-        setEstadisticasHistorial(result.estadisticas || { totalAplicadas: 0, totalDescartadas: 0 })
-      }
-    } catch (err) {
-      console.error('Error cargando historial:', err)
-    }
-  }
-
-  const cargarImpacto = async () => {
-    try {
-      const response = await fetch('/api/advisor/impact')
-      const result = await response.json()
-      if (result.success && result.tienesDatos) {
-        setImpactos(result.impactos || [])
-        setResumenImpacto(result.resumen)
-      }
-    } catch (err) {
-      console.error('Error cargando impacto:', err)
-    }
-  }
-
-  const cargarNotificaciones = async () => {
-    try {
-      const response = await fetch('/api/advisor/notifications')
-      const result = await response.json()
-      if (result.success) setNotificaciones(result.notificaciones || [])
-    } catch (err) {
-      console.error('Error cargando notificaciones:', err)
-    }
-  }
-
-  useEffect(() => {
-    cargarRecomendaciones()
-    cargarNotificaciones()
-  }, [periodo])
-
-  useEffect(() => {
-    if (tabActiva === 'historial') cargarHistorial()
-    else if (tabActiva === 'impacto') cargarImpacto()
-  }, [tabActiva])
-
-  const guardarEnHistorial = async (rec: Recomendacion, accion: 'aplicada' | 'descartada') => {
-    setGuardando(rec.id)
-    try {
-      const response = await fetch('/api/advisor/history', {
+      const response = await fetch('/api/advisor/analyses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recomendacion: rec, accion })
+        body: JSON.stringify({
+          periodo: analisisActual.periodo,
+          sector: analisisActual.sector,
+          totalVentas: analisisActual.recomendaciones?.reduce((acc, r) => acc + (r.datosReales?.cantidad || 0), 0),
+          totalIngresos: analisisActual.recomendaciones?.reduce((acc, r) => acc + (r.datosReales?.ingresos || 0), 0),
+          recomendaciones: analisisActual.recomendaciones,
+          resumen: analisisActual.resumen
+        })
       })
+      
       const result = await response.json()
       if (!result.success) throw new Error(result.error)
-      if (accion === 'aplicada') {
-        setRecomendacionesAplicadas(prev => new Set([...prev, rec.id]))
-      } else {
-        setRecomendacionesDescartadas(prev => new Set([...prev, rec.id]))
-      }
-      if (tabActiva === 'historial') cargarHistorial()
-    } catch (err) {
-      console.error('Error guardando en historial:', err)
-      alert('Error guardando la acción')
+      
+      // Recargar lista y cambiar a tab guardados
+      await cargarAnalisisGuardados()
+      setAnalisisActual(null)
+      setTabActiva('guardados')
+      
+    } catch (err: any) {
+      alert('Error guardando: ' + err.message)
     } finally {
-      setGuardando(null)
+      setGuardando(false)
     }
   }
 
-  const exportarPDF = async () => {
-    setExportando(true)
+  const verDetalleAnalisis = async (id: string) => {
+    setCargandoDetalle(true)
     try {
-      const response = await fetch(`/api/advisor/export-pdf?periodo=${periodo}`)
-      if (!response.ok) throw new Error('Error generando informe')
-      const html = await response.text()
-      const blob = new Blob([html], { type: 'text/html' })
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `informe-rekalcula-${periodo}.html`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
-      alert('Informe descargado. Ábrelo en el navegador y usa Ctrl+P para guardar como PDF.')
+      const response = await fetch(`/api/advisor/analyses/${id}`)
+      const result = await response.json()
+      if (result.success) {
+        setAnalisisDetalle(result.analysis)
+      }
     } catch (err) {
-      console.error('Error exportando:', err)
-      alert('Error generando el informe')
+      console.error('Error cargando detalle:', err)
     } finally {
-      setExportando(false)
+      setCargandoDetalle(false)
     }
   }
 
-  const recomendacionesFiltradas = data?.recomendaciones?.filter(rec => {
-    if (recomendacionesDescartadas.has(rec.id)) return false
-    if (filtroprioridad !== 'todas' && rec.prioridad !== Number(filtroprioridad)) return false
-    return true
-  }) || []
+  const toggleSeleccion = (id: string) => {
+    const nuevo = new Set(seleccionados)
+    if (nuevo.has(id)) {
+      nuevo.delete(id)
+    } else {
+      nuevo.add(id)
+    }
+    setSeleccionados(nuevo)
+  }
 
-  const getColorPrioridad = (prioridad: Prioridad) => {
+  const seleccionarTodos = () => {
+    if (seleccionados.size === analisisGuardados.length) {
+      setSeleccionados(new Set())
+    } else {
+      setSeleccionados(new Set(analisisGuardados.map(a => a.id)))
+    }
+  }
+
+  const borrarSeleccionados = async () => {
+    if (seleccionados.size === 0) return
+    
+    if (!confirm(`¿Eliminar ${seleccionados.size} análisis?`)) return
+    
+    setBorrando(true)
+    try {
+      const ids = Array.from(seleccionados).join(',')
+      const response = await fetch(`/api/advisor/analyses?ids=${ids}`, {
+        method: 'DELETE'
+      })
+      
+      const result = await response.json()
+      if (!result.success) throw new Error(result.error)
+      
+      setSeleccionados(new Set())
+      await cargarAnalisisGuardados()
+      
+      if (analisisDetalle && seleccionados.has(analisisDetalle.id)) {
+        setAnalisisDetalle(null)
+      }
+      
+    } catch (err: any) {
+      alert('Error borrando: ' + err.message)
+    } finally {
+      setBorrando(false)
+    }
+  }
+
+  const formatearFecha = (fecha: string) => {
+    return new Date(fecha).toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  const traducirPeriodo = (p: string) => {
+    switch(p) {
+      case 'dia': return 'Día'
+      case 'semana': return 'Semana'
+      case 'mes': return 'Mes'
+      default: return p
+    }
+  }
+
+  const traducirSector = (s: string) => {
+    const sectores: Record<string, string> = {
+      'cafeteria': 'Cafetería',
+      'restaurante': 'Restaurante',
+      'peluqueria': 'Peluquería',
+      'taller_mecanico': 'Taller Mecánico',
+      'carpinteria': 'Carpintería',
+      'general': 'General'
+    }
+    return sectores[s] || s
+  }
+
+  const getColorPrioridad = (prioridad: number) => {
     switch (prioridad) {
       case 1: return { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', badge: 'bg-red-100 text-red-800' }
       case 2: return { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', badge: 'bg-amber-100 text-amber-800' }
-      case 3: return { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', badge: 'bg-green-100 text-green-800' }
+      case 3: return { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', badge: 'bg-blue-100 text-blue-800' }
       default: return { bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-700', badge: 'bg-gray-100 text-gray-800' }
     }
   }
@@ -290,454 +338,343 @@ export default function AdvisorPage() {
     }
   }
 
-  const traducirSector = (sector: string) => {
-    const traducciones: Record<string, string> = {
-      cafeteria: 'Cafetería', restaurante: 'Restaurante',
-      peluqueria: 'Peluquería', tienda: 'Tienda',
-      taller: 'Taller mecánico', desconocido: 'Negocio'
-    }
-    return traducciones[sector] || sector
-  }
-
   return (
-    
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6" suppressHydrationWarning>
-
+    <div className="max-w-7xl mx-auto px-4 py-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 flex items-center gap-2">
-            <IconLightbulb />
-            Asesor de Ventas
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
+            <span className="text-2xl">💡</span> Asesor IA
           </h1>
-          <p className="text-sm text-gray-500">
-            Recomendaciones basadas en principios científicos
+          <p className="text-sm text-gray-500 mt-1">
+            Genera y guarda análisis de tu negocio
           </p>
-        </div>
-
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Botón de notificaciones */}
-          <div className="relative">
-            <button
-              onClick={() => setMostrarNotificaciones(!mostrarNotificaciones)}
-              className={`p-2 rounded-lg transition-colors relative ${
-                notificaciones.length > 0
-                  ? 'bg-red-100 text-red-600 hover:bg-red-200'
-                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-              }`}
-            >
-              <IconBell />
-              {notificaciones.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  {notificaciones.length}
-                </span>
-              )}
-            </button>
-
-            {mostrarNotificaciones && notificaciones.length > 0 && (
-              <div className="absolute right-0 mt-2 w-64 sm:w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-50">
-                <div className="p-3 border-b border-gray-100">
-                  <h3 className="font-medium text-gray-900">⚠️ Alertas</h3>
-                </div>
-                <div className="max-h-64 overflow-y-auto">
-                  {notificaciones.map(notif => (
-                    <div key={notif.id} className="p-3 border-b border-gray-50 hover:bg-gray-50">
-                      <p className="font-medium text-sm text-gray-900">{notif.titulo}</p>
-                      <p className="text-xs text-gray-500">{notif.mensaje}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <button
-            onClick={exportarPDF}
-            disabled={exportando || !data?.recomendaciones?.length}
-            className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 text-xs sm:text-sm"
-          >
-            <IconDownload />
-            <span className="hidden sm:inline">{exportando ? 'Exportando...' : 'Exportar'}</span>
-          </button>
-
-          <button
-            onClick={cargarRecomendaciones}
-            disabled={loading}
-            className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors disabled:opacity-50 text-xs sm:text-sm"
-          >
-            <span className={loading ? 'animate-spin' : ''}>
-              <IconRefresh />
-            </span>
-            <span className="hidden sm:inline">Actualizar</span>
-          </button>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="bg-white rounded-xl border border-gray-200 mb-6 overflow-hidden">
-        <div className="flex border-b border-gray-200 overflow-x-auto">
+        <div className="flex border-b border-gray-200">
           <button
-            onClick={() => setTabActiva('recomendaciones')}
-            className={`flex items-center gap-2 px-4 sm:px-6 py-3 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
-              tabActiva === 'recomendaciones'
+            onClick={() => { setTabActiva('guardados'); setAnalisisDetalle(null) }}
+            className={`flex items-center gap-2 px-4 sm:px-6 py-3 font-medium text-sm transition-colors ${
+              tabActiva === 'guardados'
+                ? 'text-[#0d0d0d] border-b-2 border-[#0d0d0d]'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <IconFolder />
+            Análisis Guardados
+            {analisisGuardados.length > 0 && (
+              <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">
+                {analisisGuardados.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => { setTabActiva('nuevo'); setAnalisisDetalle(null) }}
+            className={`flex items-center gap-2 px-4 sm:px-6 py-3 font-medium text-sm transition-colors ${
+              tabActiva === 'nuevo'
                 ? 'text-[#0d0d0d] border-b-2 border-[#0d0d0d]'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             <IconLightbulb />
-            Recomendaciones
-          </button>
-          <button
-            onClick={() => setTabActiva('historial')}
-            className={`flex items-center gap-2 px-4 sm:px-6 py-3 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
-              tabActiva === 'historial'
-                ? 'text-[#0d0d0d] border-b-2 border-[#0d0d0d]'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            <IconHistory />
-            Historial
-          </button>
-          <button
-            onClick={() => setTabActiva('impacto')}
-            className={`flex items-center gap-2 px-4 sm:px-6 py-3 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
-              tabActiva === 'impacto'
-                ? 'text-[#0d0d0d] border-b-2 border-[#0d0d0d]'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            <IconChart />
-            Impacto
+            Nuevo Análisis
           </button>
         </div>
-
-        {/* Filtros */}
-        {tabActiva === 'recomendaciones' && (
-          <div className="p-3 sm:p-4 flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 sm:gap-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Período</label>
-              <select
-                value={periodo}
-                onChange={(e) => setPeriodo(e.target.value as 'dia' | 'semana' | 'mes')}
-                className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0d0d0d]"
-              >
-                <option value="dia">Hoy</option>
-                <option value="semana">Esta semana</option>
-                <option value="mes">Este mes</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Prioridad</label>
-              <select
-                value={filtroprioridad}
-                onChange={(e) => setFiltroPrioridad(e.target.value as Prioridad | 'todas')}
-                className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0d0d0d]"
-              >
-                <option value="todas">Todas</option>
-                <option value="1">Alta</option>
-                <option value="2">Media</option>
-                <option value="3">Baja</option>
-              </select>
-            </div>
-
-            {data && !loading && (
-              <div className="ml-auto text-right">
-                <p className="text-xs text-gray-500">Sector</p>
-                <p className="text-sm font-medium text-gray-900">
-                  {traducirSector(data.sector)}
-                </p>
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
-      {/* TAB: RECOMENDACIONES */}
-      {tabActiva === 'recomendaciones' && (
-        <>
-          {loading && (
-            <div className="bg-white rounded-xl border border-gray-200 p-8 sm:p-12 text-center">
-              <div className="animate-spin w-8 h-8 border-4 border-[#0d0d0d] border-t-transparent rounded-full mx-auto mb-4"></div>
-              <p className="text-gray-500">Analizando datos...</p>
-            </div>
-          )}
-
-          {error && !loading && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-              <p className="text-red-700 font-medium mb-2">Error</p>
-              <p className="text-red-600 text-sm">{error}</p>
+      {/* TAB: NUEVO ANÁLISIS */}
+      {tabActiva === 'nuevo' && (
+        <div className="space-y-6">
+          {/* Controles */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Configurar Análisis</h2>
+            
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Período a analizar</label>
+                <select
+                  value={periodo}
+                  onChange={(e) => setPeriodo(e.target.value as 'dia' | 'semana' | 'mes')}
+                  className="px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0d0d0d]"
+                  disabled={generando}
+                >
+                  <option value="dia">Hoy</option>
+                  <option value="semana">Esta semana</option>
+                  <option value="mes">Este mes</option>
+                </select>
+              </div>
+              
               <button
-                onClick={cargarRecomendaciones}
-                className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200"
+                onClick={generarNuevoAnalisis}
+                disabled={generando}
+                className="flex items-center gap-2 px-6 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors disabled:opacity-50 font-medium"
               >
-                Reintentar
+                {generando ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Analizando...
+                  </>
+                ) : (
+                  <>
+                    <IconPlay />
+                    Generar Análisis
+                  </>
+                )}
               </button>
             </div>
-          )}
+          </div>
 
-          {data?.sinRecomendaciones && !loading && (
-            <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8 text-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <IconLightbulb />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Sin recomendaciones</h3>
-              <p className="text-gray-500 max-w-md mx-auto text-sm">{data.mensaje}</p>
-              <Link
-                href="/dashboard/sales/upload"
-                className="inline-block mt-6 px-6 py-3 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d]"
-              >
-                Subir tickets
-              </Link>
+          {/* Error */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+              <p className="text-red-700">❌ {error}</p>
             </div>
           )}
 
-          {!loading && !error && recomendacionesFiltradas.length > 0 && (
-            <>
-              <div className="mb-4 text-sm text-gray-500">
-                {recomendacionesFiltradas.length} recomendación{recomendacionesFiltradas.length !== 1 ? 'es' : ''}
+          {/* Resultado del análisis */}
+          {analisisActual && !analisisActual.sinRecomendaciones && (
+            <div className="space-y-4">
+              {/* Resumen y botón guardar */}
+              <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Análisis Generado - {traducirSector(analisisActual.sector)}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {analisisActual.recomendaciones?.length || 0} recomendaciones encontradas
+                    </p>
+                  </div>
+                  <button
+                    onClick={guardarAnalisis}
+                    disabled={guardando}
+                    className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 font-medium"
+                  >
+                    {guardando ? 'Guardando...' : '💾 Guardar Análisis'}
+                  </button>
+                </div>
               </div>
 
+              {/* Lista de recomendaciones */}
               <div className="space-y-4">
-                {recomendacionesFiltradas.map((rec) => {
+                {analisisActual.recomendaciones?.map((rec) => {
                   const colors = getColorPrioridad(rec.prioridad)
-                  const aplicada = recomendacionesAplicadas.has(rec.id)
-                  const estaGuardando = guardando === rec.id
-
                   return (
-                    <div
-                      key={rec.id}
-                      className={`bg-white rounded-xl border-2 ${aplicada ? 'border-green-300 bg-green-50' : colors.border} overflow-hidden`}
-                    >
-                      <div className={`px-4 sm:px-5 py-3 ${aplicada ? 'bg-green-100' : colors.bg} border-b ${aplicada ? 'border-green-200' : colors.border}`}>
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${aplicada ? 'bg-green-200 text-green-800' : colors.badge}`}>
-                              {aplicada ? '✓ Aplicada' : `${getTextoPrioridad(rec.prioridad)}`}
+                    <div key={rec.id} className={`${colors.bg} border ${colors.border} rounded-xl p-4 sm:p-5`}>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors.badge}`}>
+                              {getTextoPrioridad(rec.prioridad)}
                             </span>
-                            {rec.datosReales.tendencia !== 0 && (
+                            {rec.datosReales?.tendencia !== 0 && (
                               <span className={`flex items-center gap-1 text-xs ${rec.datosReales.tendencia > 0 ? 'text-green-600' : 'text-red-600'}`}>
                                 {rec.datosReales.tendencia > 0 ? <IconTrendingUp /> : <IconTrendingDown />}
                                 {rec.datosReales.tendencia > 0 ? '+' : ''}{rec.datosReales.tendencia}%
                               </span>
                             )}
                           </div>
-                          <button
-                            onClick={() => setMostrarPrincipio(mostrarPrincipio === rec.id ? null : rec.id)}
-                            className="p-1 text-gray-400 hover:text-gray-600"
-                          >
-                            <IconInfo />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="p-4 sm:p-5">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">{rec.titulo}</h3>
-                        <p className="text-gray-600 mb-4 text-sm sm:text-base leading-relaxed">{rec.mensaje}</p>
-
-                        <div className="flex flex-wrap gap-2 sm:gap-4 mb-4 text-xs sm:text-sm">
-                          <div className="bg-gray-50 px-3 py-2 rounded-lg">
-                            <span className="text-gray-500">Ventas:</span>
-                            <span className="ml-1 font-medium">{rec.datosReales.ventas}</span>
-                          </div>
-                          <div className="bg-gray-50 px-3 py-2 rounded-lg">
-                            <span className="text-gray-500">Ingresos:</span>
-                            <span className="ml-1 font-medium">€{rec.datosReales.ingresos.toFixed(2)}</span>
+                          <h4 className="font-semibold text-gray-900 mb-2">{rec.titulo}</h4>
+                          <p className="text-sm text-gray-600 mb-3">{rec.descripcion}</p>
+                          <div className="flex flex-wrap gap-4 text-xs text-gray-500">
+                            <span>Ventas: {rec.datosReales?.cantidad || 0}</span>
+                            <span>Ingresos: €{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
                           </div>
                         </div>
-
-                        {mostrarPrincipio === rec.id && (
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-4">
-                            <div className="flex items-start gap-2">
-                              <IconBook />
-                              <div>
-                                <h4 className="font-medium text-blue-900 text-sm">Principio de {rec.principio.nombre}</h4>
-                                <p className="text-xs sm:text-sm text-blue-700 mt-1">{rec.principio.autor} ({rec.principio.año})</p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {!aplicada && (
-                          <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
-                            <button
-                              onClick={() => guardarEnHistorial(rec, 'aplicada')}
-                              disabled={estaGuardando}
-                              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 text-xs sm:text-sm font-medium disabled:opacity-50"
-                            >
-                              <IconCheck />
-                              {estaGuardando ? 'Guardando...' : 'Aplicada'}
-                            </button>
-                            <button
-                              onClick={() => guardarEnHistorial(rec, 'descartada')}
-                              disabled={estaGuardando}
-                              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 text-xs sm:text-sm disabled:opacity-50"
-                            >
-                              <IconX />
-                              Descartar
-                            </button>
-                          </div>
-                        )}
                       </div>
                     </div>
                   )
                 })}
               </div>
-            </>
+            </div>
           )}
-        </>
-      )}
 
-      {/* TAB: HISTORIAL */}
-      {tabActiva === 'historial' && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
-            <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 text-center">
-              <p className="text-xl sm:text-2xl font-bold text-gray-900">{estadisticasHistorial.totalAplicadas}</p>
-              <p className="text-xs sm:text-sm text-gray-500">Aplicadas</p>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 text-center">
-              <p className="text-xl sm:text-2xl font-bold text-gray-900">{estadisticasHistorial.totalDescartadas}</p>
-              <p className="text-xs sm:text-sm text-gray-500">Descartadas</p>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 text-center">
-              <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                {estadisticasHistorial.totalAplicadas + estadisticasHistorial.totalDescartadas}
-              </p>
-              <p className="text-xs sm:text-sm text-gray-500">Total</p>
-            </div>
-          </div>
-
-          {historial.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8 text-center">
-              <IconHistory />
-              <h3 className="text-lg font-medium text-gray-900 mt-4 mb-2">Sin historial</h3>
-              <p className="text-gray-500 text-sm">Las acciones aparecerán aquí.</p>
-            </div>
-          ) : (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Principio</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acción</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {historial.map((item) => (
-                      <tr key={item.id} className="hover:bg-gray-50">
-                        <td className="px-3 sm:px-4 py-3 font-medium text-gray-900">{item.producto}</td>
-                        <td className="px-3 sm:px-4 py-3 text-gray-500 hidden sm:table-cell">{item.principio_nombre}</td>
-                        <td className="px-3 sm:px-4 py-3">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            item.accion === 'aplicada'
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-gray-100 text-gray-600'
-                          }`}>
-                            {item.accion === 'aplicada' ? '✓' : '✗'}
-                          </span>
-                        </td>
-                        <td className="px-3 sm:px-4 py-3 text-gray-500 text-xs sm:text-sm">
-                          {new Date(item.created_at).toLocaleDateString('es-ES')}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+          {/* Sin recomendaciones */}
+          {analisisActual?.sinRecomendaciones && (
+            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+              <IconLightbulb />
+              <h3 className="text-lg font-medium text-gray-900 mt-4 mb-2">Sin recomendaciones</h3>
+              <p className="text-gray-500">{analisisActual.mensaje}</p>
             </div>
           )}
         </div>
       )}
 
-      {/* TAB: IMPACTO */}
-      {tabActiva === 'impacto' && (
-        <div className="space-y-6">
-          {resumenImpacto && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
-              <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 text-center">
-                <p className="text-xl sm:text-2xl font-bold text-blue-600">{resumenImpacto.totalRecomendacionesAplicadas}</p>
-                <p className="text-xs sm:text-sm text-gray-500">Aplicadas</p>
+      {/* TAB: ANÁLISIS GUARDADOS */}
+      {tabActiva === 'guardados' && !analisisDetalle && (
+        <div className="space-y-4">
+          {/* Controles de selección */}
+          {analisisGuardados.length > 0 && (
+            <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={seleccionados.size === analisisGuardados.length && analisisGuardados.length > 0}
+                    onChange={seleccionarTodos}
+                    className="w-4 h-4 rounded border-gray-300"
+                  />
+                  <span className="text-sm text-gray-600">Seleccionar todos</span>
+                </label>
+                {seleccionados.size > 0 && (
+                  <span className="text-sm text-gray-500">
+                    ({seleccionados.size} seleccionados)
+                  </span>
+                )}
               </div>
-              <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 text-center">
-                <p className="text-xl sm:text-2xl font-bold text-green-600">{resumenImpacto.mejoradas}</p>
-                <p className="text-xs sm:text-sm text-gray-500">Mejoradas</p>
-              </div>
-              <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 text-center">
-                <p className="text-xl sm:text-2xl font-bold text-red-600">{resumenImpacto.empeoradas}</p>
-                <p className="text-xs sm:text-sm text-gray-500">Empeoradas</p>
-              </div>
-              <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 text-center">
-                <p className={`text-xl sm:text-2xl font-bold ${resumenImpacto.promedioMejora >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {resumenImpacto.promedioMejora > 0 ? '+' : ''}{resumenImpacto.promedioMejora}%
-                </p>
-                <p className="text-xs sm:text-sm text-gray-500">Promedio</p>
-              </div>
+              
+              {seleccionados.size > 0 && (
+                <button
+                  onClick={borrarSeleccionados}
+                  disabled={borrando}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 text-sm font-medium"
+                >
+                  <IconTrash />
+                  {borrando ? 'Borrando...' : `Borrar (${seleccionados.size})`}
+                </button>
+              )}
             </div>
           )}
 
-          {impactos.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8 text-center">
-              <IconChart />
-              <h3 className="text-lg font-medium text-gray-900 mt-4 mb-2">Sin datos</h3>
-              <p className="text-gray-500 text-sm">Aplica recomendaciones para ver el impacto.</p>
+          {/* Lista de análisis */}
+          {cargandoGuardados ? (
+            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+              <p className="text-gray-500 mt-4">Cargando análisis...</p>
+            </div>
+          ) : analisisGuardados.length === 0 ? (
+            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+              <IconFolder />
+              <h3 className="text-lg font-medium text-gray-900 mt-4 mb-2">Sin análisis guardados</h3>
+              <p className="text-gray-500 mb-4">Genera tu primer análisis para empezar</p>
+              <button
+                onClick={() => setTabActiva('nuevo')}
+                className="px-6 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors font-medium"
+              >
+                Crear Análisis
+              </button>
             </div>
           ) : (
-            <div className="space-y-4">
-              {impactos.map((impacto) => (
-                <div key={impacto.id} className="bg-white rounded-xl border border-gray-200 p-4 sm:p-5">
-                  <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{impacto.producto}</h3>
-                      <p className="text-xs sm:text-sm text-gray-500">
-                        {impacto.principio} • {impacto.diasTranscurridos}d
-                      </p>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
-                      impacto.tendencia === 'positiva'
-                        ? 'bg-green-100 text-green-700'
-                        : impacto.tendencia === 'negativa'
-                          ? 'bg-red-100 text-red-700'
-                          : 'bg-gray-100 text-gray-600'
-                    }`}>
-                      {impacto.cambio.cantidad > 0 ? '+' : ''}{impacto.cambio.cantidad}%
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div>
-                      <div className="flex justify-between text-xs text-gray-500 mb-1">
-                        <span>Antes: {impacto.antes.cantidad}</span>
-                        <span>€{impacto.antes.ingresos.toFixed(2)}</span>
-                      </div>
-                      <div className="h-2 sm:h-3 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-gray-400 rounded-full"
-                          style={{ width: `${Math.min(100, (impacto.antes.cantidad / Math.max(impacto.antes.cantidad, impacto.despues.cantidad)) * 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-xs text-gray-500 mb-1">
-                        <span>Después: {impacto.despues.cantidad}</span>
-                        <span>€{impacto.despues.ingresos.toFixed(2)}</span>
-                      </div>
-                      <div className="h-2 sm:h-3 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full ${
-                            impacto.tendencia === 'positiva' ? 'bg-green-500' :
-                            impacto.tendencia === 'negativa' ? 'bg-red-500' : 'bg-gray-400'
-                          }`}
-                          style={{ width: `${Math.min(100, (impacto.despues.cantidad / Math.max(impacto.antes.cantidad, impacto.despues.cantidad)) * 100)}%` }}
-                        />
+            <div className="space-y-3">
+              {analisisGuardados.map((analisis) => (
+                <div
+                  key={analisis.id}
+                  className="bg-white rounded-xl border border-gray-200 p-4 hover:border-gray-300 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="checkbox"
+                      checked={seleccionados.has(analisis.id)}
+                      onChange={() => toggleSeleccion(analisis.id)}
+                      className="w-4 h-4 rounded border-gray-300 flex-shrink-0"
+                    />
+                    
+                    <div 
+                      className="flex-1 cursor-pointer"
+                      onClick={() => verDetalleAnalisis(analisis.id)}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div>
+                          <h3 className="font-medium text-gray-900">
+                            Análisis #{analisisGuardados.length - analisisGuardados.indexOf(analisis)}
+                          </h3>
+                          <p className="text-sm text-gray-500">
+                            {formatearFecha(analisis.created_at)}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-xs">
+                          <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                            {traducirPeriodo(analisis.periodo)}
+                          </span>
+                          <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                            {traducirSector(analisis.sector)}
+                          </span>
+                          <span className="bg-green-100 text-green-700 px-2 py-1 rounded">
+                            {analisis.num_recomendaciones} recomendaciones
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* DETALLE DE ANÁLISIS */}
+      {tabActiva === 'guardados' && analisisDetalle && (
+        <div className="space-y-4">
+          {/* Header del detalle */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+            <button
+              onClick={() => setAnalisisDetalle(null)}
+              className="text-sm text-gray-500 hover:text-gray-700 mb-4 flex items-center gap-1"
+            >
+              ← Volver a la lista
+            </button>
+            
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  Análisis del {formatearFecha(analisisDetalle.created_at)}
+                </h2>
+                <div className="flex flex-wrap gap-2 mt-2 text-sm">
+                  <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                    Período: {traducirPeriodo(analisisDetalle.periodo)}
+                  </span>
+                  <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                    Sector: {traducirSector(analisisDetalle.sector)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Recomendaciones del análisis guardado */}
+          {cargandoDetalle ? (
+            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+              <p className="text-gray-500 mt-4">Cargando detalles...</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-500">
+                {analisisDetalle.recomendaciones?.length || 0} recomendaciones
+              </p>
+              
+              {analisisDetalle.recomendaciones?.map((rec: any) => {
+                const colors = getColorPrioridad(rec.prioridad)
+                return (
+                  <div key={rec.id} className={`${colors.bg} border ${colors.border} rounded-xl p-4 sm:p-5`}>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors.badge}`}>
+                            {getTextoPrioridad(rec.prioridad)}
+                          </span>
+                          {rec.datosReales?.tendencia !== 0 && (
+                            <span className={`flex items-center gap-1 text-xs ${rec.datosReales?.tendencia > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {rec.datosReales?.tendencia > 0 ? <IconTrendingUp /> : <IconTrendingDown />}
+                              {rec.datosReales?.tendencia > 0 ? '+' : ''}{rec.datosReales?.tendencia}%
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="font-semibold text-gray-900 mb-2">{rec.titulo}</h4>
+                        <p className="text-sm text-gray-600 mb-3">{rec.descripcion}</p>
+                        <div className="flex flex-wrap gap-4 text-xs text-gray-500">
+                          <span>Ventas: {rec.datosReales?.cantidad || 0}</span>
+                          <span>Ingresos: €{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>
