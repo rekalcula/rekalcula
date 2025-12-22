@@ -1,6 +1,5 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import DashboardNav from '@/components/DashboardNav'
 import SalesAnalyticsChart from '@/components/SalesAnalyticsChart'
 import Link from 'next/link'
 
@@ -12,30 +11,25 @@ export default async function SalesAnalyticsPage() {
   }
 
   return (
-    <>
-      <DashboardNav />
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Análisis de Ventas</h1>
-              <p className="mt-2 text-gray-600">
-                Visualiza el rendimiento de tus productos por día, semana o mes
-              </p>
-            </div>
-            <Link
-              href="/dashboard/sales/upload"
-              className="bg-[#0d0d0d] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2d2d2d]"
-            >
-              📤 Subir Ticket
-            </Link>
-          </div>
-
-          {/* Componente de análisis */}
-          <SalesAnalyticsChart />
+    <div className="max-w-7xl mx-auto px-4 py-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Análisis de Ventas</h1>
+          <p className="mt-1 text-sm sm:text-base text-gray-600">
+            Visualiza el rendimiento de tus productos
+          </p>
         </div>
+        <Link
+          href="/dashboard/sales/upload"
+          className="bg-[#0d0d0d] text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-medium hover:bg-[#2d2d2d] text-center text-sm sm:text-base"
+        >
+          📤 Subir Ticket
+        </Link>
       </div>
-    </>
+
+      {/* Componente de análisis */}
+      <SalesAnalyticsChart />
+    </div>
   )
 }

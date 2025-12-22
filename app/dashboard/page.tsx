@@ -1,7 +1,6 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
-import DashboardNav from '@/components/DashboardNav'
 import ExpenseChart from '@/components/ExpenseChart'
 import TemporalComparison from '@/components/TemporalComparison'
 import AlertsPanel from '@/components/AlertsPanel'
@@ -31,94 +30,89 @@ export default async function DashboardPage() {
   const avgAmount = totalInvoices > 0 ? totalAmount / totalInvoices : 0
 
   return (
-    <>
-      <DashboardNav />
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Dashboard
-            </h1>
-            <p className="mt-2 text-gray-600">
-              Resumen de tus gastos empresariales
-            </p>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">
+          Dashboard
+        </h1>
+        <p className="mt-2 text-gray-600">
+          Resumen de tus gastos empresariales
+        </p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="text-sm text-gray-500">Total Facturas</div>
+          <div className="text-3xl font-bold text-gray-900 mt-2">
+            {totalInvoices}
           </div>
+        </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="text-sm text-gray-500">Total Facturas</div>
-              <div className="text-3xl font-bold text-gray-900 mt-2">
-                {totalInvoices}
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="text-sm text-gray-500">Gasto Total</div>
-              <div className="text-3xl font-bold text-gray-900 mt-2">
-                {totalAmount.toFixed(2)}€
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="text-sm text-gray-500">Promedio por Factura</div>
-              <div className="text-3xl font-bold text-gray-900 mt-2">
-                {avgAmount.toFixed(2)}€
-              </div>
-            </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="text-sm text-gray-500">Gasto Total</div>
+          <div className="text-3xl font-bold text-gray-900 mt-2">
+            {totalAmount.toFixed(2)}€
           </div>
+        </div>
 
-          {/* Alertas de Gastos */}
-          {invoices && invoices.length > 0 && (
-            <div className="mb-8">
-              <AlertsPanel invoices={invoices} />
-            </div>
-          )}
-
-          {/* Gráficas de Distribución */}
-          {invoices && invoices.length > 0 && (
-            <div className="mb-8">
-              <ExpenseChart invoices={invoices} />
-            </div>
-          )}
-
-          {/* Comparativas Temporales */}
-          {invoices && invoices.length > 0 && (
-            <div className="mb-8">
-              <TemporalComparison invoices={invoices} />
-            </div>
-          )}
-
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Link
-              href="/dashboard/upload"
-              className="bg-white rounded-lg shadow p-8 hover:shadow-lg transition-shadow cursor-pointer group"
-            >
-              <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">📤</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Subir Factura
-              </h3>
-              <p className="text-gray-600">
-                Analiza una nueva factura con IA
-              </p>
-            </Link>
-
-            <Link
-              href="/dashboard/invoices"
-              className="bg-white rounded-lg shadow p-8 hover:shadow-lg transition-shadow cursor-pointer group"
-            >
-              <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">📄</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Mis Facturas
-              </h3>
-              <p className="text-gray-600">
-                Ver todas las facturas guardadas
-              </p>
-            </Link>
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="text-sm text-gray-500">Promedio por Factura</div>
+          <div className="text-3xl font-bold text-gray-900 mt-2">
+            {avgAmount.toFixed(2)}€
           </div>
         </div>
       </div>
-    </>
+
+      {/* Alertas de Gastos */}
+      {invoices && invoices.length > 0 && (
+        <div className="mb-8">
+          <AlertsPanel invoices={invoices} />
+        </div>
+      )}
+
+      {/* Gráficas de Distribución */}
+      {invoices && invoices.length > 0 && (
+        <div className="mb-8">
+          <ExpenseChart invoices={invoices} />
+        </div>
+      )}
+
+      {/* Comparativas Temporales */}
+      {invoices && invoices.length > 0 && (
+        <div className="mb-8">
+          <TemporalComparison invoices={invoices} />
+        </div>
+      )}
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Link
+          href="/dashboard/upload"
+          className="bg-white rounded-lg shadow p-8 hover:shadow-lg transition-shadow cursor-pointer group"
+        >
+          <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">📤</div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            Subir Factura
+          </h3>
+          <p className="text-gray-600">
+            Analiza una nueva factura con IA
+          </p>
+        </Link>
+
+        <Link
+          href="/dashboard/invoices"
+          className="bg-white rounded-lg shadow p-8 hover:shadow-lg transition-shadow cursor-pointer group"
+        >
+          <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">📄</div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            Mis Facturas
+          </h3>
+          <p className="text-gray-600">
+            Ver todas las facturas guardadas
+          </p>
+        </Link>
+      </div>
+    </div>
   )
 }

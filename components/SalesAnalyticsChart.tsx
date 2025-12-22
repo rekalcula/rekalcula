@@ -106,14 +106,14 @@ export default function SalesAnalyticsChart() {
     <div className="space-y-6">
       {/* Filtros */}
       <div className="bg-white rounded-xl shadow-sm p-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-4">
           {/* Período */}
           <div className="flex items-center space-x-2">
             <span className="text-sm font-medium text-gray-700">Período:</span>
             <div className="flex bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setPeriod('day')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
                   period === 'day' ? 'bg-white shadow text-[#c15f3c]' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -177,7 +177,7 @@ export default function SalesAnalyticsChart() {
       </div>
 
       {/* Tarjetas de resumen */}
-      <div className="grid md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl shadow-sm p-6">
           <p className="text-sm text-gray-500">Total Productos Vendidos</p>
           <p className="text-2xl font-bold text-gray-900">{data?.totalQuantity || 0}</p>
