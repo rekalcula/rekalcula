@@ -97,8 +97,7 @@ interface AnalysisDetail {
 
 interface ConsejoAplicado extends Recomendacion {
   aplicadoEn: string
-  sector: string
-  periodo: string
+  periodoAnalisis: string
 }
 
 export default function AdvisorPage() {
