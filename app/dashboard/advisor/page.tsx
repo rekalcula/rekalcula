@@ -138,8 +138,7 @@ export default function AdvisorPage() {
     const consejoAplicado: ConsejoAplicado = {
       ...rec,
       aplicadoEn: new Date().toISOString(),
-      sector: analisisActual?.sector || '',
-      periodo: analisisActual?.periodo || ''
+      periodoAnalisis: analisisActual?.periodo || ''
     }
 
     const nuevosConsejos = [...consejosAplicados, consejoAplicado]
@@ -608,7 +607,7 @@ export default function AdvisorPage() {
                         <p className="text-sm text-gray-600 mb-3">{consejo.mensaje}</p>
                         <div className="flex flex-wrap gap-4 text-xs text-gray-500">
                           <span>Sector: {traducirSector(consejo.sector)}</span>
-                          <span>Período: {traducirPeriodo(consejo.periodo)}</span>
+                          <span>Período: {traducirPeriodo(consejo.periodoAnalisis)}</span>
                           <span>Ventas: {consejo.datosReales?.ventas || 0}</span>
                           <span>Ingresos: €{consejo.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
                         </div>
