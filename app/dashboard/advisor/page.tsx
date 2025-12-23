@@ -56,6 +56,12 @@ const IconPlay = () => (
   </svg>
 )
 
+const IconCheck = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
+)
+
 interface AdvisorResponse {
   success: boolean
   sector: string
@@ -89,8 +95,14 @@ interface AnalysisDetail {
   resumen: any
 }
 
+interface ConsejoAplicado extends Recomendacion {
+  aplicadoEn: string
+  sector: string
+  periodo: string
+}
+
 export default function AdvisorPage() {
-  const [tabActiva, setTabActiva] = useState<'nuevo' | 'guardados'>('guardados')
+  const [tabActiva, setTabActiva] = useState<'nuevo' | 'guardados' | 'aplicados'>('guardados')
   const [periodo, setPeriodo] = useState<'dia' | 'semana' | 'mes'>('mes')
   const [generando, setGenerando] = useState(false)
   const [guardando, setGuardando] = useState(false)
@@ -102,10 +114,71 @@ export default function AdvisorPage() {
   const [borrando, setBorrando] = useState(false)
   const [analisisDetalle, setAnalisisDetalle] = useState<AnalysisDetail | null>(null)
   const [cargandoDetalle, setCargandoDetalle] = useState(false)
+  
+  // Estados para consejos aplicados
+  const [consejosAplicados, setConsejosAplicados] = useState<ConsejoAplicado[]>([])
+  const [seleccionadosAplicados, setSeleccionadosAplicados] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     cargarAnalisisGuardados()
+    cargarConsejosAplicados()
   }, [])
+
+  const cargarConsejosAplicados = () => {
+    try {
+      const stored = localStorage.getItem('consejosAplicados')
+      if (stored) {
+        setConsejosAplicados(JSON.parse(stored))
+      }
+    } catch (err) {
+      console.error('Error cargando consejos aplicados:', err)
+    }
+  }
+
+  const aplicarConsejo = (rec: Recomendacion) => {
+    const consejoAplicado: ConsejoAplicado = {
+      ...rec,
+      aplicadoEn: new Date().toISOString(),
+      sector: analisisActual?.sector || '',
+      periodo: analisisActual?.periodo || ''
+    }
+
+    const nuevosConsejos = [...consejosAplicados, consejoAplicado]
+    setConsejosAplicados(nuevosConsejos)
+    localStorage.setItem('consejosAplicados', JSON.stringify(nuevosConsejos))
+    
+    // Cambiar a la pestaña de aplicados
+    setTabActiva('aplicados')
+  }
+
+  const toggleSeleccionAplicado = (id: string) => {
+    const nuevo = new Set(seleccionadosAplicados)
+    if (nuevo.has(id)) {
+      nuevo.delete(id)
+    } else {
+      nuevo.add(id)
+    }
+    setSeleccionadosAplicados(nuevo)
+  }
+
+  const seleccionarTodosAplicados = () => {
+    if (seleccionadosAplicados.size === consejosAplicados.length) {
+      setSeleccionadosAplicados(new Set())
+    } else {
+      setSeleccionadosAplicados(new Set(consejosAplicados.map(c => c.id)))
+    }
+  }
+
+  const eliminarConsejosAplicados = () => {
+    if (seleccionadosAplicados.size === 0) return
+    
+    if (!confirm(`¿Eliminar ${seleccionadosAplicados.size} consejos aplicados?`)) return
+
+    const nuevosConsejos = consejosAplicados.filter(c => !seleccionadosAplicados.has(c.id))
+    setConsejosAplicados(nuevosConsejos)
+    localStorage.setItem('consejosAplicados', JSON.stringify(nuevosConsejos))
+    setSeleccionadosAplicados(new Set())
+  }
 
   const cargarAnalisisGuardados = async () => {
     setCargandoGuardados(true)
@@ -126,15 +199,15 @@ export default function AdvisorPage() {
     setGenerando(true)
     setError(null)
     setAnalisisActual(null)
-    
+
     try {
       const response = await fetch(`/api/advisor?periodo=${periodo}`)
       const result = await response.json()
-      
+
       if (!result.success) {
         throw new Error(result.error || 'Error generando análisis')
       }
-      
+
       setAnalisisActual(result)
     } catch (err: any) {
       setError(err.message || 'Error generando análisis')
@@ -145,7 +218,7 @@ export default function AdvisorPage() {
 
   const guardarAnalisis = async () => {
     if (!analisisActual) return
-    
+
     setGuardando(true)
     try {
       const response = await fetch('/api/advisor/analyses', {
@@ -160,14 +233,14 @@ export default function AdvisorPage() {
           resumen: analisisActual.resumen
         })
       })
-      
+
       const result = await response.json()
       if (!result.success) throw new Error(result.error)
-      
+
       await cargarAnalisisGuardados()
       setAnalisisActual(null)
       setTabActiva('guardados')
-      
+
     } catch (err: any) {
       alert('Error guardando: ' + err.message)
     } finally {
@@ -210,26 +283,26 @@ export default function AdvisorPage() {
 
   const borrarSeleccionados = async () => {
     if (seleccionados.size === 0) return
-    
+
     if (!confirm(`¿Eliminar ${seleccionados.size} análisis?`)) return
-    
+
     setBorrando(true)
     try {
       const ids = Array.from(seleccionados).join(',')
       const response = await fetch(`/api/advisor/analyses?ids=${ids}`, {
         method: 'DELETE'
       })
-      
+
       const result = await response.json()
       if (!result.success) throw new Error(result.error)
-      
+
       setSeleccionados(new Set())
       await cargarAnalisisGuardados()
-      
+
       if (analisisDetalle && seleccionados.has(analisisDetalle.id)) {
         setAnalisisDetalle(null)
       }
-      
+
     } catch (err: any) {
       alert('Error borrando: ' + err.message)
     } finally {
@@ -328,6 +401,22 @@ export default function AdvisorPage() {
             <IconLightbulb />
             Nuevo Análisis
           </button>
+          <button
+            onClick={() => setTabActiva('aplicados')}
+            className={`flex items-center gap-2 px-4 sm:px-6 py-3 font-medium text-sm transition-colors ${
+              tabActiva === 'aplicados'
+                ? 'text-[#0d0d0d] border-b-2 border-[#0d0d0d]'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <IconCheck />
+            Consejos Aplicados
+            {consejosAplicados.length > 0 && (
+              <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs">
+                {consejosAplicados.length}
+              </span>
+            )}
+          </button>
         </div>
       </div>
 
@@ -335,7 +424,7 @@ export default function AdvisorPage() {
         <div className="space-y-6">
           <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Configurar Análisis</h2>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Período a analizar</label>
@@ -350,7 +439,7 @@ export default function AdvisorPage() {
                   <option value="mes">Este mes</option>
                 </select>
               </div>
-              
+
               <button
                 onClick={generarNuevoAnalisis}
                 disabled={generando}
@@ -419,10 +508,17 @@ export default function AdvisorPage() {
                           </div>
                           <h4 className="font-semibold text-gray-900 mb-2">{rec.titulo}</h4>
                           <p className="text-sm text-gray-600 mb-3">{rec.mensaje}</p>
-                          <div className="flex flex-wrap gap-4 text-xs text-gray-500">
+                          <div className="flex flex-wrap gap-4 text-xs text-gray-500 mb-3">
                             <span>Ventas: {rec.datosReales?.ventas || 0}</span>
                             <span>Ingresos: €{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
                           </div>
+                          <button
+                            onClick={() => aplicarConsejo(rec)}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                          >
+                            <IconCheck />
+                            Aplicar
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -437,6 +533,91 @@ export default function AdvisorPage() {
               <IconLightbulb />
               <h3 className="text-lg font-medium text-gray-900 mt-4 mb-2">Sin recomendaciones</h3>
               <p className="text-gray-500">{analisisActual.mensaje}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {tabActiva === 'aplicados' && (
+        <div className="space-y-4">
+          {consejosAplicados.length > 0 && (
+            <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={seleccionadosAplicados.size === consejosAplicados.length && consejosAplicados.length > 0}
+                    onChange={seleccionarTodosAplicados}
+                    className="w-4 h-4 rounded border-gray-300"
+                  />
+                  <span className="text-sm text-gray-600">Seleccionar todos</span>
+                </label>
+                {seleccionadosAplicados.size > 0 && (
+                  <span className="text-sm text-gray-500">
+                    ({seleccionadosAplicados.size} seleccionados)
+                  </span>
+                )}
+              </div>
+
+              {seleccionadosAplicados.size > 0 && (
+                <button
+                  onClick={eliminarConsejosAplicados}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                >
+                  <IconTrash />
+                  Eliminar ({seleccionadosAplicados.size})
+                </button>
+              )}
+            </div>
+          )}
+
+          {consejosAplicados.length === 0 ? (
+            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+              <IconCheck />
+              <h3 className="text-lg font-medium text-gray-900 mt-4 mb-2">Sin consejos aplicados</h3>
+              <p className="text-gray-500 mb-4">Los consejos que apliques aparecerán aquí</p>
+              <button
+                onClick={() => setTabActiva('nuevo')}
+                className="px-6 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors font-medium"
+              >
+                Generar Análisis
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {consejosAplicados.map((consejo) => {
+                const colors = getColorPrioridad(consejo.prioridad)
+                return (
+                  <div key={`${consejo.id}-${consejo.aplicadoEn}`} className="bg-white rounded-xl border border-gray-200 p-4">
+                    <div className="flex items-start gap-4">
+                      <input
+                        type="checkbox"
+                        checked={seleccionadosAplicados.has(consejo.id)}
+                        onChange={() => toggleSeleccionAplicado(consejo.id)}
+                        className="w-4 h-4 rounded border-gray-300 mt-1 flex-shrink-0"
+                      />
+                      <div className={`flex-1 ${colors.bg} border ${colors.border} rounded-lg p-4`}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors.badge}`}>
+                            {getTextoPrioridad(consejo.prioridad)}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            Aplicado: {formatearFecha(consejo.aplicadoEn)}
+                          </span>
+                        </div>
+                        <h4 className="font-semibold text-gray-900 mb-2">{consejo.titulo}</h4>
+                        <p className="text-sm text-gray-600 mb-3">{consejo.mensaje}</p>
+                        <div className="flex flex-wrap gap-4 text-xs text-gray-500">
+                          <span>Sector: {traducirSector(consejo.sector)}</span>
+                          <span>Período: {traducirPeriodo(consejo.periodo)}</span>
+                          <span>Ventas: {consejo.datosReales?.ventas || 0}</span>
+                          <span>Ingresos: €{consejo.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>
@@ -462,7 +643,7 @@ export default function AdvisorPage() {
                   </span>
                 )}
               </div>
-              
+
               {seleccionados.size > 0 && (
                 <button
                   onClick={borrarSeleccionados}
@@ -507,8 +688,8 @@ export default function AdvisorPage() {
                       onChange={() => toggleSeleccion(analisis.id)}
                       className="w-4 h-4 rounded border-gray-300 flex-shrink-0"
                     />
-                    
-                    <div 
+
+                    <div
                       className="flex-1 cursor-pointer"
                       onClick={() => verDetalleAnalisis(analisis.id)}
                     >
@@ -551,7 +732,7 @@ export default function AdvisorPage() {
             >
               ← Volver a la lista
             </button>
-            
+
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <h2 className="text-xl font-bold text-gray-900">
@@ -579,7 +760,7 @@ export default function AdvisorPage() {
               <p className="text-sm text-gray-500">
                 {analisisDetalle.recomendaciones?.length || 0} recomendaciones
               </p>
-              
+
               {analisisDetalle.recomendaciones?.map((rec: any) => {
                 const colors = getColorPrioridad(rec.prioridad)
                 return (
