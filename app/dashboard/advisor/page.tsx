@@ -134,11 +134,11 @@ export default function AdvisorPage() {
     }
   }
 
-  const aplicarConsejo = (rec: Recomendacion) => {
+  const aplicarConsejo = (rec: Recomendacion, contexto?: { sector?: string, periodo?: string }) => {
     const consejoAplicado: ConsejoAplicado = {
       ...rec,
       aplicadoEn: new Date().toISOString(),
-      periodoAnalisis: analisisActual?.periodo || ''
+      periodoAnalisis: contexto?.periodo || analisisActual?.periodo || ''
     }
 
     const nuevosConsejos = [...consejosAplicados, consejoAplicado]
@@ -511,7 +511,7 @@ export default function AdvisorPage() {
                             <span>Ingresos: €{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
                           </div>
                           <button
-                            onClick={() => aplicarConsejo(rec)}
+                            onClick={() => aplicarConsejo(rec, { sector: analisisDetalle?.sector, periodo: analisisDetalle?.periodo })}
                             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                           >
                             <IconCheck />
