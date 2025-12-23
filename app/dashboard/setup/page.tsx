@@ -31,7 +31,7 @@ export default async function SetupPage() {
         <div className="max-w-3xl mx-auto px-4 py-8">
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold text-gray-900">
-              {config ? 'Configuración del Negocio' : '¡Bienvenido a reKalcula!'}
+              {config ? 'Configuración del Negocio' : '¡Bienvenido a ReKalcula!'}
             </h1>
             <p className="mt-2 text-gray-600">
               {config 
