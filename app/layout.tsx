@@ -6,13 +6,13 @@ import PWARegister from '@/components/PWARegister'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'reKalcula - Optimiza tu negocio con IA',
+  title: 'ReKalcula - Optimiza tu negocio con IA',
   description: 'Analiza tus facturas con IA y descubre cómo aumentar tus beneficios en minutos',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'reKalcula',
+    title: 'ReKalcula',
   },
 }
 
@@ -37,7 +37,7 @@ export default function RootLayout({
           <link rel="apple-touch-icon" href="/icons/icon-192x192.svg" />
           <meta name="apple-mobile-web-app-capable" content="yes" />
           <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-          <meta name="apple-mobile-web-app-title" content="reKalcula" />
+          <meta name="apple-mobile-web-app-title" content="ReKalcula" />
           <meta name="mobile-web-app-capable" content="yes" />
         </head>
         <body className={inter.className}>
