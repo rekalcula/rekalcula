@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  /* Fondo general tipo Claude oscuro */
-  --background: #1a1a1a;
+  /* Fondo general tipo Claude */
+  --background: #faf9f7;
 
-  /* Texto principal claro */
-  --foreground: #e5e5e5;
+  /* Texto principal */
+  --foreground: #1f1f1f;
 
   /* Tarjetas / bloques */
-  --card: #262626;
+  --card: #ffffff;
 }
 
 @theme inline {
