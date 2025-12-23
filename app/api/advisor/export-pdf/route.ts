@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Informe de Asesoramiento - reKalcula</title>
+  <title>Informe de Asesoramiento - ReKalcula</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; padding: 40px; }
@@ -162,7 +162,7 @@ export async function GET(request: NextRequest) {
 <body>
   <div class="header">
     <h1>💡 Informe de Asesoramiento</h1>
-    <p>reKalcula - Generado el ${fechaActual}</p>
+    <p>ReKalcula - Generado el ${fechaActual}</p>
   </div>
 
   <div class="section">
@@ -241,7 +241,7 @@ export async function GET(request: NextRequest) {
   ` : ''}
 
   <div class="footer">
-    <p>Este informe fue generado automáticamente por reKalcula.</p>
+    <p>Este informe fue generado automáticamente por ReKalcula.</p>
     <p>Las recomendaciones están basadas en principios de psicología del consumidor con respaldo científico.</p>
   </div>
 </body>
@@ -252,7 +252,7 @@ export async function GET(request: NextRequest) {
     return new NextResponse(htmlContent, {
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
-        'Content-Disposition': `attachment; filename="informe-rekalcula-${periodo}.html"`
+        'Content-Disposition': `attachment; filename="informe-ReKalcula-${periodo}.html"`
       }
     })
 
