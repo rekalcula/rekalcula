@@ -176,7 +176,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t border-gray-200 mt-16 sm:mt-32 py-6 sm:py-8">
         <div className="container mx-auto px-4 text-center text-gray-600 text-sm sm:text-base">
-          <p>2024 reKalcula. Todos los derechos reservados.</p>
+          <p>2024 ReKalcula. Todos los derechos reservados.</p>
         </div>
       </footer>
     </div>
