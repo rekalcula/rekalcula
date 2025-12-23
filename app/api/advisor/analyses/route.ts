@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { createClient } from '@supabase/supabase-js'
 
@@ -7,7 +7,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// GET: Obtener lista de análisis guardados
+// GET: Obtener lista de an�lisis guardados
 export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth()
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Guardar un nuevo análisis
+// POST: Guardar un nuevo an�lisis
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth()
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE: Borrar análisis (uno o varios)
+// DELETE: Borrar an�lisis (uno o varios)
 export async function DELETE(request: NextRequest) {
   try {
     const { userId } = await auth()

@@ -1,5 +1,5 @@
 // ============================================================
-// SISTEMA DE ASESORAMIENTO - REKALCULA
+// SISTEMA DE ASESORAMIENTO - ReKalcula
 // ============================================================
 //
 // Exporta todos los módulos del sistema de asesoramiento.

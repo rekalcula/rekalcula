@@ -65,7 +65,7 @@ export default function DashboardNav() {
             </svg>
           </button>
           <Link href="/dashboard" className="font-bold text-xl text-[#0d0d0d]">
-            reKalcula
+            ReKalcula
           </Link>
           <UserButton afterSignOutUrl="/" />
         </div>
@@ -84,7 +84,7 @@ export default function DashboardNav() {
         {/* Logo */}
         <div className="h-14 flex items-center justify-between px-4 border-b">
           <Link href="/dashboard" className="font-bold text-xl text-[#0d0d0d]">
-            reKalcula
+            ReKalcula
           </Link>
           {isMobile && (
             <button

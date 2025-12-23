@@ -1,5 +1,5 @@
 // ============================================================
-// TIPOS DEL SISTEMA DE ASESORAMIENTO - REKALCULA
+// TIPOS DEL SISTEMA DE ASESORAMIENTO - ReKalcula
 // ============================================================
 
 // Sectores detectables automáticamente
