@@ -13,7 +13,7 @@ export default function HomePage() {
           <div className="flex items-center gap-2 sm:gap-4">
             <Link
               href="/sign-in"
-              className="text-[#FFFCFF] hover:text-gray-900 font-medium text-xs sm:text-base"
+              className="text-[#FFFCFF] hover:text-[#262626] font-medium text-xs sm:text-base border-2 border-[#FFFCFF] px-4 py-2 rounded-lg hover:bg-[#FFFCFF] transition"
             >
               Iniciar sesion
             </Link>
@@ -85,8 +85,8 @@ export default function HomePage() {
               <div className="bg-[#FFF5ED] w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-4">
                 <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-[#AC4A00]" />
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-[#FFFCFF] mb-2 sm:mb-3">Analisis en 3 minutos</h3>
-              <p className="text-sm sm:text-base text-[#FFFCFF]">
+              <h3 className="text-lg sm:text-xl font-semibold text-[#262626] mb-2 sm:mb-3">Analisis en 3 minutos</h3>
+              <p className="text-sm sm:text-base text-[#262626]">
                 Sube tus facturas y recibe un analisis completo instantaneo. Sin esperas, sin complicaciones.
               </p>
             </div>
@@ -95,8 +95,8 @@ export default function HomePage() {
               <div className="bg-green-100 w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-4">
                 <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-[#FFFCFF] mb-2 sm:mb-3">Aumenta beneficios</h3>
-              <p className="text-sm sm:text-base text-[#FFFCFF]">
+              <h3 className="text-lg sm:text-xl font-semibold text-[#262626] mb-2 sm:mb-3">Aumenta beneficios</h3>
+              <p className="text-sm sm:text-base text-[#262626]">
                 Descubre oportunidades ocultas para aumentar ventas y reducir costes innecesarios.
               </p>
             </div>
@@ -105,8 +105,8 @@ export default function HomePage() {
               <div className="bg-purple-100 w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-4">
                 <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-[#FFFCFF] mb-2 sm:mb-3">100% seguro</h3>
-              <p className="text-sm sm:text-base text-[#FFFCFF]">
+              <h3 className="text-lg sm:text-xl font-semibold text-[#262626] mb-2 sm:mb-3">100% seguro</h3>
+              <p className="text-sm sm:text-base text-[#262626]">
                 Tus datos estan encriptados y protegidos. Nunca compartimos tu informacion.
               </p>
             </div>
@@ -127,8 +127,8 @@ export default function HomePage() {
               <div className="bg-gradient-to-br from-[#AC4A00] to-[#AC4A00] w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
                 <span className="text-xl sm:text-2xl font-bold text-white">1</span>
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-[#FFFCFF] mb-2 sm:mb-3">Fotografia facturas</h3>
-              <p className="text-sm sm:text-base text-[#FFFCFF] px-4 sm:px-0">
+              <h3 className="text-lg sm:text-xl font-semibold text-[#262626] mb-2 sm:mb-3">Fotografia facturas</h3>
+              <p className="text-sm sm:text-base text-[#262626] px-4 sm:px-0">
                 Sube fotos de tus facturas mensuales. La IA las procesa automaticamente en segundos.
               </p>
             </div>
@@ -137,8 +137,8 @@ export default function HomePage() {
               <div className="bg-gradient-to-br from-[#AC4A00] to-[#AC4A00] w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
                 <span className="text-xl sm:text-2xl font-bold text-white">2</span>
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-[#FFFCFF] mb-2 sm:mb-3">Analisis instantaneo</h3>
-              <p className="text-sm sm:text-base text-[#FFFCFF] px-4 sm:px-0">
+              <h3 className="text-lg sm:text-xl font-semibold text-[#262626] mb-2 sm:mb-3">Analisis instantaneo</h3>
+              <p className="text-sm sm:text-base text-[#262626] px-4 sm:px-0">
                 Recibes metricas completas: margenes, punto de equilibrio, comparativa con el sector.
               </p>
             </div>
@@ -147,8 +147,8 @@ export default function HomePage() {
               <div className="bg-gradient-to-br from-[#AC4A00] to-[#AC4A00] w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
                 <span className="text-xl sm:text-2xl font-bold text-white">3</span>
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-[#FFFCFF] mb-2 sm:mb-3">Implementa consejos</h3>
-              <p className="text-sm sm:text-base text-[#FFFCFF] px-4 sm:px-0">
+              <h3 className="text-lg sm:text-xl font-semibold text-[#262626] mb-2 sm:mb-3">Implementa consejos</h3>
+              <p className="text-sm sm:text-base text-[#262626] px-4 sm:px-0">
                 Sigue recomendaciones priorizadas para reducir costes y aumentar ventas hoy mismo.
               </p>
             </div>
