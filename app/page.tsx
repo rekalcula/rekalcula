@@ -3,7 +3,7 @@ import { ArrowRight, CheckCircle, Zap, TrendingUp, Shield } from 'lucide-react'
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50">
+    <div className="min-h-screen" style={{backgroundColor: '#EFE8B2'}}>
       {/* Header / Navegacion */}
       <header className="container mx-auto px-4 py-4 sm:py-6">
         <nav className="flex flex-wrap justify-between items-center gap-2">
