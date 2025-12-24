@@ -533,16 +533,7 @@ export default function AdvisorPage() {
               <p className="text-sm text-gray-600">
                 <strong>Requisito mínimo:</strong> Se necesitan al menos <strong>15 días de datos de ventas</strong> para realizar un análisis científicamente válido y detectar tendencias significativas.
               </p>
-              <p className="text-sm text-gray-600 mt-2">
-                Si ya tienes 15+ días de datos, esto puede significar que tu negocio está bien equilibrado o que los productos no cumplen los umbrales mínimos:
-              </p>
-              <ul className="text-sm text-gray-600 mt-2 ml-4 list-disc">
-                <li>Participación mínima: 5% de las ventas totales</li>
-                <li>Impacto económico: ≥2% de los ingresos totales</li>
-                <li>Tendencia significativa: ±15% de cambio</li>
-                <li>Volumen mínimo: 3 ventas por período</li>
-              </ul>
-            </div>
+              </div>
           )}
         </div>
       )}
