@@ -1,4 +1,4 @@
-import { auth } from '@clerk/nextjs/server'
+﻿import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import ExpenseChart from '@/components/ExpenseChart'
@@ -32,10 +32,10 @@ export default async function DashboardPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-[#8A3C00]">
           Dashboard
         </h1>
-        <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-[#FFFCFF]">
           Resumen de tus gastos empresariales
         </p>
       </div>
