@@ -1,4 +1,4 @@
-﻿import Link from 'next/link'
+import Link from 'next/link'
 import { ArrowRight, CheckCircle, Zap, TrendingUp, Shield } from 'lucide-react'
 
 export default function HomePage() {
