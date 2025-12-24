@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import { ArrowRight, CheckCircle, Zap, TrendingUp, Shield } from 'lucide-react'
 
 export default function HomePage() {
@@ -30,9 +30,6 @@ export default function HomePage() {
       {/* Hero Section */}
       <main className="container mx-auto px-4 py-12 sm:py-20">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-block mb-4 px-3 py-1.5 sm:px-4 sm:py-2 bg-[#FFF5ED] rounded-full text-[#AC4A00] font-medium text-xs sm:text-sm">
-            14 dias gratis - Sin tarjeta de credito
-          </div>
 
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-[#FFFCFF] mb-4 sm:mb-6 leading-tight">
             Deja de perder dinero
