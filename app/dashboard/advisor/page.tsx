@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -530,7 +530,18 @@ export default function AdvisorPage() {
             <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
               <IconLightbulb />
               <h3 className="text-lg font-medium text-gray-900 mt-4 mb-2">Sin recomendaciones</h3>
-              <p className="text-gray-500">{analisisActual.mensaje}</p>
+              <p className="text-sm text-gray-600">
+                <strong>Requisito mínimo:</strong> Se necesitan al menos <strong>15 días de datos de ventas</strong> para realizar un análisis científicamente válido y detectar tendencias significativas.
+              </p>
+              <p className="text-sm text-gray-600 mt-2">
+                Si ya tienes 15+ días de datos, esto puede significar que tu negocio está bien equilibrado o que los productos no cumplen los umbrales mínimos:
+              </p>
+              <ul className="text-sm text-gray-600 mt-2 ml-4 list-disc">
+                <li>Participación mínima: 5% de las ventas totales</li>
+                <li>Impacto económico: ≥2% de los ingresos totales</li>
+                <li>Tendencia significativa: ±15% de cambio</li>
+                <li>Volumen mínimo: 3 ventas por período</li>
+              </ul>
             </div>
           )}
         </div>
