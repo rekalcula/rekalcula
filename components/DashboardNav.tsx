@@ -54,17 +54,17 @@ export default function DashboardNav() {
       )}
 
       {/* Header móvil */}
-      <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b z-30 md:hidden">
+      <header className="fixed top-0 left-0 right-0 h-14 bg-[#262626] border-b border-[#979797] z-30 md:hidden">
         <div className="flex items-center justify-between h-full px-4">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-lg hover:bg-gray-100"
+            className="p-2 rounded-lg hover:bg-[#3c3c3c]"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <Link href="/dashboard" className="font-bold text-xl text-[#0d0d0d]">
+          <Link href="/dashboard" className="font-bold text-xl text-[#ACACAC]">
             ReKalcula
           </Link>
           <UserButton afterSignOutUrl="/" />
@@ -74,7 +74,7 @@ export default function DashboardNav() {
       {/* Sidebar */}
       <aside 
         className={`
-          fixed top-0 left-0 h-full bg-white border-r z-50
+          fixed top-0 left-0 h-full bg-[#262626] border-r border-[#979797] z-50
           transition-transform duration-300 ease-in-out
           w-64
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -82,14 +82,14 @@ export default function DashboardNav() {
         `}
       >
         {/* Logo */}
-        <div className="h-14 flex items-center justify-between px-4 border-b">
-          <Link href="/dashboard" className="font-bold text-xl text-[#0d0d0d]">
+        <div className="h-14 flex items-center justify-between px-4 border-b border-[#979797]">
+          <Link href="/dashboard" className="font-bold text-xl text-[#ACACAC]">
             ReKalcula
           </Link>
           {isMobile && (
             <button
               onClick={() => setSidebarOpen(false)}
-              className="p-1 rounded hover:bg-gray-100 md:hidden"
+              className="p-1 rounded hover:bg-[#3c3c3c] md:hidden"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -110,7 +110,7 @@ export default function DashboardNav() {
                   flex items-center space-x-3 px-3 py-2.5 rounded-lg font-medium transition-colors
                   ${isActive
                     ? 'bg-[#0d0d0d] text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    : 'text-[#ACACAC] hover:bg-[#3c3c3c]'
                   }
                 `}
               >
@@ -122,9 +122,9 @@ export default function DashboardNav() {
         </nav>
 
         {/* User section en desktop */}
-        <div className="hidden md:flex items-center space-x-3 p-4 border-t">
+        <div className="hidden md:flex items-center space-x-3 p-4 border-t border-[#979797]">
           <UserButton afterSignOutUrl="/" />
-          <span className="text-sm text-gray-600">Mi cuenta</span>
+          <span className="text-sm text-[#ACACAC]">Mi cuenta</span>
         </div>
       </aside>
 
