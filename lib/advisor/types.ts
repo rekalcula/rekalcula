@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 // TIPOS DEL SISTEMA DE ASESORAMIENTO - ReKalcula
 // ============================================================
 
@@ -70,6 +70,12 @@ export interface ProductoConMetricas {
   porcentajeIngresos: number
   tendencia: number // Porcentaje de cambio vs período anterior
   ranking: number
+  
+  // Nuevos campos - Análisis científico basado en impacto económico
+  ventasAnteriores: number              // Ventas del período anterior
+  impactoEconomicoAbsoluto: number      // Cambio en € vs período anterior
+  impactoEconomicoRelativo: number      // % de cambio respecto a ingresos totales
+  cumpleUmbralesMinimos: boolean        // Si cumple criterios científicos para recomendaciones
 }
 
 // ============================================================
