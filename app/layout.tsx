@@ -40,7 +40,7 @@ export default function RootLayout({
           <meta name="apple-mobile-web-app-title" content="ReKalcula" />
           <meta name="mobile-web-app-capable" content="yes" />
         </head>
-        <body className={inter.className}>
+        <body className={inter.className} style={{backgroundColor: '#EFE8B2'}}>
           <PWARegister />
           {children}
         </body>
