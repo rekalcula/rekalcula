@@ -12,6 +12,12 @@ export * from './types'
 // Principios científicos (inmutables)
 export { PRINCIPIOS, getPrincipio, getAdaptacion } from './principios'
 
+// Umbrales científicos
+export { 
+  UMBRALES_CIENTIFICOS,
+  cumpleUmbralesMinimos,
+  esTendenciaSignificativa
+} from './umbrales-cientificos'
 // Reglas de detección
 export { REGLAS, getRegla, getReglasPorPrioridad } from './reglas'
 

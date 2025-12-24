@@ -7,14 +7,20 @@
 //
 // Todo es CÓDIGO PURO - no hay IA involucrada.
 //
+// ACTUALIZADO: Incluye análisis científico basado en:
+// - Porcentajes relativos
+// - Impacto económico real
+// - Umbrales estadísticamente significativos
+//
 // ============================================================
 
 import { 
   MetricasNegocio, 
   ProductoConMetricas,
-  Sector 
+  Sector
 } from './types'
 import { detectarSector } from './detector-sector'
+import { cumpleUmbralesMinimos } from './umbrales-cientificos'
 
 // Tipo para los datos crudos de ventas
 interface VentaCruda {
@@ -42,7 +48,7 @@ export function agregarMetricas(
   datos: DatosComparacion,
   periodo: 'dia' | 'semana' | 'mes'
 ): MetricasNegocio {
-  
+
   const { ventasActuales, ventasAnteriores } = datos
 
   // 1. Extraer todos los productos únicos del período actual
@@ -57,7 +63,7 @@ export function agregarMetricas(
     for (const item of venta.sale_items || []) {
       const nombre = normalizarNombreProducto(item.product_name)
       const actual = productosMap.get(nombre) || { ventas: 0, ingresos: 0, cantidadItems: 0 }
-      
+
       productosMap.set(nombre, {
         ventas: actual.ventas + (item.quantity || 1),
         ingresos: actual.ingresos + (item.total || 0),
@@ -66,26 +72,39 @@ export function agregarMetricas(
     }
   }
 
-  // 2. Calcular ventas del período anterior (para tendencias)
-  const productosAnterioresMap = new Map<string, number>()
-  
+  // 2. Calcular ventas E INGRESOS del período anterior (para tendencias e impacto)
+  const productosAnterioresMap = new Map<string, {
+    ventas: number
+    ingresos: number
+  }>()
+
   for (const venta of ventasAnteriores) {
     for (const item of venta.sale_items || []) {
       const nombre = normalizarNombreProducto(item.product_name)
-      const actual = productosAnterioresMap.get(nombre) || 0
-      productosAnterioresMap.set(nombre, actual + (item.quantity || 1))
+      const actual = productosAnterioresMap.get(nombre) || { ventas: 0, ingresos: 0 }
+      productosAnterioresMap.set(nombre, {
+        ventas: actual.ventas + (item.quantity || 1),
+        ingresos: actual.ingresos + (item.total || 0)
+      })
     }
   }
 
-  // 3. Construir array de productos con métricas
-  const productos: ProductoConMetricas[] = []
+  // 3. Calcular totales para porcentajes relativos
   let totalVentas = 0
   let totalIngresos = 0
+  let totalIngresosAnteriores = 0
 
   for (const [nombre, datos] of productosMap) {
     totalVentas += datos.ventas
     totalIngresos += datos.ingresos
   }
+
+  for (const [nombre, datos] of productosAnterioresMap) {
+    totalIngresosAnteriores += datos.ingresos
+  }
+
+  // 4. Construir array de productos con métricas científicas
+  const productos: ProductoConMetricas[] = []
 
   let ranking = 0
   // Ordenar por ventas para asignar ranking
@@ -94,29 +113,56 @@ export function agregarMetricas(
 
   for (const [nombre, datos] of productosOrdenados) {
     ranking++
+
+    const datosAnteriores = productosAnterioresMap.get(nombre) || { ventas: 0, ingresos: 0 }
+    const ventasAnteriores = datosAnteriores.ventas
+    const ingresosAnteriores = datosAnteriores.ingresos
     
-    const ventasAnteriores = productosAnterioresMap.get(nombre) || 0
     const tendencia = calcularTendencia(datos.ventas, ventasAnteriores)
     
+    // NUEVOS CÁLCULOS - Impacto económico
+    const impactoEconomicoAbsoluto = datos.ingresos - ingresosAnteriores
+    const impactoEconomicoRelativo = totalIngresosAnteriores > 0
+      ? (impactoEconomicoAbsoluto / totalIngresosAnteriores) * 100
+      : 0
+
+    const porcentajeVentasTotal = totalVentas > 0
+      ? (datos.ventas / totalVentas) * 100
+      : 0
+
+    const porcentajeIngresosTotal = totalIngresos > 0
+      ? (datos.ingresos / totalIngresos) * 100
+      : 0
+
+    // Validar si cumple umbrales científicos
+    const cumpleUmbrales = cumpleUmbralesMinimos(
+      datos.ventas,
+      ventasAnteriores,
+      porcentajeVentasTotal,
+      impactoEconomicoRelativo
+    )
+
     productos.push({
       nombre,
       ventas: datos.ventas,
       ingresos: Math.round(datos.ingresos * 100) / 100,
-      precioUnitario: datos.ventas > 0 
-        ? Math.round((datos.ingresos / datos.ventas) * 100) / 100 
+      precioUnitario: datos.ventas > 0
+        ? Math.round((datos.ingresos / datos.ventas) * 100) / 100
         : 0,
-      porcentajeVentas: totalVentas > 0 
-        ? Math.round((datos.ventas / totalVentas) * 1000) / 10 
-        : 0,
-      porcentajeIngresos: totalIngresos > 0 
-        ? Math.round((datos.ingresos / totalIngresos) * 1000) / 10 
-        : 0,
+      porcentajeVentas: Math.round(porcentajeVentasTotal * 10) / 10,
+      porcentajeIngresos: Math.round(porcentajeIngresosTotal * 10) / 10,
       tendencia,
-      ranking
+      ranking,
+      
+      // Nuevos campos científicos
+      ventasAnteriores,
+      impactoEconomicoAbsoluto: Math.round(impactoEconomicoAbsoluto * 100) / 100,
+      impactoEconomicoRelativo: Math.round(impactoEconomicoRelativo * 100) / 100,
+      cumpleUmbralesMinimos: cumpleUmbrales
     })
   }
 
-  // 4. Calcular medias
+  // 5. Calcular medias
   const numProductos = productos.length || 1
   const medias = {
     ventasPorProducto: Math.round((totalVentas / numProductos) * 10) / 10,
@@ -126,26 +172,28 @@ export function agregarMetricas(
     ingresosPorProducto: Math.round((totalIngresos / numProductos) * 100) / 100
   }
 
-  // 5. Detectar sector
+  // 6. Detectar sector
   const nombresProductos = productos.map(p => p.nombre)
   const { sector, confianza } = detectarSector(nombresProductos)
 
-  // 6. Identificar productos destacados
+  // 7. Identificar productos destacados (SOLO los que cumplen umbrales)
+  const productosValidos = productos.filter(p => p.cumpleUmbralesMinimos)
+  
   const destacados = {
-    masVendido: productos.length > 0 ? productos[0] : null,
-    menosVendido: productos.length > 0 ? productos[productos.length - 1] : null,
-    mayorIngreso: productos.length > 0 
-      ? [...productos].sort((a, b) => b.ingresos - a.ingresos)[0] 
+    masVendido: productosValidos.length > 0 ? productosValidos[0] : null,
+    menosVendido: productosValidos.length > 0 ? productosValidos[productosValidos.length - 1] : null,
+    mayorIngreso: productosValidos.length > 0
+      ? [...productosValidos].sort((a, b) => b.ingresos - a.ingresos)[0]
       : null,
-    mayorCrecimiento: productos.length > 0
-      ? [...productos].sort((a, b) => b.tendencia - a.tendencia)[0]
+    mayorCrecimiento: productosValidos.length > 0
+      ? [...productosValidos].sort((a, b) => b.tendencia - a.tendencia)[0]
       : null,
-    mayorDeclive: productos.length > 0
-      ? [...productos].sort((a, b) => a.tendencia - b.tendencia)[0]
+    mayorDeclive: productosValidos.length > 0
+      ? [...productosValidos].sort((a, b) => a.tendencia - b.tendencia)[0]
       : null
   }
 
-  // 7. Construir y devolver métricas completas
+  // 8. Construir y devolver métricas completas
   return {
     sector,
     confianzaSector: confianza,
@@ -166,7 +214,7 @@ export function agregarMetricas(
 // --------------------------------------------------------
 function normalizarNombreProducto(nombre: string): string {
   if (!nombre) return 'Producto sin nombre'
-  
+
   // Capitalizar primera letra, resto en minúsculas
   const normalizado = nombre.trim().toLowerCase()
   return normalizado.charAt(0).toUpperCase() + normalizado.slice(1)
@@ -181,7 +229,7 @@ function calcularTendencia(actual: number, anterior: number): number {
     // Lo limitamos a 100% para no distorsionar
     return actual > 0 ? 100 : 0
   }
-  
+
   const cambio = ((actual - anterior) / anterior) * 100
   return Math.round(cambio * 10) / 10
 }

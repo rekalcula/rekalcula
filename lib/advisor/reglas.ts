@@ -9,13 +9,22 @@
 //
 // La IA NUNCA evalúa estas reglas, solo redacta el resultado.
 //
+// ACTUALIZADO: Todas las reglas usan umbrales científicos basados en:
+// - Porcentajes relativos (no absolutos)
+// - Impacto económico real
+// - Significancia estadística
+//
 // ============================================================
 
 import { 
-  ReglaDeteccion, 
-  MetricasNegocio, 
-  ProductoConMetricas 
+  ReglaDeteccion,
+  MetricasNegocio,
+  ProductoConMetricas
 } from './types'
+import { 
+  UMBRALES_CIENTIFICOS,
+  esTendenciaSignificativa
+} from './umbrales-cientificos'
 
 export const REGLAS: ReglaDeteccion[] = [
   // --------------------------------------------------------
@@ -25,20 +34,19 @@ export const REGLAS: ReglaDeteccion[] = [
   {
     id: 'R01',
     nombre: 'Oportunidad oculta',
-    descripcion: 'Producto con precio superior a la media pero ventas inferiores al 50% de la media',
+    descripcion: 'Producto premium (precio >50% media) con ventas bajas pero que cumple umbrales mínimos',
     prioridad: 1,
     tipoOportunidad: 'aumentar_visibilidad',
     principioId: 'autoridad',
     evaluar: (metricas: MetricasNegocio): ProductoConMetricas | null => {
       const { productos, medias } = metricas
-      
-      // Buscar producto con precio >= media y ventas < 50% media
-      const candidato = productos.find(p => 
-        p.precioUnitario >= medias.precioUnitario &&
-        p.ventas < medias.ventasPorProducto * 0.5 &&
-        p.ventas > 0 // Tiene al menos alguna venta
+
+      const candidato = productos.find(p =>
+        p.cumpleUmbralesMinimos && // Debe cumplir umbrales científicos
+        p.precioUnitario >= medias.precioUnitario * UMBRALES_CIENTIFICOS.PRECIO_PREMIUM_MULTIPLICADOR &&
+        p.ventas < medias.ventasPorProducto * 0.5
       )
-      
+
       return candidato || null
     }
   },
@@ -50,19 +58,19 @@ export const REGLAS: ReglaDeteccion[] = [
   {
     id: 'R02',
     nombre: 'Subida de precio viable',
-    descripcion: 'Producto con ventas superiores al 150% de la media y tendencia positiva',
+    descripcion: 'Producto estrella (ventas >2x media) con crecimiento significativo (>10%)',
     prioridad: 2,
     tipoOportunidad: 'evaluar_subida_precio',
     principioId: 'prueba_social',
     evaluar: (metricas: MetricasNegocio): ProductoConMetricas | null => {
       const { productos, medias } = metricas
-      
-      // Buscar producto muy vendido con tendencia positiva
-      const candidato = productos.find(p => 
-        p.ventas > medias.ventasPorProducto * 1.5 &&
-        p.tendencia > 5 // Crecimiento > 5%
+
+      const candidato = productos.find(p =>
+        p.cumpleUmbralesMinimos &&
+        p.ventas > medias.ventasPorProducto * UMBRALES_CIENTIFICOS.PRODUCTO_ESTRELLA_MULTIPLICADOR &&
+        esTendenciaSignificativa(p.tendencia, 'crecimiento')
       )
-      
+
       return candidato || null
     }
   },
@@ -74,19 +82,18 @@ export const REGLAS: ReglaDeteccion[] = [
   {
     id: 'R03',
     nombre: 'Producto en declive',
-    descripcion: 'Producto con tendencia inferior al -15%',
+    descripcion: 'Producto con declive significativo (<-10%) y cumple umbrales mínimos',
     prioridad: 1,
     tipoOportunidad: 'investigar_declive',
     principioId: 'aversion_perdida',
     evaluar: (metricas: MetricasNegocio): ProductoConMetricas | null => {
       const { productos } = metricas
-      
-      // Buscar producto con declive significativo
-      const candidato = productos.find(p => 
-        p.tendencia < -15 &&
-        p.ventas > 0 // Tiene ventas para comparar
+
+      const candidato = productos.find(p =>
+        p.cumpleUmbralesMinimos &&
+        esTendenciaSignificativa(p.tendencia, 'declive')
       )
-      
+
       return candidato || null
     }
   },
@@ -98,18 +105,18 @@ export const REGLAS: ReglaDeteccion[] = [
   {
     id: 'R04',
     nombre: 'Producto estrella',
-    descripcion: 'Producto con ventas superiores al 200% de la media',
+    descripcion: 'Producto con ventas >2x media y >5% de participación',
     prioridad: 2,
     tipoOportunidad: 'potenciar_estrella',
     principioId: 'prueba_social',
     evaluar: (metricas: MetricasNegocio): ProductoConMetricas | null => {
       const { productos, medias } = metricas
-      
-      // Buscar producto estrella
-      const candidato = productos.find(p => 
-        p.ventas > medias.ventasPorProducto * 2
+
+      const candidato = productos.find(p =>
+        p.cumpleUmbralesMinimos &&
+        p.ventas > medias.ventasPorProducto * UMBRALES_CIENTIFICOS.PRODUCTO_ESTRELLA_MULTIPLICADOR
       )
-      
+
       return candidato || null
     }
   },
@@ -121,18 +128,18 @@ export const REGLAS: ReglaDeteccion[] = [
   {
     id: 'R05',
     nombre: 'Producto lastre',
-    descripcion: 'Producto con ventas inferiores al 20% de la media y tendencia negativa',
+    descripcion: 'Producto con ventas <20% media, declive y bajo impacto económico',
     prioridad: 3,
     tipoOportunidad: 'evaluar_eliminacion',
     principioId: 'paradoja_eleccion',
     evaluar: (metricas: MetricasNegocio): ProductoConMetricas | null => {
       const { productos, medias } = metricas
-      
-      // Buscar producto con muy pocas ventas y en declive
-      const candidato = productos.find(p => 
-        p.ventas < medias.ventasPorProducto * 0.2 &&
-        p.ventas > 0 &&
-        p.tendencia < 0
+
+      const candidato = productos.find(p =>
+        p.ventas < medias.ventasPorProducto * UMBRALES_CIENTIFICOS.PRODUCTO_BAJO_MULTIPLICADOR &&
+        p.ventasAnteriores >= UMBRALES_CIENTIFICOS.VENTAS_MINIMAS_POR_PERIODO &&
+        p.tendencia < 0 &&
+        p.porcentajeIngresos < UMBRALES_CIENTIFICOS.PARTICIPACION_INGRESOS_MINIMA * 100
       )
       
       return candidato || null
@@ -146,18 +153,18 @@ export const REGLAS: ReglaDeteccion[] = [
   {
     id: 'R06',
     nombre: 'Oportunidad de ancla',
-    descripcion: 'Producto con precio superior al 150% de la media',
+    descripcion: 'Producto premium (precio >1.5x media) que cumple umbrales',
     prioridad: 2,
     tipoOportunidad: 'usar_como_ancla',
     principioId: 'anclaje',
     evaluar: (metricas: MetricasNegocio): ProductoConMetricas | null => {
       const { productos, medias } = metricas
-      
-      // Buscar producto premium que pueda servir de ancla
-      const candidato = productos.find(p => 
-        p.precioUnitario > medias.precioUnitario * 1.5
+
+      const candidato = productos.find(p =>
+        p.cumpleUmbralesMinimos &&
+        p.precioUnitario > medias.precioUnitario * UMBRALES_CIENTIFICOS.PRECIO_PREMIUM_MULTIPLICADOR
       )
-      
+
       return candidato || null
     }
   },
@@ -169,45 +176,44 @@ export const REGLAS: ReglaDeteccion[] = [
   {
     id: 'R07',
     nombre: 'Exceso de opciones',
-    descripcion: 'Más de 10 productos donde más del 50% tienen ventas bajo la media',
+    descripcion: 'Más de 10 productos donde >50% tienen ventas bajo la media',
     prioridad: 2,
     tipoOportunidad: 'simplificar_opciones',
     principioId: 'paradoja_eleccion',
     evaluar: (metricas: MetricasNegocio): ProductoConMetricas | null => {
       const { productos, medias } = metricas
-      
+
       if (productos.length < 10) return null
-      
-      const productosDebiles = productos.filter(p => 
+
+      const productosDebiles = productos.filter(p =>
         p.ventas < medias.ventasPorProducto
       )
-      
-      // Si más del 50% están bajo la media, hay exceso
+
       if (productosDebiles.length > productos.length * 0.5) {
-        // Devolver el de menos ventas como ejemplo
         return productosDebiles.sort((a, b) => a.ventas - b.ventas)[0] || null
       }
-      
+
       return null
     }
   },
 
   // --------------------------------------------------------
   // R08: OPORTUNIDAD DE ESCASEZ (Baja prioridad)
-  // Producto con ventas concentradas en ciertos días/horas
+  // Producto estrella que puede beneficiarse de edición limitada
   // --------------------------------------------------------
   {
     id: 'R08',
     nombre: 'Oportunidad de escasez',
-    descripcion: 'Producto estrella que puede beneficiarse de edición limitada',
+    descripcion: 'Producto estrella que cumple umbrales con tendencia positiva o estable',
     prioridad: 3,
     tipoOportunidad: 'aumentar_visibilidad',
     principioId: 'escasez',
     evaluar: (metricas: MetricasNegocio): ProductoConMetricas | null => {
       const { destacados } = metricas
-      
-      // El producto más vendido puede usar escasez para aumentar valor percibido
-      if (destacados.masVendido && destacados.masVendido.tendencia >= 0) {
+
+      if (destacados.masVendido && 
+          destacados.masVendido.cumpleUmbralesMinimos &&
+          destacados.masVendido.tendencia >= 0) {
         return destacados.masVendido
       }
       
@@ -222,19 +228,19 @@ export const REGLAS: ReglaDeteccion[] = [
   {
     id: 'R09',
     nombre: 'Oportunidad de reciprocidad',
-    descripcion: 'Producto con precio bajo que podría usarse como detalle/cortesía',
+    descripcion: 'Producto económico (precio <30% media) que cumple umbrales mínimos',
     prioridad: 3,
     tipoOportunidad: 'aumentar_visibilidad',
     principioId: 'reciprocidad',
     evaluar: (metricas: MetricasNegocio): ProductoConMetricas | null => {
       const { productos, medias } = metricas
-      
-      // Buscar producto barato (< 30% del precio medio)
-      const candidato = productos.find(p => 
-        p.precioUnitario < medias.precioUnitario * 0.3 &&
+
+      const candidato = productos.find(p =>
+        p.cumpleUmbralesMinimos &&
+        p.precioUnitario < medias.precioUnitario * UMBRALES_CIENTIFICOS.PRECIO_ECONOMICO_MULTIPLICADOR &&
         p.precioUnitario > 0
       )
-      
+
       return candidato || null
     }
   },
@@ -246,20 +252,20 @@ export const REGLAS: ReglaDeteccion[] = [
   {
     id: 'R10',
     nombre: 'Oportunidad de efecto señuelo',
-    descripcion: 'Producto medio que podría beneficiarse de una estructura de 3 opciones',
+    descripcion: 'Producto medio (precio 80-120% media) que cumple umbrales',
     prioridad: 2,
     tipoOportunidad: 'aplicar_efecto_senuelo',
     principioId: 'efecto_senuelo',
     evaluar: (metricas: MetricasNegocio): ProductoConMetricas | null => {
       const { productos, medias } = metricas
-      
-      // Buscar producto con precio cercano a la media (80%-120%)
-      const candidato = productos.find(p => 
+
+      const candidato = productos.find(p =>
+        p.cumpleUmbralesMinimos &&
         p.precioUnitario >= medias.precioUnitario * 0.8 &&
         p.precioUnitario <= medias.precioUnitario * 1.2 &&
         p.ventas >= medias.ventasPorProducto * 0.5
       )
-      
+
       return candidato || null
     }
   },
@@ -271,20 +277,19 @@ export const REGLAS: ReglaDeteccion[] = [
   {
     id: 'R11',
     nombre: 'Oportunidad de posición',
-    descripcion: 'Producto con buen margen que debería tener mejor posición',
+    descripcion: 'Producto premium (precio >1.2x media) fuera del top 3 que cumple umbrales',
     prioridad: 3,
     tipoOportunidad: 'aumentar_visibilidad',
     principioId: 'primacia_recencia',
     evaluar: (metricas: MetricasNegocio): ProductoConMetricas | null => {
       const { productos, medias } = metricas
-      
-      // Buscar producto con buen precio pero no es el más vendido
-      const candidato = productos.find(p => 
+
+      const candidato = productos.find(p =>
+        p.cumpleUmbralesMinimos &&
         p.precioUnitario >= medias.precioUnitario * 1.2 &&
-        p.ranking > 3 && // No está en top 3
-        p.ventas > 0
+        p.ranking > 3
       )
-      
+
       return candidato || null
     }
   },
@@ -302,42 +307,42 @@ export const REGLAS: ReglaDeteccion[] = [
     principioId: 'efecto_compromiso',
     evaluar: (metricas: MetricasNegocio): ProductoConMetricas | null => {
       const { productos } = metricas
-      
-      // Si hay producto barato y caro del mismo tipo, sugerir crear medio
-      if (productos.length >= 2) {
-        const ordenados = [...productos].sort((a, b) => a.precioUnitario - b.precioUnitario)
+
+      const productosValidos = productos.filter(p => p.cumpleUmbralesMinimos)
+
+      if (productosValidos.length >= 2) {
+        const ordenados = [...productosValidos].sort((a, b) => a.precioUnitario - b.precioUnitario)
         const barato = ordenados[0]
         const caro = ordenados[ordenados.length - 1]
-        
-        // Si la diferencia de precio es grande, hay oportunidad
+
         if (caro.precioUnitario > barato.precioUnitario * 2) {
-          return caro // Sugerir crear opción media basada en el caro
+          return caro
         }
       }
-      
+
       return null
     }
   },
 
   // --------------------------------------------------------
   // R13: CRECIMIENTO ACELERADO (Alta prioridad)
-  // Producto nuevo con crecimiento muy rápido
+  // Producto con crecimiento muy rápido y significativo
   // --------------------------------------------------------
   {
     id: 'R13',
     nombre: 'Crecimiento acelerado',
-    descripcion: 'Producto con tendencia superior al +25%',
+    descripcion: 'Producto con crecimiento >15%, >5% participación y >2% impacto económico',
     prioridad: 1,
     tipoOportunidad: 'potenciar_estrella',
     principioId: 'prueba_social',
     evaluar: (metricas: MetricasNegocio): ProductoConMetricas | null => {
       const { productos } = metricas
-      
-      // Buscar producto con crecimiento muy alto
-      const candidato = productos.find(p => 
-        p.tendencia > 25
+
+      const candidato = productos.find(p =>
+        p.cumpleUmbralesMinimos &&
+        p.tendencia >= UMBRALES_CIENTIFICOS.TENDENCIA_CRECIMIENTO_ALTA * 100
       )
-      
+
       return candidato || null
     }
   },
@@ -349,20 +354,20 @@ export const REGLAS: ReglaDeteccion[] = [
   {
     id: 'R14',
     nombre: 'Producto infrautilizado',
-    descripcion: 'Producto con ingreso por unidad alto pero pocas ventas',
+    descripcion: 'Producto premium (>1.3x media) con ventas 20-70% de la media que cumple umbrales',
     prioridad: 2,
     tipoOportunidad: 'aumentar_visibilidad',
     principioId: 'autoridad',
     evaluar: (metricas: MetricasNegocio): ProductoConMetricas | null => {
       const { productos, medias } = metricas
-      
-      // Producto con precio alto y ventas bajas (pero no mínimas)
-      const candidato = productos.find(p => 
+
+      const candidato = productos.find(p =>
+        p.cumpleUmbralesMinimos &&
         p.precioUnitario > medias.precioUnitario * 1.3 &&
         p.ventas < medias.ventasPorProducto * 0.7 &&
         p.ventas >= medias.ventasPorProducto * 0.2
       )
-      
+
       return candidato || null
     }
   },
@@ -374,19 +379,19 @@ export const REGLAS: ReglaDeteccion[] = [
   {
     id: 'R15',
     nombre: 'Pérdida potencial',
-    descripcion: 'Producto con alto volumen de ventas pero tendencia negativa',
+    descripcion: 'Producto con alto volumen (>media) y declive significativo (<-10%)',
     prioridad: 1,
     tipoOportunidad: 'investigar_declive',
     principioId: 'aversion_perdida',
     evaluar: (metricas: MetricasNegocio): ProductoConMetricas | null => {
       const { productos, medias } = metricas
-      
-      // Producto importante (ventas altas) que está cayendo
-      const candidato = productos.find(p => 
+
+      const candidato = productos.find(p =>
+        p.cumpleUmbralesMinimos &&
         p.ventas > medias.ventasPorProducto &&
-        p.tendencia < -5
+        esTendenciaSignificativa(p.tendencia, 'declive')
       )
-      
+
       return candidato || null
     }
   }
