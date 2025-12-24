@@ -55,7 +55,7 @@ export default function HomePage() {
             </Link>
             <Link
               href="#como-funciona"
-              className="border-2 border-gray-300 px-6 py-3 sm:px-8 sm:py-4 rounded-lg hover:border-gray-400 transition text-base sm:text-lg font-semibold"
+              className="border-2 border-[#FFFCFF] text-[#FFFCFF] px-6 py-3 sm:px-8 sm:py-4 rounded-lg hover:border-[#FFFCFF] hover:bg-[#FFFCFF] hover:text-[#262626] transition text-base sm:text-lg font-semibold"
             >
               Ver como funciona
             </Link>
