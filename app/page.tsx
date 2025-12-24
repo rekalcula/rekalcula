@@ -13,7 +13,7 @@ export default function HomePage() {
           <div className="flex items-center gap-2 sm:gap-4">
             <Link
               href="/sign-in"
-              className="text-gray-600 hover:text-gray-900 font-medium text-xs sm:text-base"
+              className="text-[#FFFCFF] hover:text-gray-900 font-medium text-xs sm:text-base"
             >
               Iniciar sesion
             </Link>
@@ -40,7 +40,7 @@ export default function HomePage() {
             <span className="text-[#AC4A00]">sin saberlo</span>
           </h1>
 
-          <p className="text-base sm:text-xl text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed px-2">
+          <p className="text-base sm:text-xl text-[#FFFCFF] mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed px-2">
             Fotografia tus facturas, recibe un analisis con IA en 3 minutos,
             y descubre exactamente como aumentar tus beneficios.
           </p>
@@ -62,7 +62,7 @@ export default function HomePage() {
           </div>
 
           {/* Trust badges */}
-          <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-500">
+          <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-6 text-xs sm:text-sm text-[#FFFCFF]">
             <div className="flex items-center justify-center gap-2">
               <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
               <span>14 dias gratis</span>
@@ -86,7 +86,7 @@ export default function HomePage() {
                 <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-[#AC4A00]" />
               </div>
               <h3 className="text-lg sm:text-xl font-semibold text-[#FFFCFF] mb-2 sm:mb-3">Analisis en 3 minutos</h3>
-              <p className="text-sm sm:text-base text-gray-600">
+              <p className="text-sm sm:text-base text-[#FFFCFF]">
                 Sube tus facturas y recibe un analisis completo instantaneo. Sin esperas, sin complicaciones.
               </p>
             </div>
@@ -96,7 +96,7 @@ export default function HomePage() {
                 <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
               </div>
               <h3 className="text-lg sm:text-xl font-semibold text-[#FFFCFF] mb-2 sm:mb-3">Aumenta beneficios</h3>
-              <p className="text-sm sm:text-base text-gray-600">
+              <p className="text-sm sm:text-base text-[#FFFCFF]">
                 Descubre oportunidades ocultas para aumentar ventas y reducir costes innecesarios.
               </p>
             </div>
@@ -106,7 +106,7 @@ export default function HomePage() {
                 <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
               </div>
               <h3 className="text-lg sm:text-xl font-semibold text-[#FFFCFF] mb-2 sm:mb-3">100% seguro</h3>
-              <p className="text-sm sm:text-base text-gray-600">
+              <p className="text-sm sm:text-base text-[#FFFCFF]">
                 Tus datos estan encriptados y protegidos. Nunca compartimos tu informacion.
               </p>
             </div>
@@ -118,7 +118,7 @@ export default function HomePage() {
           <h2 className="text-2xl sm:text-4xl font-bold text-[#FFFCFF] text-center mb-3 sm:mb-4">
             Como funciona
           </h2>
-          <p className="text-center text-gray-600 mb-10 sm:mb-16 text-base sm:text-lg px-4">
+          <p className="text-center text-[#FFFCFF] mb-10 sm:mb-16 text-base sm:text-lg px-4">
             3 pasos simples para optimizar tu negocio
           </p>
 
@@ -128,7 +128,7 @@ export default function HomePage() {
                 <span className="text-xl sm:text-2xl font-bold text-white">1</span>
               </div>
               <h3 className="text-lg sm:text-xl font-semibold text-[#FFFCFF] mb-2 sm:mb-3">Fotografia facturas</h3>
-              <p className="text-sm sm:text-base text-gray-600 px-4 sm:px-0">
+              <p className="text-sm sm:text-base text-[#FFFCFF] px-4 sm:px-0">
                 Sube fotos de tus facturas mensuales. La IA las procesa automaticamente en segundos.
               </p>
             </div>
@@ -138,7 +138,7 @@ export default function HomePage() {
                 <span className="text-xl sm:text-2xl font-bold text-white">2</span>
               </div>
               <h3 className="text-lg sm:text-xl font-semibold text-[#FFFCFF] mb-2 sm:mb-3">Analisis instantaneo</h3>
-              <p className="text-sm sm:text-base text-gray-600 px-4 sm:px-0">
+              <p className="text-sm sm:text-base text-[#FFFCFF] px-4 sm:px-0">
                 Recibes metricas completas: margenes, punto de equilibrio, comparativa con el sector.
               </p>
             </div>
@@ -148,7 +148,7 @@ export default function HomePage() {
                 <span className="text-xl sm:text-2xl font-bold text-white">3</span>
               </div>
               <h3 className="text-lg sm:text-xl font-semibold text-[#FFFCFF] mb-2 sm:mb-3">Implementa consejos</h3>
-              <p className="text-sm sm:text-base text-gray-600 px-4 sm:px-0">
+              <p className="text-sm sm:text-base text-[#FFFCFF] px-4 sm:px-0">
                 Sigue recomendaciones priorizadas para reducir costes y aumentar ventas hoy mismo.
               </p>
             </div>
@@ -175,7 +175,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t border-gray-200 mt-16 sm:mt-32 py-6 sm:py-8">
-        <div className="container mx-auto px-4 text-center text-gray-600 text-sm sm:text-base">
+        <div className="container mx-auto px-4 text-center text-[#FFFCFF] text-sm sm:text-base">
           <p>2024 ReKalcula. Todos los derechos reservados.</p>
         </div>
       </footer>
