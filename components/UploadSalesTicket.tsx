@@ -3,12 +3,22 @@
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
+interface FileWithPreview {
+  file: File
+  preview: string
+  selected: boolean
+  id: string
+}
+
 export default function UploadSalesTicket() {
   const router = useRouter()
-  const [uploading, setUploading] = useState(false)
   const [dragActive, setDragActive] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [files, setFiles] = useState<FileWithPreview[]>([])
+  const [processing, setProcessing] = useState(false)
+  const [results, setResults] = useState<any[]>([])
+  const [mode, setMode] = useState<'select' | 'folder' | null>(null)
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -20,37 +30,50 @@ export default function UploadSalesTicket() {
     }
   }, [])
 
-  const processFile = async (file: File) => {
-    setUploading(true)
-    setError(null)
-    setSuccess(null)
-
-    try {
-      const formData = new FormData()
-      formData.append('file', file)
-
-      const response = await fetch('/api/process-sales-ticket', {
-        method: 'POST',
-        body: formData
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al procesar el ticket')
-      }
-
-      setSuccess(`✅ Venta registrada: €${data.sale.total?.toFixed(2) || '0.00'}`)
+  const loadFiles = async (fileList: FileList | File[], autoSelect: boolean = false) => {
+    const newFiles: FileWithPreview[] = []
+    
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[i]
       
-      // Refrescar la página después de 2 segundos
-      setTimeout(() => {
-        router.refresh()
-      }, 2000)
+      // Validar tipo de archivo
+      if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+        continue
+      }
+      
+      // Crear preview
+      let preview = ''
+      if (file.type.startsWith('image/')) {
+        preview = URL.createObjectURL(file)
+      } else if (file.type === 'application/pdf') {
+        preview = 'pdf'
+      }
+      
+      newFiles.push({
+        file,
+        preview,
+        selected: autoSelect, // Si es carpeta completa, ya vienen seleccionados
+        id: `${file.name}-${Date.now()}-${i}`
+      })
+    }
+    
+    setFiles(newFiles)
+    setError(null)
+  }
 
-    } catch (err: any) {
-      setError(err.message || 'Error al procesar el ticket')
-    } finally {
-      setUploading(false)
+  const handleFolderUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault()
+    if (e.target.files) {
+      setMode('folder')
+      loadFiles(e.target.files, true) // TRUE = auto-seleccionar todos
+    }
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault()
+    if (e.target.files) {
+      setMode('select')
+      loadFiles(e.target.files, false) // FALSE = no auto-seleccionar
     }
   }
 
@@ -59,74 +82,387 @@ export default function UploadSalesTicket() {
     e.stopPropagation()
     setDragActive(false)
 
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      processFile(e.dataTransfer.files[0])
+    if (e.dataTransfer.files) {
+      setMode('select')
+      loadFiles(e.dataTransfer.files, false)
     }
   }, [])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault()
-    if (e.target.files && e.target.files[0]) {
-      processFile(e.target.files[0])
+  const toggleFileSelection = (id: string) => {
+    setFiles(prev =>
+      prev.map(f => f.id === id ? { ...f, selected: !f.selected } : f)
+    )
+  }
+
+  const toggleAll = () => {
+    const allSelected = files.every(f => f.selected)
+    setFiles(prev => prev.map(f => ({ ...f, selected: !allSelected })))
+  }
+
+  const removeFile = (id: string) => {
+    setFiles(prev => {
+      const file = prev.find(f => f.id === id)
+      if (file?.preview && file.preview !== 'pdf') {
+        URL.revokeObjectURL(file.preview)
+      }
+      return prev.filter(f => f.id !== id)
+    })
+  }
+
+  const clearAll = () => {
+    files.forEach(f => {
+      if (f.preview && f.preview !== 'pdf') {
+        URL.revokeObjectURL(f.preview)
+      }
+    })
+    setFiles([])
+    setResults([])
+    setError(null)
+    setSuccess(null)
+    setMode(null)
+  }
+
+  const processFiles = async () => {
+    const filesToProcess = mode === 'folder' 
+      ? files // En modo carpeta, procesar TODOS
+      : files.filter(f => f.selected) // En modo selección, solo los seleccionados
+    
+    if (filesToProcess.length === 0) {
+      setError('No hay archivos para procesar')
+      return
+    }
+
+    setProcessing(true)
+    setError(null)
+    setSuccess(null)
+    setResults([])
+
+    let successCount = 0
+    let errorCount = 0
+    const newResults: any[] = []
+
+    for (let i = 0; i < filesToProcess.length; i++) {
+      const fileItem = filesToProcess[i]
+      
+      try {
+        const formData = new FormData()
+        formData.append('file', fileItem.file)
+
+        const response = await fetch('/api/process-sales-ticket', {
+          method: 'POST',
+          body: formData
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Error al procesar el ticket')
+        }
+
+        newResults.push({
+          fileName: fileItem.file.name,
+          success: true,
+          data: data.sale
+        })
+        successCount++
+
+      } catch (err: any) {
+        newResults.push({
+          fileName: fileItem.file.name,
+          success: false,
+          error: err.message
+        })
+        errorCount++
+      }
+      
+      setResults([...newResults]) // Actualizar en tiempo real
+    }
+
+    setProcessing(false)
+
+    if (successCount > 0) {
+      setSuccess(`✅ ${successCount} ticket(s) procesado(s) correctamente`)
+      
+      setTimeout(() => {
+        router.refresh()
+      }, 3000)
+    }
+
+    if (errorCount > 0) {
+      setError(`❌ ${errorCount} ticket(s) con errores`)
     }
   }
+
+  const selectedCount = files.filter(f => f.selected).length
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        📷 Subir Ticket de Venta
+        📷 Subir Tickets de Venta
       </h3>
-      
-      <div
-        className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
-          dragActive 
-            ? 'border-blue-500 bg-blue-50' 
-            : 'border-gray-300 hover:border-gray-400'
-        }`}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
-      >
-        {uploading ? (
-          <div className="space-y-3">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="text-gray-600">Procesando ticket con IA...</p>
+
+      {/* Opciones de carga */}
+      {files.length === 0 && (
+        <div className="space-y-4">
+          {/* Opción 1: Carpeta completa */}
+          <div className="border-2 border-blue-500 rounded-xl p-6 bg-blue-50">
+            <div className="flex items-start gap-4">
+              <div className="text-4xl">📁</div>
+              <div className="flex-1">
+                <h4 className="text-lg font-semibold text-blue-900 mb-2">
+                  Opción 1: Cargar carpeta completa
+                </h4>
+                <p className="text-sm text-blue-700 mb-4">
+                  Sube una carpeta con todos tus tickets. Se analizarán automáticamente TODOS los archivos.
+                </p>
+                <label className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold cursor-pointer transition-colors">
+                  📂 Seleccionar Carpeta Completa
+                  <input
+                    type="file"
+                    webkitdirectory=""
+                    directory=""
+                    multiple
+                    accept="image/*,.pdf"
+                    onChange={handleFolderUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            </div>
           </div>
-        ) : (
-          <>
-            <span className="text-4xl block mb-3">🧾</span>
+
+          {/* Opción 2: Seleccionar archivos */}
+          <div className="border-2 border-green-500 rounded-xl p-6 bg-green-50">
+            <div className="flex items-start gap-4">
+              <div className="text-4xl">✅</div>
+              <div className="flex-1">
+                <h4 className="text-lg font-semibold text-green-900 mb-2">
+                  Opción 2: Seleccionar archivos manualmente
+                </h4>
+                <p className="text-sm text-green-700 mb-4">
+                  Elige específicamente qué tickets quieres analizar. Puedes seleccionar múltiples archivos.
+                </p>
+                <label className="inline-block px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold cursor-pointer transition-colors">
+                  📄 Seleccionar Archivos
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*,.pdf"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Zona de arrastrar */}
+          <div
+            className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
+              dragActive
+                ? 'border-purple-500 bg-purple-50'
+                : 'border-gray-300 hover:border-gray-400'
+            }`}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            <span className="text-4xl block mb-3">🎯</span>
             <p className="text-gray-600 mb-2">
-              Arrastra tu ticket aquí o haz clic para seleccionar
+              O arrastra archivos aquí
             </p>
             <p className="text-sm text-gray-400">
-              JPG, PNG o PDF
+              JPG, PNG, PDF
             </p>
-            <input
-              type="file"
-              accept="image/*,.pdf"
-              onChange={handleChange}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
-          </>
-        )}
-      </div>
-
-      {error && (
-        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-700 text-sm">❌ {error}</p>
+          </div>
         </div>
       )}
 
-      {success && (
-        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-green-700 text-sm">{success}</p>
+      {/* Vista de archivos cargados */}
+      {files.length > 0 && (
+        <div className="space-y-4">
+          {/* Encabezado */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900">
+                  {mode === 'folder' ? '📁 Carpeta cargada' : '✅ Archivos seleccionados'}
+                </h4>
+                <p className="text-sm text-gray-600">
+                  {files.length} archivo(s) encontrado(s)
+                  {mode === 'select' && ` - ${selectedCount} seleccionado(s)`}
+                </p>
+              </div>
+              <button
+                onClick={clearAll}
+                className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors"
+              >
+                🗑️ Cancelar
+              </button>
+            </div>
+
+            {mode === 'folder' && (
+              <div className="bg-blue-100 border border-blue-300 rounded-lg p-3 mt-3">
+                <p className="text-sm text-blue-800">
+                  ℹ️ Modo carpeta completa: Se procesarán automáticamente TODOS los {files.length} archivos
+                </p>
+              </div>
+            )}
+
+            {mode === 'select' && (
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={toggleAll}
+                  className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
+                >
+                  {files.every(f => f.selected) ? 'Deseleccionar todos' : 'Seleccionar todos'}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Grid de archivos */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-h-96 overflow-y-auto p-2">
+            {files.map((fileItem) => (
+              <div
+                key={fileItem.id}
+                className={`relative border-2 rounded-lg p-2 transition-all ${
+                  mode === 'folder'
+                    ? 'border-blue-400 bg-blue-50' // En modo carpeta, todos azules
+                    : fileItem.selected
+                    ? 'border-green-500 bg-green-50'
+                    : 'border-gray-200 bg-gray-50'
+                }`}
+              >
+                {mode === 'select' && (
+                  <button
+                    onClick={() => removeFile(fileItem.id)}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 z-10 text-xs"
+                  >
+                    ×
+                  </button>
+                )}
+
+                <div
+                  onClick={() => mode === 'select' && toggleFileSelection(fileItem.id)}
+                  className={mode === 'select' ? 'cursor-pointer' : ''}
+                >
+                  {fileItem.preview === 'pdf' ? (
+                    <div className="aspect-square bg-red-100 rounded flex items-center justify-center">
+                      <span className="text-3xl">📄</span>
+                    </div>
+                  ) : (
+                    <img
+                      src={fileItem.preview}
+                      alt={fileItem.file.name}
+                      className="w-full aspect-square object-cover rounded"
+                    />
+                  )}
+
+                  <div className="mt-2 flex items-center gap-2">
+                    {mode === 'select' && (
+                      <input
+                        type="checkbox"
+                        checked={fileItem.selected}
+                        onChange={() => toggleFileSelection(fileItem.id)}
+                        className="w-4 h-4"
+                      />
+                    )}
+                    <p className="text-xs text-gray-600 truncate flex-1" title={fileItem.file.name}>
+                      {fileItem.file.name}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Botón de procesar */}
+          <div className="text-center">
+            <button
+              onClick={processFiles}
+              disabled={processing || (mode === 'select' && selectedCount === 0)}
+              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 disabled:from-gray-400 disabled:to-gray-400 text-white rounded-xl font-bold text-lg transition-all transform hover:scale-105 disabled:hover:scale-100"
+            >
+              {processing
+                ? '⏳ Procesando...'
+                : mode === 'folder'
+                ? `🚀 Procesar TODOS los ${files.length} archivos`
+                : `🚀 Procesar ${selectedCount} archivo(s) seleccionado(s)`}
+            </button>
+          </div>
         </div>
       )}
 
-      <p className="mt-4 text-xs text-gray-500 text-center">
-        La IA extraerá automáticamente: fecha, productos, cantidades y totales
-      </p>
+      {/* Barra de progreso */}
+      {processing && (
+        <div className="mt-4">
+          <div className="w-full bg-gray-200 rounded-full h-3">
+            <div
+              className="bg-gradient-to-r from-blue-600 to-green-600 h-3 rounded-full transition-all duration-300"
+              style={{
+                width: `${(results.length / (mode === 'folder' ? files.length : selectedCount)) * 100}%`
+              }}
+            ></div>
+          </div>
+          <p className="text-sm text-gray-600 text-center mt-2 font-semibold">
+            ⚡ Procesando {results.length} de {mode === 'folder' ? files.length : selectedCount}...
+          </p>
+        </div>
+      )}
+
+      {/* Resultados */}
+      {results.length > 0 && (
+        <div className="mt-6 space-y-2 max-h-96 overflow-y-auto">
+          <h4 className="text-md font-semibold text-gray-900 mb-3">📊 Resultados:</h4>
+          {results.map((result, idx) => (
+            <div
+              key={idx}
+              className={`p-3 rounded-lg border-l-4 ${
+                result.success
+                  ? 'bg-green-50 border-green-500'
+                  : 'bg-red-50 border-red-500'
+              }`}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className={`text-sm font-semibold ${
+                    result.success ? 'text-green-800' : 'text-red-800'
+                  }`}>
+                    {result.success ? '✅' : '❌'} {result.fileName}
+                  </p>
+                  {result.success && result.data && (
+                    <p className="text-xs text-green-600 mt-1">
+                      💰 Total: €{result.data.total?.toFixed(2) || '0.00'} | 
+                      📅 {result.data.date || 'N/A'}
+                    </p>
+                  )}
+                  {!result.success && (
+                    <p className="text-xs text-red-600 mt-1">{result.error}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Mensajes globales */}
+      {error && !processing && (
+        <div className="mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
+          <p className="text-red-700 font-semibold">{error}</p>
+        </div>
+      )}
+
+      {success && !processing && (
+        <div className="mt-4 p-4 bg-green-50 border-l-4 border-green-500 rounded-lg">
+          <p className="text-green-700 font-semibold">{success}</p>
+          <p className="text-sm text-green-600 mt-1">
+            Redirigiendo al listado de ventas...
+          </p>
+        </div>
+      )}
     </div>
   )
 }
