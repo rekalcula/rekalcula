@@ -364,7 +364,7 @@ export default function AdvisorPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-[#d98c21] flex items-center gap-2">
             <span className="text-2xl">💡</span> <span className="text-[#d98c21]">Asesor IA</span>
           </h1>
-          <p className="text-sm text-[#FFFCFF] mt-1">Genera y guarda análisis de tu negocio
+          <p className="text-xl text-[#FFFCFF] mt-1">Genera y guarda análisis de tu negocio
           </p>
         </div>
       </div>
@@ -373,7 +373,7 @@ export default function AdvisorPage() {
         <div className="flex border-b border-gray-200">
           <button
             onClick={() => { setTabActiva('guardados'); setAnalisisDetalle(null) }}
-            className={`flex items-center gap-2 px-4 sm:px-6 py-3 font-medium text-sm transition-colors ${
+            className={`flex items-center gap-2 px-4 sm:px-6 py-3 font-medium text-xl transition-colors ${
               tabActiva === 'guardados'
                 ? 'text-[#0d0d0d] border-b-2 border-[#0d0d0d]'
                 : 'text-gray-500 hover:text-gray-700'
@@ -389,7 +389,7 @@ export default function AdvisorPage() {
           </button>
           <button
             onClick={() => { setTabActiva('nuevo'); setAnalisisDetalle(null) }}
-            className={`flex items-center gap-2 px-4 sm:px-6 py-3 font-medium text-sm transition-colors ${
+            className={`flex items-center gap-2 px-4 sm:px-6 py-3 font-medium text-xl transition-colors ${
               tabActiva === 'nuevo'
                 ? 'text-[#0d0d0d] border-b-2 border-[#0d0d0d]'
                 : 'text-gray-500 hover:text-gray-700'
@@ -400,7 +400,7 @@ export default function AdvisorPage() {
           </button>
           <button
             onClick={() => setTabActiva('aplicados')}
-            className={`flex items-center gap-2 px-4 sm:px-6 py-3 font-medium text-sm transition-colors ${
+            className={`flex items-center gap-2 px-4 sm:px-6 py-3 font-medium text-xl transition-colors ${
               tabActiva === 'aplicados'
                 ? 'text-[#0d0d0d] border-b-2 border-[#0d0d0d]'
                 : 'text-gray-500 hover:text-gray-700'
@@ -424,11 +424,11 @@ export default function AdvisorPage() {
 
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Período a analizar</label>
+                <label className="block text-xl font-medium text-gray-700 mb-1">Período a analizar</label>
                 <select
                   value={periodo}
                   onChange={(e) => setPeriodo(e.target.value as 'dia' | 'semana' | 'mes')}
-                  className="px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0d0d0d]"
+                  className="px-4 py-2 border border-gray-200 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-[#0d0d0d]"
                   disabled={generando}
                 >
                   <option value="dia">Hoy</option>
@@ -471,7 +471,7 @@ export default function AdvisorPage() {
                     <h3 className="text-lg font-semibold text-gray-900">
                       Análisis Generado - {traducirSector(analisisActual.sector)}
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-xl text-gray-500">
                       {analisisActual.recomendaciones?.length || 0} recomendaciones encontradas
                     </p>
                   </div>
@@ -504,14 +504,14 @@ export default function AdvisorPage() {
                             )}
                           </div>
                           <h4 className="font-semibold text-gray-900 mb-2">{rec.titulo}</h4>
-                          <p className="text-sm text-gray-600 mb-3">{rec.mensaje}</p>
+                          <p className="text-xl text-gray-600 mb-3">{rec.mensaje}</p>
                           <div className="flex flex-wrap gap-4 text-xs text-gray-500 mb-3">
                             <span>Ventas: {rec.datosReales?.ventas || 0}</span>
                             <span>Ingresos: €{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
                           </div>
                           <button
                             onClick={() => aplicarConsejo(rec, { sector: analisisDetalle?.sector, periodo: analisisDetalle?.periodo })}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xl font-medium"
                           >
                             <IconCheck />
                             Aplicar
@@ -529,7 +529,7 @@ export default function AdvisorPage() {
             <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
               <IconLightbulb />
               <h3 className="text-lg font-medium text-gray-900 mt-4 mb-2">Sin recomendaciones</h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-xl text-gray-600">
                 <strong>Requisito mínimo:</strong> Se necesitan al menos <strong>15 días de datos de ventas</strong> para realizar un análisis científicamente válido y detectar tendencias significativas.
               </p>
               </div>
@@ -549,10 +549,10 @@ export default function AdvisorPage() {
                     onChange={seleccionarTodosAplicados}
                     className="w-4 h-4 rounded border-gray-300"
                   />
-                  <span className="text-sm text-gray-600">Seleccionar todos</span>
+                  <span className="text-xl text-gray-600">Seleccionar todos</span>
                 </label>
                 {seleccionadosAplicados.size > 0 && (
-                  <span className="text-sm text-gray-500">
+                  <span className="text-xl text-gray-500">
                     ({seleccionadosAplicados.size} seleccionados)
                   </span>
                 )}
@@ -561,7 +561,7 @@ export default function AdvisorPage() {
               {seleccionadosAplicados.size > 0 && (
                 <button
                   onClick={eliminarConsejosAplicados}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xl font-medium"
                 >
                   <IconTrash />
                   Eliminar ({seleccionadosAplicados.size})
@@ -605,7 +605,7 @@ export default function AdvisorPage() {
                           </span>
                         </div>
                         <h4 className="font-semibold text-gray-900 mb-2">{consejo.titulo}</h4>
-                        <p className="text-sm text-gray-600 mb-3">{consejo.mensaje}</p>
+                        <p className="text-xl text-gray-600 mb-3">{consejo.mensaje}</p>
                         <div className="flex flex-wrap gap-4 text-xs text-gray-500">
                           <span>Sector: {traducirSector(consejo.sector)}</span>
                           <span>Período: {traducirPeriodo(consejo.periodoAnalisis)}</span>
@@ -634,10 +634,10 @@ export default function AdvisorPage() {
                     onChange={seleccionarTodos}
                     className="w-4 h-4 rounded border-gray-300"
                   />
-                  <span className="text-sm text-gray-600">Seleccionar todos</span>
+                  <span className="text-xl text-gray-600">Seleccionar todos</span>
                 </label>
                 {seleccionados.size > 0 && (
-                  <span className="text-sm text-gray-500">
+                  <span className="text-xl text-gray-500">
                     ({seleccionados.size} seleccionados)
                   </span>
                 )}
@@ -647,7 +647,7 @@ export default function AdvisorPage() {
                 <button
                   onClick={borrarSeleccionados}
                   disabled={borrando}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 text-sm font-medium"
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 text-xl font-medium"
                 >
                   <IconTrash />
                   {borrando ? 'Borrando...' : `Borrar (${seleccionados.size})`}
@@ -697,7 +697,7 @@ export default function AdvisorPage() {
                           <h3 className="font-medium text-gray-900">
                             Análisis #{analisisGuardados.length - analisisGuardados.indexOf(analisis)}
                           </h3>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-xl text-gray-500">
                             {formatearFecha(analisis.created_at)}
                           </p>
                         </div>
@@ -727,7 +727,7 @@ export default function AdvisorPage() {
           <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
             <button
               onClick={() => setAnalisisDetalle(null)}
-              className="text-sm text-gray-500 hover:text-gray-700 mb-4 flex items-center gap-1"
+              className="text-xl text-gray-500 hover:text-gray-700 mb-4 flex items-center gap-1"
             >
               ← Volver a la lista
             </button>
@@ -737,7 +737,7 @@ export default function AdvisorPage() {
                 <h2 className="text-xl font-bold text-gray-900">
                   Análisis del {formatearFecha(analisisDetalle.created_at)}
                 </h2>
-                <div className="flex flex-wrap gap-2 mt-2 text-sm">
+                <div className="flex flex-wrap gap-2 mt-2 text-xl">
                   <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded">
                     Período: {traducirPeriodo(analisisDetalle.periodo)}
                   </span>
@@ -756,7 +756,7 @@ export default function AdvisorPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              <p className="text-sm text-gray-500">
+              <p className="text-xl text-gray-500">
                 {analisisDetalle.recomendaciones?.length || 0} recomendaciones
               </p>
 
@@ -778,14 +778,14 @@ export default function AdvisorPage() {
                           )}
                         </div>
                         <h4 className="font-semibold text-gray-900 mb-2">{rec.titulo}</h4>
-                        <p className="text-sm text-gray-600 mb-3">{rec.mensaje}</p>
+                        <p className="text-xl text-gray-600 mb-3">{rec.mensaje}</p>
                         <div className="flex flex-wrap gap-4 text-xs text-gray-500">
                           <span>Ventas: {rec.datosReales?.ventas || 0}</span>
                           <span>Ingresos: €{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
                         </div>
                         <button
                           onClick={() => aplicarConsejo(rec, { sector: analisisDetalle?.sector, periodo: analisisDetalle?.periodo })}
-                          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium mt-3"
+                          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xl font-medium mt-3"
                         >
                           <IconCheck />
                           Aplicar
