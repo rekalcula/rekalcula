@@ -70,7 +70,7 @@ export default async function AnalyticsPage() {
   return (
     <>
       <DashboardNav />
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#262626]">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-[#d98c21]">Análisis Financiero
