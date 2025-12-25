@@ -71,15 +71,15 @@ export default async function SalesPage() {
           <div className="bg-white rounded-xl shadow-sm p-6 border-2 border-[#979797] mb-6">
             <div className="grid md:grid-cols-3 gap-6">
               <div>
-                <p className="text-sm text-gray-500">Total Ventas</p>
+                <p className="text-xl text-gray-500">Total Ventas</p>
                 <p className="text-2xl font-bold text-green-600">€{totalSales.toFixed(2)}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Número de Ventas</p>
+                <p className="text-xl text-gray-500">Número de Ventas</p>
                 <p className="text-2xl font-bold text-gray-900">{salesList.length}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Promedio por Venta</p>
+                <p className="text-xl text-gray-500">Promedio por Venta</p>
                 <p className="text-2xl font-bold text-gray-900">
                   €{salesList.length > 0 ? (totalSales / salesList.length).toFixed(2) : '0.00'}
                 </p>

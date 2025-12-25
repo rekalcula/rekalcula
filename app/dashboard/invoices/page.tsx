@@ -71,15 +71,15 @@ export default async function InvoicesPage() {
           <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
             <div className="grid md:grid-cols-3 gap-6">
               <div>
-                <p className="text-sm text-gray-500">Gasto Total</p>
+                <p className="text-xl text-gray-500">Gasto Total</p>
                 <p className="text-2xl font-bold text-red-600">€{totalGasto.toFixed(2)}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Número de Facturas</p>
+                <p className="text-xl text-gray-500">Número de Facturas</p>
                 <p className="text-2xl font-bold text-gray-900">{invoiceList.length}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Promedio por Factura</p>
+                <p className="text-xl text-gray-500">Promedio por Factura</p>
                 <p className="text-2xl font-bold text-gray-900">
                   €{invoiceList.length > 0 ? (totalGasto / invoiceList.length).toFixed(2) : '0.00'}
                 </p>

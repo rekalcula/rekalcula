@@ -16,12 +16,12 @@ export default async function SalesAnalyticsPage() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-[#d98c21]">Análisis de Ventas</h1>
-          <p className="mt-1 text-sm sm:text-base text-[#FFFCFF]">Visualiza el rendimiento de tus productos
+          <p className="mt-1 text-xl sm:text-xl text-[#FFFCFF]">Visualiza el rendimiento de tus productos
           </p>
         </div>
         <Link
           href="/dashboard/sales/upload"
-          className="bg-[#0d0d0d] text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-medium hover:bg-[#2d2d2d] text-center text-sm sm:text-base"
+          className="bg-[#0d0d0d] text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-medium hover:bg-[#2d2d2d] text-center text-xl sm:text-base"
         >
           📤 Subir Ticket
         </Link>
