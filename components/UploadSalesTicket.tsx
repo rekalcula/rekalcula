@@ -202,8 +202,8 @@ export default function UploadSalesTicket() {
   const selectedCount = files.filter(f => f.selected).length
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+    <div className="bg-[#1a1a1a] rounded-xl shadow-sm p-6">
+      <h3 className="text-lg font-semibold text-[#FFFCFF] mb-4">
         📷 Subir Tickets de Venta
       </h3>
 
@@ -271,7 +271,7 @@ export default function UploadSalesTicket() {
             onDrop={handleDrop}
           >
             <span className="text-4xl block mb-3">🎯</span>
-            <p className="text-gray-600 mb-2">
+            <p className="text-[#ACACAC] mb-2">
               O arrastra archivos aquí
             </p>
             <p className="text-sm text-gray-400">
@@ -283,13 +283,13 @@ export default function UploadSalesTicket() {
 
       {files.length > 0 && (
         <div className="space-y-4">
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-[#2d2d2d] rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
               <div>
-                <h4 className="text-lg font-semibold text-gray-900">
+                <h4 className="text-lg font-semibold text-[#FFFCFF]">
                   {mode === 'folder' ? '📁 Carpeta cargada' : '✅ Archivos seleccionados'}
                 </h4>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-[#ACACAC]">
                   {files.length} archivo(s) encontrado(s)
                   {mode === 'select' && ` - ${selectedCount} seleccionado(s)`}
                 </p>
@@ -314,7 +314,7 @@ export default function UploadSalesTicket() {
               <div className="flex gap-2 mt-3">
                 <button
                   onClick={toggleAll}
-                  className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
+                  className="px-3 py-1 text-sm bg-[#3d3d3d] hover:bg-[#4d4d4d] rounded-lg transition-colors"
                 >
                   {files.every(f => f.selected) ? 'Deseleccionar todos' : 'Seleccionar todos'}
                 </button>
@@ -368,7 +368,7 @@ export default function UploadSalesTicket() {
                         className="w-4 h-4"
                       />
                     )}
-                    <p className="text-xs text-gray-600 truncate flex-1" title={fileItem.file.name}>
+                    <p className="text-xs text-[#ACACAC] truncate flex-1" title={fileItem.file.name}>
                       {fileItem.file.name}
                     </p>
                   </div>
@@ -395,7 +395,7 @@ export default function UploadSalesTicket() {
 
       {processing && (
         <div className="mt-4">
-          <div className="w-full bg-gray-200 rounded-full h-3">
+          <div className="w-full bg-[#3d3d3d] rounded-full h-3">
             <div
               className="bg-gradient-to-r from-blue-600 to-green-600 h-3 rounded-full transition-all duration-300"
               style={{
@@ -403,7 +403,7 @@ export default function UploadSalesTicket() {
               }}
             ></div>
           </div>
-          <p className="text-sm text-gray-600 text-center mt-2 font-semibold">
+          <p className="text-sm text-[#ACACAC] text-center mt-2 font-semibold">
             ⚡ Procesando {results.length} de {mode === 'folder' ? files.length : selectedCount}...
           </p>
         </div>
@@ -411,7 +411,7 @@ export default function UploadSalesTicket() {
 
       {results.length > 0 && (
         <div className="mt-6 space-y-2 max-h-96 overflow-y-auto">
-          <h4 className="text-md font-semibold text-gray-900 mb-3">📊 Resultados:</h4>
+          <h4 className="text-md font-semibold text-[#FFFCFF] mb-3">📊 Resultados:</h4>
           {results.map((result, idx) => (
             <div
               key={idx}
