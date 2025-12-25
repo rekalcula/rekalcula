@@ -57,7 +57,7 @@ export default async function SalesPage() {
           <div className="flex justify-between items-center mb-8">
             <div>
               <h1 className="text-3xl font-bold text-[#d98c21]">Ventas</h1>
-              <p className="mt-2 text-gray-600">Historial de ventas ordenadas por fecha</p>
+              <p className="text-[#FFFCFF]">Historial de ventas ordenadas por fecha</p>
             </div>
             <Link
               href="/dashboard/sales/upload"
