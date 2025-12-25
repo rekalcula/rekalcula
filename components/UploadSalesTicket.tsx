@@ -344,8 +344,6 @@ export default function UploadSalesTicket() {
                 )}
 
                 <div
-                  onClick={() => mode === 'select' && toggleFileSelection(fileItem.id)}
-                  className={mode === 'select' ? 'cursor-pointer' : ''}
                 >
                   {fileItem.preview === 'pdf' ? (
                     <div className="aspect-square bg-red-100 rounded flex items-center justify-center">
