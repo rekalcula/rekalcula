@@ -3,6 +3,14 @@
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
+// Extender tipos de input para soportar webkitdirectory
+declare module 'react' {
+  interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
+    webkitdirectory?: string
+    directory?: string
+  }
+}
+
 interface FileWithPreview {
   file: File
   preview: string
@@ -36,12 +44,10 @@ export default function UploadSalesTicket() {
     for (let i = 0; i < fileList.length; i++) {
       const file = fileList[i]
       
-      // Validar tipo de archivo
       if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
         continue
       }
       
-      // Crear preview
       let preview = ''
       if (file.type.startsWith('image/')) {
         preview = URL.createObjectURL(file)
@@ -52,7 +58,7 @@ export default function UploadSalesTicket() {
       newFiles.push({
         file,
         preview,
-        selected: autoSelect, // Si es carpeta completa, ya vienen seleccionados
+        selected: autoSelect,
         id: `${file.name}-${Date.now()}-${i}`
       })
     }
@@ -65,7 +71,7 @@ export default function UploadSalesTicket() {
     e.preventDefault()
     if (e.target.files) {
       setMode('folder')
-      loadFiles(e.target.files, true) // TRUE = auto-seleccionar todos
+      loadFiles(e.target.files, true)
     }
   }
 
@@ -73,7 +79,7 @@ export default function UploadSalesTicket() {
     e.preventDefault()
     if (e.target.files) {
       setMode('select')
-      loadFiles(e.target.files, false) // FALSE = no auto-seleccionar
+      loadFiles(e.target.files, false)
     }
   }
 
@@ -124,8 +130,8 @@ export default function UploadSalesTicket() {
 
   const processFiles = async () => {
     const filesToProcess = mode === 'folder' 
-      ? files // En modo carpeta, procesar TODOS
-      : files.filter(f => f.selected) // En modo selección, solo los seleccionados
+      ? files
+      : files.filter(f => f.selected)
     
     if (filesToProcess.length === 0) {
       setError('No hay archivos para procesar')
@@ -175,7 +181,7 @@ export default function UploadSalesTicket() {
         errorCount++
       }
       
-      setResults([...newResults]) // Actualizar en tiempo real
+      setResults([...newResults])
     }
 
     setProcessing(false)
@@ -201,10 +207,8 @@ export default function UploadSalesTicket() {
         📷 Subir Tickets de Venta
       </h3>
 
-      {/* Opciones de carga */}
       {files.length === 0 && (
         <div className="space-y-4">
-          {/* Opción 1: Carpeta completa */}
           <div className="border-2 border-blue-500 rounded-xl p-6 bg-blue-50">
             <div className="flex items-start gap-4">
               <div className="text-4xl">📁</div>
@@ -231,7 +235,6 @@ export default function UploadSalesTicket() {
             </div>
           </div>
 
-          {/* Opción 2: Seleccionar archivos */}
           <div className="border-2 border-green-500 rounded-xl p-6 bg-green-50">
             <div className="flex items-start gap-4">
               <div className="text-4xl">✅</div>
@@ -256,7 +259,6 @@ export default function UploadSalesTicket() {
             </div>
           </div>
 
-          {/* Zona de arrastrar */}
           <div
             className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
               dragActive
@@ -279,10 +281,8 @@ export default function UploadSalesTicket() {
         </div>
       )}
 
-      {/* Vista de archivos cargados */}
       {files.length > 0 && (
         <div className="space-y-4">
-          {/* Encabezado */}
           <div className="bg-gray-50 rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
               <div>
@@ -322,14 +322,13 @@ export default function UploadSalesTicket() {
             )}
           </div>
 
-          {/* Grid de archivos */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-h-96 overflow-y-auto p-2">
             {files.map((fileItem) => (
               <div
                 key={fileItem.id}
                 className={`relative border-2 rounded-lg p-2 transition-all ${
                   mode === 'folder'
-                    ? 'border-blue-400 bg-blue-50' // En modo carpeta, todos azules
+                    ? 'border-blue-400 bg-blue-50'
                     : fileItem.selected
                     ? 'border-green-500 bg-green-50'
                     : 'border-gray-200 bg-gray-50'
@@ -378,7 +377,6 @@ export default function UploadSalesTicket() {
             ))}
           </div>
 
-          {/* Botón de procesar */}
           <div className="text-center">
             <button
               onClick={processFiles}
@@ -395,7 +393,6 @@ export default function UploadSalesTicket() {
         </div>
       )}
 
-      {/* Barra de progreso */}
       {processing && (
         <div className="mt-4">
           <div className="w-full bg-gray-200 rounded-full h-3">
@@ -412,7 +409,6 @@ export default function UploadSalesTicket() {
         </div>
       )}
 
-      {/* Resultados */}
       {results.length > 0 && (
         <div className="mt-6 space-y-2 max-h-96 overflow-y-auto">
           <h4 className="text-md font-semibold text-gray-900 mb-3">📊 Resultados:</h4>
@@ -434,8 +430,7 @@ export default function UploadSalesTicket() {
                   </p>
                   {result.success && result.data && (
                     <p className="text-xs text-green-600 mt-1">
-                      💰 Total: €{result.data.total?.toFixed(2) || '0.00'} | 
-                      📅 {result.data.date || 'N/A'}
+                      💰 Total: €{result.data.total?.toFixed(2) || '0.00'} | 📅 {result.data.date || 'N/A'}
                     </p>
                   )}
                   {!result.success && (
@@ -448,7 +443,6 @@ export default function UploadSalesTicket() {
         </div>
       )}
 
-      {/* Mensajes globales */}
       {error && !processing && (
         <div className="mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
           <p className="text-red-700 font-semibold">{error}</p>
