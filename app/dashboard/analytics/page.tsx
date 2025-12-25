@@ -75,7 +75,7 @@ export default async function AnalyticsPage() {
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-[#d98c21]">Análisis Financiero
             </h1>
-            <p className="mt-2 text-[#FFFCFF]">Punto de equilibrio y rentabilidad - {now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+            <p className="mt-2 text-[#FFFCFF] text-[20px]">Punto de equilibrio y rentabilidad - {now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
             </p>
           </div>
 
