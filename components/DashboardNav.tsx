@@ -64,9 +64,7 @@ export default function DashboardNav() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <Link href="/dashboard" className="font-bold text-[20px] text-[#ACACAC]">
-            ReKalcula
-          </Link>
+          <Link href="/dashboard" className="font-bold text-[20px] text-[#FFFCFF]">re<span className="text-[#AC4A00]">K</span>alcula</Link>
           <UserButton afterSignOutUrl="/" />
         </div>
       </header>
@@ -83,9 +81,7 @@ export default function DashboardNav() {
       >
         {/* Logo */}
         <div className="h-14 flex items-center justify-between px-4 border-b border-[#979797]">
-          <Link href="/dashboard" className="font-bold text-[20px] text-[#ACACAC]">
-            ReKalcula
-          </Link>
+          <Link href="/dashboard" className="font-bold text-[20px] text-[#FFFCFF]">re<span className="text-[#AC4A00]">K</span>alcula</Link>
           {isMobile && (
             <button
               onClick={() => setSidebarOpen(false)}
