@@ -422,7 +422,7 @@ export default function AdvisorPage() {
                 <select
                   value={periodo}
                   onChange={(e) => setPeriodo(e.target.value as 'dia' | 'semana' | 'mes')}
-                  className="px-4 py-2 border border-gray-200 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-[#0d0d0d]"
+                  className="px-4 py-2 bg-[#262626] text-[#FFFCFF] border border-[#979797] rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-[#AC4A00]"
                   disabled={generando}
                 >
                   <option value="dia">Hoy</option>
