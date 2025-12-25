@@ -15,7 +15,7 @@ export default async function SalesAnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Análisis de Ventas</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#d98c21]">Análisis de Ventas</h1>
           <p className="mt-1 text-sm sm:text-base text-gray-600">
             Visualiza el rendimiento de tus productos
           </p>
