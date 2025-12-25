@@ -369,7 +369,7 @@ export default function AdvisorPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 mb-6 overflow-hidden">
+      <div className="bg-[#262626] rounded-xl border border-[#979797] mb-6 overflow-hidden">
         <div className="flex flex-col sm:flex-row gap-3 p-4 bg-[#262626]">
           <button
             onClick={() => { setTabActiva('guardados'); setAnalisisDetalle(null) }}
