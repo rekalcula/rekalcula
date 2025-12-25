@@ -214,10 +214,10 @@ export default function FixedCostsManager({ initialCategories, initialCosts }: P
         return (
           <div key={catId} className="bg-white rounded-xl shadow-sm overflow-hidden">
             <div className="px-6 py-4 bg-gray-50 border-b flex justify-between items-center">
-              <h3 className="font-semibold text-gray-900">
+              <h3 className="font-semibold text-gray-900 text-[20px]">
                 {category?.icon} {category?.name || 'Otros'}
               </h3>
-              <span className="text-sm font-medium text-gray-600">
+              <span className="text-[20px] font-medium text-gray-600">
                 €{categoryTotal.toFixed(2)}/mes
               </span>
             </div>
@@ -235,18 +235,18 @@ export default function FixedCostsManager({ initialCategories, initialCosts }: P
                   </div>
                   <div className="flex items-center space-x-4">
                     <div className="text-right">
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-semibold text-gray-900 text-[20px]">
                         €{cost.amount.toFixed(2)}
                       </p>
                       {cost.frequency !== 'monthly' && (
-                        <p className="text-xs text-gray-500">
+                        <p className="text-[20px] text-gray-500">
                           €{getMonthlyAmount(cost).toFixed(2)}/mes
                         </p>
                       )}
                     </div>
                     <button
                       onClick={() => handleDeleteCost(cost.id)}
-                      className="text-red-600 hover:text-red-700"
+                      className="text-red-600 hover:text-red-700 text-[20px]"
                     >
                       🗑️
                     </button>
