@@ -109,11 +109,11 @@ export default function SalesAnalyticsChart() {
         <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-4">
           {/* Período */}
           <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium text-gray-700">Período:</span>
+            <span className="text-[20px] font-medium text-gray-700">Período:</span>
             <div className="flex bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setPeriod('day')}
-                className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+                className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[20px] font-medium transition-colors ${
                   period === 'day' ? 'bg-white shadow text-[#c15f3c]' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -121,7 +121,7 @@ export default function SalesAnalyticsChart() {
               </button>
               <button
                 onClick={() => setPeriod('week')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-lg text-[20px] font-medium transition-colors ${
                   period === 'week' ? 'bg-white shadow text-[#c15f3c]' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -129,7 +129,7 @@ export default function SalesAnalyticsChart() {
               </button>
               <button
                 onClick={() => setPeriod('month')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-lg text-[20px] font-medium transition-colors ${
                   period === 'month' ? 'bg-white shadow text-[#c15f3c]' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -146,18 +146,18 @@ export default function SalesAnalyticsChart() {
               onChange={(e) => setCompare(e.target.checked)}
               className="w-5 h-5 rounded border-gray-300 text-[#c15f3c] focus:ring-[#c15f3c]"
             />
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-[20px] font-medium text-gray-700">
               Comparar {getCompareLabel()}
             </span>
           </label>
 
           {/* Vista */}
           <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium text-gray-700">Ver:</span>
+            <span className="text-[20px] font-medium text-gray-700">Ver:</span>
             <div className="flex bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setViewMode('quantity')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-lg text-[20px] font-medium transition-colors ${
                   viewMode === 'quantity' ? 'bg-white shadow text-[#c15f3c]' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -165,7 +165,7 @@ export default function SalesAnalyticsChart() {
               </button>
               <button
                 onClick={() => setViewMode('revenue')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-lg text-[20px] font-medium transition-colors ${
                   viewMode === 'revenue' ? 'bg-white shadow text-[#c15f3c]' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -179,40 +179,40 @@ export default function SalesAnalyticsChart() {
       {/* Tarjetas de resumen */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <p className="text-sm text-gray-500">Total Productos Vendidos</p>
+          <p className="text-[20px] text-gray-500">Total Productos Vendidos</p>
           <p className="text-2xl font-bold text-gray-900">{data?.totalQuantity || 0}</p>
           {compare && data?.comparison && (
-            <p className={`text-sm mt-1 ${getChangeColor(data.comparison.quantityChange)}`}>
+            <p className={`text-[20px] mt-1 ${getChangeColor(data.comparison.quantityChange)}`}>
               {formatChange(data.comparison.quantityChange)}
             </p>
           )}
         </div>
 
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <p className="text-sm text-gray-500">Ingresos Totales</p>
+          <p className="text-[20px] text-gray-500">Ingresos Totales</p>
           <p className="text-2xl font-bold text-green-600">€{data?.totalRevenue?.toFixed(2) || '0.00'}</p>
           {compare && data?.comparison && (
-            <p className={`text-sm mt-1 ${getChangeColor(data.comparison.revenueChange)}`}>
+            <p className={`text-[20px] mt-1 ${getChangeColor(data.comparison.revenueChange)}`}>
               {formatChange(data.comparison.revenueChange)}
             </p>
           )}
         </div>
 
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <p className="text-sm text-gray-500">Número de Ventas</p>
+          <p className="text-[20px] text-gray-500">Número de Ventas</p>
           <p className="text-2xl font-bold text-gray-900">{data?.totalSales || 0}</p>
           {compare && data?.comparison && (
-            <p className="text-sm mt-1 text-gray-500">
+            <p className="text-[20px] mt-1 text-gray-500">
               Anterior: {data.comparison.prevTotalSales}
             </p>
           )}
         </div>
 
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <p className="text-sm text-gray-500">Producto Más Vendido</p>
+          <p className="text-[20px] text-gray-500">Producto Más Vendido</p>
           <p className="text-2xl font-bold text-[#c15f3c]">{data?.topProduct?.name || '-'}</p>
           {data?.topProduct && (
-            <p className="text-sm mt-1 text-gray-500">
+            <p className="text-[20px] mt-1 text-gray-500">
               {data.topProduct.quantity} uds · €{data.topProduct.revenue.toFixed(2)}
             </p>
           )}
