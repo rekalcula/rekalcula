@@ -41,14 +41,13 @@ export default async function CostsPage() {
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="flex justify-between items-start mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Costos Fijos
+              <h1 className="text-3xl font-bold text-[#d98c21]">Costos Fijos
               </h1>
               <p className="mt-2 text-gray-600">
                 Gestiona tus gastos fijos mensuales
               </p>
             </div>
-            <div className="bg-white rounded-xl shadow-sm p-6 text-right">
+            <div className="bg-white rounded-xl shadow-sm p-6 border-2 border-[#979797] text-right">
               <p className="text-sm text-gray-500">Total Mensual</p>
               <p className="text-3xl font-bold text-red-600">
                 €{monthlyTotal.toFixed(2)}
