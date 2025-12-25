@@ -7,7 +7,7 @@ export default function HomePage() {
       {/* Header / Navegacion */}
       <header className="container mx-auto px-4 py-4 sm:py-6">
         <nav className="flex flex-wrap justify-between items-center gap-2">
-          <div className="text-xl sm:text-2xl font-bold text-[#FFFCFF]">
+          <div className="text-[35px] font-bold text-[#FFFCFF]">
             re<span className="text-[#AC4A00]">K</span>alcula
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
