@@ -57,7 +57,7 @@ export default async function InvoicesPage() {
           <div className="flex justify-between items-center mb-8">
             <div>
               <h1 className="text-3xl font-bold text-[#d98c21]">Facturas de Compra</h1>
-              <p className="mt-2 text-[#FFFCFF]">Gastos y facturas de proveedores</p>
+              <p className="mt-2 text-[#FFFCFF] text-[20px]">Gastos y facturas de proveedores</p>
             </div>
             <Link
               href="/dashboard/upload"
