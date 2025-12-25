@@ -43,8 +43,7 @@ export default async function CostsPage() {
             <div>
               <h1 className="text-3xl font-bold text-[#d98c21]">Costos Fijos
               </h1>
-              <p className="mt-2 text-gray-600">
-                Gestiona tus gastos fijos mensuales
+              <p className="mt-2 text-[#FFFCFF]">Gestiona tus gastos fijos mensuales
               </p>
             </div>
             <div className="bg-white rounded-xl shadow-sm p-6 border-2 border-[#979797] text-right">

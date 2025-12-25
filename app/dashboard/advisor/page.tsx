@@ -364,8 +364,7 @@ export default function AdvisorPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-[#d98c21] flex items-center gap-2">
             <span className="text-2xl">💡</span> <span className="text-[#d98c21]">Asesor IA</span>
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Genera y guarda análisis de tu negocio
+          <p className="text-sm text-[#FFFCFF] mt-1">Genera y guarda análisis de tu negocio
           </p>
         </div>
       </div>
