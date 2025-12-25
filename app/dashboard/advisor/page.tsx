@@ -413,7 +413,7 @@ export default function AdvisorPage() {
 
       {tabActiva === 'nuevo' && (
         <div className="space-y-6">
-          <div className="bg-[#262626] rounded-xl border border-[#979797] p-4 sm:p-6">
+          <div className="bg-[#262626] rounded-xl p-4 sm:p-6">
             <h2 className="text-lg font-semibold text-[#FFFCFF] mb-4">Configurar Análisis</h2>
 
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
@@ -459,7 +459,7 @@ export default function AdvisorPage() {
 
           {analisisActual && !analisisActual.sinRecomendaciones && (
             <div className="space-y-4">
-              <div className="bg-[#262626] rounded-xl border border-[#979797] p-4 sm:p-6">
+              <div className="bg-[#262626] rounded-xl p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
                     <h3 className="text-lg font-semibold text-[#FFFCFF]">
@@ -520,7 +520,7 @@ export default function AdvisorPage() {
           )}
 
           {analisisActual?.sinRecomendaciones && (
-            <div className="bg-[#262626] rounded-xl border border-[#979797] p-8 text-center">
+            <div className="bg-[#262626] rounded-xl p-8 text-center">
               <IconLightbulb />
               <h3 className="text-lg font-medium text-[#FFFCFF] mt-4 mb-2">Sin recomendaciones</h3>
               <p className="text-xl text-[#ACACAC]">
@@ -534,7 +534,7 @@ export default function AdvisorPage() {
       {tabActiva === 'aplicados' && (
         <div className="space-y-4">
           {consejosAplicados.length > 0 && (
-            <div className="bg-[#262626] rounded-xl border border-[#979797] p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="bg-[#262626] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -565,7 +565,7 @@ export default function AdvisorPage() {
           )}
 
           {consejosAplicados.length === 0 ? (
-            <div className="bg-[#262626] rounded-xl border border-[#979797] p-8 text-center">
+            <div className="bg-[#262626] rounded-xl p-8 text-center">
               <IconCheck />
               <h3 className="text-lg font-medium text-[#FFFCFF] mt-4 mb-2">Sin consejos aplicados</h3>
               <p className="text-[#ACACAC] mb-4">Los consejos que apliques aparecerán aquí</p>
@@ -581,7 +581,7 @@ export default function AdvisorPage() {
               {consejosAplicados.map((consejo) => {
                 const colors = getColorPrioridad(consejo.prioridad)
                 return (
-                  <div key={`${consejo.id}-${consejo.aplicadoEn}`} className="bg-[#262626] rounded-xl border border-[#979797] p-4">
+                  <div key={`${consejo.id}-${consejo.aplicadoEn}`} className="bg-[#262626] rounded-xl p-4">
                     <div className="flex items-start gap-4">
                       <input
                         type="checkbox"
@@ -619,7 +619,7 @@ export default function AdvisorPage() {
       {tabActiva === 'guardados' && !analisisDetalle && (
         <div className="space-y-4">
           {analisisGuardados.length > 0 && (
-            <div className="bg-[#262626] rounded-xl border border-[#979797] p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="bg-[#262626] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -651,12 +651,12 @@ export default function AdvisorPage() {
           )}
 
           {cargandoGuardados ? (
-            <div className="bg-[#262626] rounded-xl border border-[#979797] p-8 text-center">
+            <div className="bg-[#262626] rounded-xl p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
               <p className="text-[#ACACAC] mt-4">Cargando análisis...</p>
             </div>
           ) : analisisGuardados.length === 0 ? (
-            <div className="bg-[#262626] rounded-xl border border-[#979797] p-8 text-center">
+            <div className="bg-[#262626] rounded-xl p-8 text-center">
               <IconFolder />
               <h3 className="text-lg font-medium text-[#FFFCFF] mt-4 mb-2">Sin análisis guardados</h3>
               <p className="text-[#ACACAC] mb-4">Genera tu primer análisis para empezar</p>
@@ -672,7 +672,7 @@ export default function AdvisorPage() {
               {analisisGuardados.map((analisis) => (
                 <div
                   key={analisis.id}
-                  className="bg-[#262626] rounded-xl border border-[#979797] p-4 hover:border-gray-300 transition-colors"
+                  className="bg-[#262626] rounded-xl p-4 hover:border-gray-300 transition-colors"
                 >
                   <div className="flex items-center gap-4">
                     <input
@@ -718,7 +718,7 @@ export default function AdvisorPage() {
 
       {tabActiva === 'guardados' && analisisDetalle && (
         <div className="space-y-4">
-          <div className="bg-[#262626] rounded-xl border border-[#979797] p-4 sm:p-6">
+          <div className="bg-[#262626] rounded-xl p-4 sm:p-6">
             <button
               onClick={() => setAnalisisDetalle(null)}
               className="text-xl text-[#ACACAC] hover:text-[#FFFCFF] mb-4 flex items-center gap-1"
@@ -744,7 +744,7 @@ export default function AdvisorPage() {
           </div>
 
           {cargandoDetalle ? (
-            <div className="bg-[#262626] rounded-xl border border-[#979797] p-8 text-center">
+            <div className="bg-[#262626] rounded-xl p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
               <p className="text-[#ACACAC] mt-4">Cargando detalles...</p>
             </div>
