@@ -1,4 +1,4 @@
-﻿import Link from 'next/link'
+import Link from 'next/link'
 import { ArrowRight, CheckCircle, Zap, TrendingUp, Shield } from 'lucide-react'
 
 export default function HomePage() {
@@ -17,12 +17,7 @@ export default function HomePage() {
             >
               Iniciar sesion
             </Link>
-            <Link
-              href="/sign-up"
-              className="bg-[#AC4A00] text-white px-2 py-1 sm:px-6 sm:py-2 rounded-lg hover:bg-[#8A3C00] transition font-semibold text-xs sm:text-base whitespace-nowrap"
-            >
-              Empezar gratis
-            </Link>
+            
           </div>
         </nav>
       </header>
