@@ -8,7 +8,7 @@ export default function HomePage() {
       <header className="container mx-auto px-4 py-4 sm:py-6">
         <nav className="flex flex-wrap justify-between items-center gap-2">
           <div className="text-[35px] font-bold text-[#FFFCFF]">
-            re<span className="text-[#AC4A00]">K</span>alcula
+            re<span className="text-[#d98c21]">K</span>alcula
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
             <Link
@@ -29,7 +29,7 @@ export default function HomePage() {
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-[#FFFCFF] mb-4 sm:mb-6 leading-tight">
             Deja de perder dinero
             <br />
-            <span className="text-[#AC4A00]">sin saberlo</span>
+            <span className="text-[#d98c21]">sin saberlo</span>
           </h1>
 
           <p className="text-base sm:text-xl text-[#FFFCFF] mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed px-2">
@@ -40,7 +40,7 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-8 sm:mb-12 px-4 sm:px-0">
             <Link
               href="/sign-up"
-              className="bg-[#AC4A00] text-white px-6 py-3 sm:px-8 sm:py-4 rounded-lg hover:bg-[#8A3C00] transition flex items-center justify-center gap-2 text-base sm:text-lg font-semibold shadow-lg hover:shadow-xl"
+              className="bg-[#d98c21] text-white px-6 py-3 sm:px-8 sm:py-4 rounded-lg hover:bg-[#8A3C00] transition flex items-center justify-center gap-2 text-base sm:text-lg font-semibold shadow-lg hover:shadow-xl"
             >
               Empezar gratis
               <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -75,7 +75,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             <div className="bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-gray-100">
               <div className="bg-[#FFF5ED] w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-4">
-                <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-[#AC4A00]" />
+                <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-[#d98c21]" />
               </div>
               <h3 className="text-lg sm:text-xl font-semibold text-[#262626] mb-2 sm:mb-3">Analisis en 3 minutos</h3>
               <p className="text-sm sm:text-base text-[#262626]">
@@ -116,7 +116,7 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12 max-w-5xl mx-auto">
             <div className="text-center">
-              <div className="bg-gradient-to-br from-[#AC4A00] to-[#AC4A00] w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
+              <div className="bg-gradient-to-br from-[#d98c21] to-[#d98c21] w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
                 <span className="text-xl sm:text-2xl font-bold text-white">1</span>
               </div>
               <h3 className="text-lg sm:text-xl font-semibold text-[#FFFCFF] mb-2 sm:mb-3">Fotografia facturas</h3>
@@ -126,7 +126,7 @@ export default function HomePage() {
             </div>
 
             <div className="text-center">
-              <div className="bg-gradient-to-br from-[#AC4A00] to-[#AC4A00] w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
+              <div className="bg-gradient-to-br from-[#d98c21] to-[#d98c21] w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
                 <span className="text-xl sm:text-2xl font-bold text-white">2</span>
               </div>
               <h3 className="text-lg sm:text-xl font-semibold text-[#FFFCFF] mb-2 sm:mb-3">Analisis instantaneo</h3>
@@ -136,7 +136,7 @@ export default function HomePage() {
             </div>
 
             <div className="text-center">
-              <div className="bg-gradient-to-br from-[#AC4A00] to-[#AC4A00] w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
+              <div className="bg-gradient-to-br from-[#d98c21] to-[#d98c21] w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
                 <span className="text-xl sm:text-2xl font-bold text-white">3</span>
               </div>
               <h3 className="text-lg sm:text-xl font-semibold text-[#FFFCFF] mb-2 sm:mb-3">Implementa consejos</h3>
@@ -148,7 +148,7 @@ export default function HomePage() {
         </div>
 
         {/* CTA Final */}
-        <div className="mt-16 sm:mt-32 bg-gradient-to-r from-[#AC4A00] to-[#8A3C00] rounded-2xl p-8 sm:p-12 text-center text-white shadow-xl mx-2 sm:mx-0">
+        <div className="mt-16 sm:mt-32 bg-gradient-to-r from-[#d98c21] to-[#8A3C00] rounded-2xl p-8 sm:p-12 text-center text-white shadow-xl mx-2 sm:mx-0">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#FFFCFF] mb-3 sm:mb-4">
             Listo para optimizar tu negocio?
           </h2>
@@ -157,7 +157,7 @@ export default function HomePage() {
           </p>
           <Link
             href="/sign-up"
-            className="inline-flex items-center gap-2 bg-white text-[#AC4A00] px-6 py-3 sm:px-8 sm:py-4 rounded-lg hover:bg-gray-100 transition text-base sm:text-lg font-semibold shadow-lg"
+            className="inline-flex items-center gap-2 bg-white text-[#d98c21] px-6 py-3 sm:px-8 sm:py-4 rounded-lg hover:bg-gray-100 transition text-base sm:text-lg font-semibold shadow-lg"
           >
             Empezar ahora gratis
             <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
