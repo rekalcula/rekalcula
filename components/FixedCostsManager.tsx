@@ -225,11 +225,11 @@ export default function FixedCostsManager({ initialCategories, initialCosts }: P
               {categoryCosts.map((cost) => (
                 <div key={cost.id} className="px-6 py-4 flex justify-between items-center">
                   <div>
-                    <p className="font-medium text-gray-900">{cost.name}</p>
+                    <p className="font-medium text-gray-900 text-[20px]">{cost.name}</p>
                     {cost.description && (
-                      <p className="text-sm text-gray-500">{cost.description}</p>
+                      <p className="text-gray-500 text-[20px]">{cost.description}</p>
                     )}
-                    <span className="text-xs text-gray-400">
+                    <span className="text-[20px] text-gray-400">
                       {frequencyLabels[cost.frequency]}
                     </span>
                   </div>
