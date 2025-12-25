@@ -68,7 +68,7 @@ export default async function SalesPage() {
           </div>
 
           {/* Resumen */}
-          <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+          <div className="bg-white rounded-xl shadow-sm p-6 border-2 border-[#979797] mb-6">
             <div className="grid md:grid-cols-3 gap-6">
               <div>
                 <p className="text-sm text-gray-500">Total Ventas</p>
