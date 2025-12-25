@@ -370,7 +370,7 @@ export default function AdvisorPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 mb-6 overflow-hidden">
-        <div className="flex border-b border-gray-200">
+        <div className="flex flex-col sm:flex-row gap-3 p-4 bg-[#262626]">
           <button
             onClick={() => { setTabActiva('guardados'); setAnalisisDetalle(null) }}
             className={`flex items-center gap-2 px-4 sm:px-6 py-3 font-medium text-xl transition-colors ${
