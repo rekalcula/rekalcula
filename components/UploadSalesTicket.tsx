@@ -219,8 +219,8 @@ export default function UploadSalesTicket() {
                   📂 Seleccionar Carpeta Completa
                   <input
                     type="file"
-                    webkitdirectory=""
-                    directory=""
+                    webkitdirectory="true"
+                    directory="true"
                     multiple
                     accept="image/*,.pdf"
                     onChange={handleFolderUpload}
