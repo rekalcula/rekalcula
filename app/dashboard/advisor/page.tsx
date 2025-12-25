@@ -344,7 +344,7 @@ export default function AdvisorPage() {
       case 1: return { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', badge: 'bg-red-100 text-red-800' }
       case 2: return { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', badge: 'bg-amber-100 text-amber-800' }
       case 3: return { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', badge: 'bg-blue-100 text-blue-800' }
-      default: return { bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-700', badge: 'bg-gray-100 text-gray-800' }
+      default: return { bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-[#FFFCFF]', badge: 'bg-gray-100 text-gray-800' }
     }
   }
 
@@ -380,7 +380,7 @@ export default function AdvisorPage() {
             <IconFolder />
             Análisis Guardados
             {analisisGuardados.length > 0 && (
-              <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">
+              <span className="bg-gray-100 text-[#ACACAC] px-2 py-0.5 rounded-full text-xs">
                 {analisisGuardados.length}
               </span>
             )}
@@ -413,12 +413,12 @@ export default function AdvisorPage() {
 
       {tabActiva === 'nuevo' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Configurar Análisis</h2>
+          <div className="bg-[#262626] rounded-xl border border-[#979797] p-4 sm:p-6">
+            <h2 className="text-lg font-semibold text-[#FFFCFF] mb-4">Configurar Análisis</h2>
 
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
               <div>
-                <label className="block text-xl font-medium text-gray-700 mb-1">Período a analizar</label>
+                <label className="block text-xl font-medium text-[#FFFCFF] mb-1">Período a analizar</label>
                 <select
                   value={periodo}
                   onChange={(e) => setPeriodo(e.target.value as 'dia' | 'semana' | 'mes')}
@@ -459,13 +459,13 @@ export default function AdvisorPage() {
 
           {analisisActual && !analisisActual.sinRecomendaciones && (
             <div className="space-y-4">
-              <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+              <div className="bg-[#262626] rounded-xl border border-[#979797] p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-lg font-semibold text-[#FFFCFF]">
                       Análisis Generado - {traducirSector(analisisActual.sector)}
                     </h3>
-                    <p className="text-xl text-gray-500">
+                    <p className="text-xl text-[#ACACAC]">
                       {analisisActual.recomendaciones?.length || 0} recomendaciones encontradas
                     </p>
                   </div>
@@ -497,9 +497,9 @@ export default function AdvisorPage() {
                               </span>
                             )}
                           </div>
-                          <h4 className="font-semibold text-gray-900 mb-2">{rec.titulo}</h4>
-                          <p className="text-xl text-gray-600 mb-3">{rec.mensaje}</p>
-                          <div className="flex flex-wrap gap-4 text-xs text-gray-500 mb-3">
+                          <h4 className="font-semibold text-[#FFFCFF] mb-2">{rec.titulo}</h4>
+                          <p className="text-xl text-[#ACACAC] mb-3">{rec.mensaje}</p>
+                          <div className="flex flex-wrap gap-4 text-xs text-[#ACACAC] mb-3">
                             <span>Ventas: {rec.datosReales?.ventas || 0}</span>
                             <span>Ingresos: €{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
                           </div>
@@ -520,10 +520,10 @@ export default function AdvisorPage() {
           )}
 
           {analisisActual?.sinRecomendaciones && (
-            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+            <div className="bg-[#262626] rounded-xl border border-[#979797] p-8 text-center">
               <IconLightbulb />
-              <h3 className="text-lg font-medium text-gray-900 mt-4 mb-2">Sin recomendaciones</h3>
-              <p className="text-xl text-gray-600">
+              <h3 className="text-lg font-medium text-[#FFFCFF] mt-4 mb-2">Sin recomendaciones</h3>
+              <p className="text-xl text-[#ACACAC]">
                 <strong>Requisito mínimo:</strong> Se necesitan al menos <strong>15 días de datos de ventas</strong> para realizar un análisis científicamente válido y detectar tendencias significativas.
               </p>
               </div>
@@ -534,7 +534,7 @@ export default function AdvisorPage() {
       {tabActiva === 'aplicados' && (
         <div className="space-y-4">
           {consejosAplicados.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="bg-[#262626] rounded-xl border border-[#979797] p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -543,10 +543,10 @@ export default function AdvisorPage() {
                     onChange={seleccionarTodosAplicados}
                     className="w-4 h-4 rounded border-gray-300"
                   />
-                  <span className="text-xl text-gray-600">Seleccionar todos</span>
+                  <span className="text-xl text-[#ACACAC]">Seleccionar todos</span>
                 </label>
                 {seleccionadosAplicados.size > 0 && (
-                  <span className="text-xl text-gray-500">
+                  <span className="text-xl text-[#ACACAC]">
                     ({seleccionadosAplicados.size} seleccionados)
                   </span>
                 )}
@@ -565,10 +565,10 @@ export default function AdvisorPage() {
           )}
 
           {consejosAplicados.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+            <div className="bg-[#262626] rounded-xl border border-[#979797] p-8 text-center">
               <IconCheck />
-              <h3 className="text-lg font-medium text-gray-900 mt-4 mb-2">Sin consejos aplicados</h3>
-              <p className="text-gray-500 mb-4">Los consejos que apliques aparecerán aquí</p>
+              <h3 className="text-lg font-medium text-[#FFFCFF] mt-4 mb-2">Sin consejos aplicados</h3>
+              <p className="text-[#ACACAC] mb-4">Los consejos que apliques aparecerán aquí</p>
               <button
                 onClick={() => setTabActiva('nuevo')}
                 className="px-6 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors font-medium"
@@ -581,7 +581,7 @@ export default function AdvisorPage() {
               {consejosAplicados.map((consejo) => {
                 const colors = getColorPrioridad(consejo.prioridad)
                 return (
-                  <div key={`${consejo.id}-${consejo.aplicadoEn}`} className="bg-white rounded-xl border border-gray-200 p-4">
+                  <div key={`${consejo.id}-${consejo.aplicadoEn}`} className="bg-[#262626] rounded-xl border border-[#979797] p-4">
                     <div className="flex items-start gap-4">
                       <input
                         type="checkbox"
@@ -594,13 +594,13 @@ export default function AdvisorPage() {
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors.badge}`}>
                             {getTextoPrioridad(consejo.prioridad)}
                           </span>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-[#ACACAC]">
                             Aplicado: {formatearFecha(consejo.aplicadoEn)}
                           </span>
                         </div>
-                        <h4 className="font-semibold text-gray-900 mb-2">{consejo.titulo}</h4>
-                        <p className="text-xl text-gray-600 mb-3">{consejo.mensaje}</p>
-                        <div className="flex flex-wrap gap-4 text-xs text-gray-500">
+                        <h4 className="font-semibold text-[#FFFCFF] mb-2">{consejo.titulo}</h4>
+                        <p className="text-xl text-[#ACACAC] mb-3">{consejo.mensaje}</p>
+                        <div className="flex flex-wrap gap-4 text-xs text-[#ACACAC]">
                           <span>Sector: {traducirSector(consejo.sector)}</span>
                           <span>Período: {traducirPeriodo(consejo.periodoAnalisis)}</span>
                           <span>Ventas: {consejo.datosReales?.ventas || 0}</span>
@@ -619,7 +619,7 @@ export default function AdvisorPage() {
       {tabActiva === 'guardados' && !analisisDetalle && (
         <div className="space-y-4">
           {analisisGuardados.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="bg-[#262626] rounded-xl border border-[#979797] p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -628,10 +628,10 @@ export default function AdvisorPage() {
                     onChange={seleccionarTodos}
                     className="w-4 h-4 rounded border-gray-300"
                   />
-                  <span className="text-xl text-gray-600">Seleccionar todos</span>
+                  <span className="text-xl text-[#ACACAC]">Seleccionar todos</span>
                 </label>
                 {seleccionados.size > 0 && (
-                  <span className="text-xl text-gray-500">
+                  <span className="text-xl text-[#ACACAC]">
                     ({seleccionados.size} seleccionados)
                   </span>
                 )}
@@ -651,15 +651,15 @@ export default function AdvisorPage() {
           )}
 
           {cargandoGuardados ? (
-            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+            <div className="bg-[#262626] rounded-xl border border-[#979797] p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-              <p className="text-gray-500 mt-4">Cargando análisis...</p>
+              <p className="text-[#ACACAC] mt-4">Cargando análisis...</p>
             </div>
           ) : analisisGuardados.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+            <div className="bg-[#262626] rounded-xl border border-[#979797] p-8 text-center">
               <IconFolder />
-              <h3 className="text-lg font-medium text-gray-900 mt-4 mb-2">Sin análisis guardados</h3>
-              <p className="text-gray-500 mb-4">Genera tu primer análisis para empezar</p>
+              <h3 className="text-lg font-medium text-[#FFFCFF] mt-4 mb-2">Sin análisis guardados</h3>
+              <p className="text-[#ACACAC] mb-4">Genera tu primer análisis para empezar</p>
               <button
                 onClick={() => setTabActiva('nuevo')}
                 className="px-6 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors font-medium"
@@ -672,7 +672,7 @@ export default function AdvisorPage() {
               {analisisGuardados.map((analisis) => (
                 <div
                   key={analisis.id}
-                  className="bg-white rounded-xl border border-gray-200 p-4 hover:border-gray-300 transition-colors"
+                  className="bg-[#262626] rounded-xl border border-[#979797] p-4 hover:border-gray-300 transition-colors"
                 >
                   <div className="flex items-center gap-4">
                     <input
@@ -688,15 +688,15 @@ export default function AdvisorPage() {
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <div>
-                          <h3 className="font-medium text-gray-900">
+                          <h3 className="font-medium text-[#FFFCFF]">
                             Análisis #{analisisGuardados.length - analisisGuardados.indexOf(analisis)}
                           </h3>
-                          <p className="text-xl text-gray-500">
+                          <p className="text-xl text-[#ACACAC]">
                             {formatearFecha(analisis.created_at)}
                           </p>
                         </div>
                         <div className="flex flex-wrap gap-2 text-xs">
-                          <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                          <span className="bg-gray-100 text-[#ACACAC] px-2 py-1 rounded">
                             {traducirPeriodo(analisis.periodo)}
                           </span>
                           <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
@@ -718,21 +718,21 @@ export default function AdvisorPage() {
 
       {tabActiva === 'guardados' && analisisDetalle && (
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+          <div className="bg-[#262626] rounded-xl border border-[#979797] p-4 sm:p-6">
             <button
               onClick={() => setAnalisisDetalle(null)}
-              className="text-xl text-gray-500 hover:text-gray-700 mb-4 flex items-center gap-1"
+              className="text-xl text-[#ACACAC] hover:text-[#FFFCFF] mb-4 flex items-center gap-1"
             >
               ← Volver a la lista
             </button>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-[#FFFCFF]">
                   Análisis del {formatearFecha(analisisDetalle.created_at)}
                 </h2>
                 <div className="flex flex-wrap gap-2 mt-2 text-xl">
-                  <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                  <span className="bg-gray-100 text-[#ACACAC] px-2 py-1 rounded">
                     Período: {traducirPeriodo(analisisDetalle.periodo)}
                   </span>
                   <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
@@ -744,13 +744,13 @@ export default function AdvisorPage() {
           </div>
 
           {cargandoDetalle ? (
-            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+            <div className="bg-[#262626] rounded-xl border border-[#979797] p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-              <p className="text-gray-500 mt-4">Cargando detalles...</p>
+              <p className="text-[#ACACAC] mt-4">Cargando detalles...</p>
             </div>
           ) : (
             <div className="space-y-4">
-              <p className="text-xl text-gray-500">
+              <p className="text-xl text-[#ACACAC]">
                 {analisisDetalle.recomendaciones?.length || 0} recomendaciones
               </p>
 
@@ -771,9 +771,9 @@ export default function AdvisorPage() {
                             </span>
                           )}
                         </div>
-                        <h4 className="font-semibold text-gray-900 mb-2">{rec.titulo}</h4>
-                        <p className="text-xl text-gray-600 mb-3">{rec.mensaje}</p>
-                        <div className="flex flex-wrap gap-4 text-xs text-gray-500">
+                        <h4 className="font-semibold text-[#FFFCFF] mb-2">{rec.titulo}</h4>
+                        <p className="text-xl text-[#ACACAC] mb-3">{rec.mensaje}</p>
+                        <div className="flex flex-wrap gap-4 text-xs text-[#ACACAC]">
                           <span>Ventas: {rec.datosReales?.ventas || 0}</span>
                           <span>Ingresos: €{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
                         </div>
