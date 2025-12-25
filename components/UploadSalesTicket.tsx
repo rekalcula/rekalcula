@@ -90,7 +90,7 @@ export default function UploadSalesTicket() {
 
     if (e.dataTransfer.files) {
       setMode('select')
-      loadFiles(e.dataTransfer.files, false)
+      loadFiles(e.dataTransfer.files, true) // TRUE = auto-seleccionar todos
     }
   }, [])
 
