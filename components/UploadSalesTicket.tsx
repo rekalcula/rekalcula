@@ -82,7 +82,6 @@ export default function UploadSalesTicket() {
       loadFiles(e.target.files, true)
     }
     }
-  }
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
