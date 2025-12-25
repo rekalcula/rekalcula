@@ -73,8 +73,7 @@ export default async function AnalyticsPage() {
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Análisis Financiero
+            <h1 className="text-3xl font-bold text-[#d98c21]">Análisis Financiero
             </h1>
             <p className="mt-2 text-gray-600">
               Punto de equilibrio y rentabilidad - {now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
