@@ -79,7 +79,8 @@ export default function UploadSalesTicket() {
     e.preventDefault()
     if (e.target.files) {
       setMode('select')
-      loadFiles(e.target.files, false)
+      loadFiles(e.target.files, true)
+    }
     }
   }
 
