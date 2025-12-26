@@ -18,20 +18,19 @@ export default async function CostsPage() {
     .or(`is_system.eq.true,user_id.eq.${userId}`)
     .order('name')
 
-  // Filtrar categorías únicas por ID y agregar "Otros"
+  // Filtrar categorías únicas por ID
   const uniqueCategories = (categoriesRaw || []).filter((cat, index, self) => 
     index === self.findIndex((c) => c.id === cat.id)
   )
 
-  // Agregar categoría "Otros" al final
+  // Separar "Otros gastos fijos" del resto
+  const otrosGastosFijos = uniqueCategories.find(cat => cat.name === 'Otros gastos fijos')
+  const otherCategories = uniqueCategories.filter(cat => cat.name !== 'Otros gastos fijos')
+
+  // Ordenar alfabéticamente y poner "Otros gastos fijos" al final
   const categories = [
-    ...uniqueCategories,
-    {
-      id: 'otros',
-      name: 'Otros',
-      icon: '📦',
-      is_system: true
-    }
+    ...otherCategories.sort((a, b) => a.name.localeCompare(b.name)),
+    ...(otrosGastosFijos ? [otrosGastosFijos] : [])
   ]
 
   // Obtener costos fijos del usuario
