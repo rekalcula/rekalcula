@@ -23,9 +23,13 @@ export default async function CostsPage() {
     index === self.findIndex((c) => c.id === cat.id)
   )
 
-  // Separar "Otros gastos fijos" del resto
-  const otrosGastosFijos = uniqueCategories.find(cat => cat.name === 'Otros gastos fijos')
-  const otherCategories = uniqueCategories.filter(cat => cat.name !== 'Otros gastos fijos')
+  // Separar "Otros Gastos Fijos" del resto (case-insensitive)
+  const otrosGastosFijos = uniqueCategories.find(cat => 
+    cat.name.toLowerCase() === 'otros gastos fijos'
+  )
+  const otherCategories = uniqueCategories.filter(cat => 
+    cat.name.toLowerCase() !== 'otros gastos fijos'
+  )
 
   // Ordenar alfabéticamente y poner "Otros gastos fijos" al final
   const categories = [
