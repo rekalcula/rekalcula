@@ -12,11 +12,27 @@ export default async function CostsPage() {
   }
 
   // Obtener categorías de costos fijos
-  const { data: categories } = await supabase
+  const { data: categoriesRaw } = await supabase
     .from('fixed_cost_categories')
     .select('*')
     .or(`is_system.eq.true,user_id.eq.${userId}`)
     .order('name')
+
+  // Filtrar categorías únicas por ID y agregar "Otros"
+  const uniqueCategories = (categoriesRaw || []).filter((cat, index, self) => 
+    index === self.findIndex((c) => c.id === cat.id)
+  )
+
+  // Agregar categoría "Otros" al final
+  const categories = [
+    ...uniqueCategories,
+    {
+      id: 'otros',
+      name: 'Otros',
+      icon: '📦',
+      is_system: true
+    }
+  ]
 
   // Obtener costos fijos del usuario
   const { data: costs } = await supabase
