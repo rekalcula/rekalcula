@@ -19,7 +19,6 @@ interface FinancialAlert {
   title: string
   message: string
   recommendation: string
-  icon: string
   currentValue: number
   optimalValue: string
 }
@@ -47,7 +46,6 @@ export default function FinancialAlertsPanel({ data }: Props) {
         title: 'Sin Ventas Registradas',
         message: 'No hay ventas registradas este mes para calcular ratios financieros.',
         recommendation: 'Comienza a registrar tus ventas para obtener analisis financiero.',
-        icon: 'âš ',
         currentValue: 0,
         optimalValue: 'N/A'
       })
@@ -70,9 +68,8 @@ export default function FinancialAlertsPanel({ data }: Props) {
           title: 'Alquiler Muy Alto',
           message: 'Tu alquiler representa el ' + rentRatio.toFixed(1) + '% de tus ventas.',
           recommendation: 'Necesitas aumentar ventas o renegociar el alquiler. Un alquiler >12% pone en riesgo la rentabilidad.',
-          icon: 'ðŸ ',
           currentValue: rentRatio,
-          optimalValue: 'â‰¤10%'
+          optimalValue: 'Maximo 10%'
         })
       } else if (rentRatio > 10) {
         newAlerts.push({
@@ -82,9 +79,8 @@ export default function FinancialAlertsPanel({ data }: Props) {
           title: 'Alquiler Elevado',
           message: 'Tu alquiler representa el ' + rentRatio.toFixed(1) + '% de tus ventas.',
           recommendation: 'Intenta mantenerlo por debajo del 10%.',
-          icon: 'ðŸ ',
           currentValue: rentRatio,
-          optimalValue: 'â‰¤10%'
+          optimalValue: 'Maximo 10%'
         })
       } else {
         newAlerts.push({
@@ -94,7 +90,6 @@ export default function FinancialAlertsPanel({ data }: Props) {
           title: 'Alquiler Optimo',
           message: 'Tu alquiler representa el ' + rentRatio.toFixed(1) + '% de tus ventas.',
           recommendation: 'Continua manteniendo este ratio. Esta dentro del rango optimo (6-10%).',
-          icon: 'ðŸ ',
           currentValue: rentRatio,
           optimalValue: '6-10%'
         })
@@ -109,9 +104,8 @@ export default function FinancialAlertsPanel({ data }: Props) {
         title: 'Costo de Materia Prima Muy Alto',
         message: 'Tu materia prima representa el ' + cogsRatio.toFixed(1) + '% de tus ventas.',
         recommendation: 'Un COGS >38% elimina rentabilidad. Reduce costos o aumenta precios.',
-        icon: 'ðŸ“¦',
         currentValue: cogsRatio,
-        optimalValue: 'â‰¤35%'
+        optimalValue: 'Maximo 35%'
       })
     } else if (cogsRatio > 35) {
       newAlerts.push({
@@ -121,7 +115,6 @@ export default function FinancialAlertsPanel({ data }: Props) {
         title: 'Costo de Materia Prima Elevado',
         message: 'Tu materia prima representa el ' + cogsRatio.toFixed(1) + '% de tus ventas.',
         recommendation: 'Busca proveedores mas economicos. Objetivo: 30-35%.',
-        icon: 'ðŸ“¦',
         currentValue: cogsRatio,
         optimalValue: '28-35%'
       })
@@ -133,7 +126,6 @@ export default function FinancialAlertsPanel({ data }: Props) {
         title: 'Costo de Materia Prima Optimo',
         message: 'Tu materia prima representa el ' + cogsRatio.toFixed(1) + '% de tus ventas.',
         recommendation: 'Manten este nivel. Esta dentro del rango optimo.',
-        icon: 'ðŸ“¦',
         currentValue: cogsRatio,
         optimalValue: '28-35%'
       })
@@ -148,9 +140,8 @@ export default function FinancialAlertsPanel({ data }: Props) {
           title: 'Costos Laborales Muy Altos',
           message: 'Tus salarios representan el ' + laborRatio.toFixed(1) + '% de tus ventas.',
           recommendation: 'Necesitas aumentar productividad o ventas.',
-          icon: 'ðŸ‘¥',
           currentValue: laborRatio,
-          optimalValue: 'â‰¤35%'
+          optimalValue: 'Maximo 35%'
         })
       } else if (laborRatio > 35) {
         newAlerts.push({
@@ -160,7 +151,6 @@ export default function FinancialAlertsPanel({ data }: Props) {
           title: 'Costos Laborales Elevados',
           message: 'Tus salarios representan el ' + laborRatio.toFixed(1) + '% de tus ventas.',
           recommendation: 'Optimiza turnos o aumenta ventas por empleado. Objetivo: 25-35%.',
-          icon: 'ðŸ‘¥',
           currentValue: laborRatio,
           optimalValue: '25-35%'
         })
@@ -172,7 +162,6 @@ export default function FinancialAlertsPanel({ data }: Props) {
           title: 'Costos Laborales Optimos',
           message: 'Tus salarios representan el ' + laborRatio.toFixed(1) + '% de tus ventas.',
           recommendation: 'Manten este equilibrio entre personal y ventas.',
-          icon: 'ðŸ‘¥',
           currentValue: laborRatio,
           optimalValue: '25-35%'
         })
@@ -187,9 +176,8 @@ export default function FinancialAlertsPanel({ data }: Props) {
         title: 'PRIME COST PELIGROSO',
         message: 'Tu Prime Cost es del ' + primeCost.toFixed(1) + '%. Esto amenaza la rentabilidad.',
         recommendation: 'URGENTE: Reduce costos y/o aumenta precios.',
-        icon: 'âš ',
         currentValue: primeCost,
-        optimalValue: 'â‰¤65%'
+        optimalValue: 'Maximo 65%'
       })
     } else if (primeCost > 65) {
       newAlerts.push({
@@ -199,9 +187,8 @@ export default function FinancialAlertsPanel({ data }: Props) {
         title: 'Prime Cost Alto',
         message: 'Tu Prime Cost es del ' + primeCost.toFixed(1) + '%.',
         recommendation: 'Reduce materia prima o salarios para alcanzar el 65%.',
-        icon: 'ðŸ“Š',
         currentValue: primeCost,
-        optimalValue: 'â‰¤65%'
+        optimalValue: 'Maximo 65%'
       })
     } else {
       newAlerts.push({
@@ -211,7 +198,6 @@ export default function FinancialAlertsPanel({ data }: Props) {
         title: 'Prime Cost Excelente',
         message: 'Tu Prime Cost es del ' + primeCost.toFixed(1) + '%.',
         recommendation: 'Este es el indicador mas importante de rentabilidad. Sigue asi!',
-        icon: 'ðŸ’š',
         currentValue: primeCost,
         optimalValue: '55-65%'
       })
@@ -225,7 +211,6 @@ export default function FinancialAlertsPanel({ data }: Props) {
         title: 'Estas en Perdidas',
         message: 'Tu margen de beneficio es del ' + profitMargin.toFixed(1) + '%.',
         recommendation: 'Revisa urgentemente todos tus costos y precios.',
-        icon: 'ðŸ“‰',
         currentValue: profitMargin,
         optimalValue: '15-25%'
       })
@@ -237,7 +222,6 @@ export default function FinancialAlertsPanel({ data }: Props) {
         title: 'Margen de Beneficio Bajo',
         message: 'Tu margen de beneficio es del ' + profitMargin.toFixed(1) + '%.',
         recommendation: 'Objetivo: alcanzar 15-20% de margen.',
-        icon: 'ðŸ“Š',
         currentValue: profitMargin,
         optimalValue: '15-25%'
       })
@@ -249,7 +233,6 @@ export default function FinancialAlertsPanel({ data }: Props) {
         title: 'Margen de Beneficio Saludable',
         message: 'Tu margen de beneficio es del ' + profitMargin.toFixed(1) + '%.',
         recommendation: 'Excelente! Manten este nivel de rentabilidad.',
-        icon: 'ðŸ’°',
         currentValue: profitMargin,
         optimalValue: '15-25%'
       })
@@ -289,13 +272,12 @@ export default function FinancialAlertsPanel({ data }: Props) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-[#FFFCFF] flex items-center space-x-2">
-          <span>ðŸš¨</span>
           <span>Alertas Financieras ({alerts.length})</span>
         </h3>
         {alerts.length > 0 && (
           <button
             onClick={() => setShowAlerts(false)}
-            className="text-sm text-gray-600 hover:text-gray-800"
+            className="text-sm text-gray-400 hover:text-gray-200"
           >
             Ocultar todo
           </button>
@@ -311,7 +293,6 @@ export default function FinancialAlertsPanel({ data }: Props) {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-2">
-                  <span className="text-xl">{alert.icon}</span>
                   <h4 className="font-semibold text-lg">{alert.title}</h4>
                   <span className={'px-2 py-1 rounded-full text-xs font-bold ' + getSeverityBadge(alert.severity)}>
                     {alert.currentValue.toFixed(1)}%
@@ -329,7 +310,7 @@ export default function FinancialAlertsPanel({ data }: Props) {
                 onClick={() => dismissAlert(alert.id)}
                 className="text-gray-500 hover:text-gray-700 ml-4 text-xl"
               >
-                âœ•
+                X
               </button>
             </div>
           </div>
