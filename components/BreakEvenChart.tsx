@@ -38,66 +38,53 @@ export default function BreakEvenChart({ data }: Props) {
     }
   })
 
-  // Calcular el valor máximo del eje Y para generar ticks incrementales
-  const maxYValue = Math.max(
-    ...chartData.map(d => Math.max(d.ingresos, d.costosTotales))
-  )
-  
-  // Generar ticks incrementales (0, 1000, 2000, 3000, etc. pero mostramos como 0, 1, 2, 3...)
-  const yAxisStep = Math.ceil(maxYValue / 10 / 1000) * 1000
-  const yTicks = Array.from({ length: 11 }, (_, i) => i * yAxisStep)
-
   return (
     <div className="bg-white rounded-xl shadow-sm p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
         📊 Gráfico de Punto de Equilibrio
       </h3>
-
+      
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis
-            dataKey="sales"
+          <XAxis 
+            dataKey="sales" 
             tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
           />
-          <YAxis
-            ticks={yTicks}
-            domain={[0, 'auto']}
-            tickFormatter={(value) => (value / 1000).toFixed(0)}
+          <YAxis 
+            tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
           />
-          <Tooltip
+          <Tooltip 
             formatter={(value: number) => `€${value.toFixed(0)}`}
             labelFormatter={(label) => `Ventas: €${label}`}
           />
           <Legend />
-          
-          <ReferenceLine
-            x={Math.round(data.breakEvenPoint)}
-            stroke="#EF4444"
+          <ReferenceLine 
+            x={Math.round(data.breakEvenPoint)} 
+            stroke="#EF4444" 
             strokeDasharray="5 5"
             label={{ value: 'Punto de Equilibrio', position: 'top' }}
           />
-          
-          <Line
-            type="monotone"
-            dataKey="ingresos"
-            stroke="#10B981"
+          <Line 
+            type="monotone" 
+            dataKey="ingresos" 
+            stroke="#10B981" 
             strokeWidth={2}
             name="Ingresos"
             dot={false}
           />
-          <Line
-            type="monotone"
-            dataKey="costosTotales"
+          <Line 
+            type="monotone" 
+            dataKey="costosTotales" 
             stroke="#EF4444" 
             strokeWidth={2}
             name="Costos Totales"
             dot={false}
           />
-          <Line
-            type="monotone"
-            dataKey="costosFijos"
-            stroke="#F59E0B"
+          <Line 
+            type="monotone" 
+            dataKey="costosFijos" 
+            stroke="#F59E0B" 
             strokeWidth={1}
             strokeDasharray="5 5"
             name="Costos Fijos"
@@ -108,8 +95,8 @@ export default function BreakEvenChart({ data }: Props) {
 
       <div className="mt-4 p-4 bg-blue-50 rounded-lg">
         <p className="text-sm text-blue-800">
-          <strong>💡 Interpretación:</strong> El punto donde la línea verde (ingresos) cruza
-          la línea roja (costos) es tu punto de equilibrio. Por encima de ese punto,
+          <strong>💡 Interpretación:</strong> El punto donde la línea verde (ingresos) cruza 
+          la línea roja (costos) es tu punto de equilibrio. Por encima de ese punto, 
           estás generando beneficios.
         </p>
       </div>
