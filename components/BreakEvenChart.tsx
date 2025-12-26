@@ -43,48 +43,50 @@ export default function BreakEvenChart({ data }: Props) {
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
         📊 Gráfico de Punto de Equilibrio
       </h3>
-      
+
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis 
-            dataKey="sales" 
+          <XAxis
+            dataKey="sales"
             tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
           />
-          <YAxis 
-            tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
+          <YAxis
+            tickFormatter={(value) => (value / 1000).toFixed(0)}
           />
-          <Tooltip 
+          <Tooltip
             formatter={(value: number) => `€${value.toFixed(0)}`}
             labelFormatter={(label) => `Ventas: €${label}`}
           />
           <Legend />
-          <ReferenceLine 
-            x={Math.round(data.breakEvenPoint)} 
-            stroke="#EF4444" 
+          
+          <ReferenceLine
+            x={Math.round(data.breakEvenPoint)}
+            stroke="#EF4444"
             strokeDasharray="5 5"
             label={{ value: 'Punto de Equilibrio', position: 'top' }}
           />
-          <Line 
-            type="monotone" 
-            dataKey="ingresos" 
-            stroke="#10B981" 
+          
+          <Line
+            type="monotone"
+            dataKey="ingresos"
+            stroke="#10B981"
             strokeWidth={2}
             name="Ingresos"
             dot={false}
           />
-          <Line 
-            type="monotone" 
-            dataKey="costosTotales" 
+          <Line
+            type="monotone"
+            dataKey="costosTotales"
             stroke="#EF4444" 
             strokeWidth={2}
             name="Costos Totales"
             dot={false}
           />
-          <Line 
-            type="monotone" 
-            dataKey="costosFijos" 
-            stroke="#F59E0B" 
+          <Line
+            type="monotone"
+            dataKey="costosFijos"
+            stroke="#F59E0B"
             strokeWidth={1}
             strokeDasharray="5 5"
             name="Costos Fijos"
@@ -95,8 +97,8 @@ export default function BreakEvenChart({ data }: Props) {
 
       <div className="mt-4 p-4 bg-blue-50 rounded-lg">
         <p className="text-sm text-blue-800">
-          <strong>💡 Interpretación:</strong> El punto donde la línea verde (ingresos) cruza 
-          la línea roja (costos) es tu punto de equilibrio. Por encima de ese punto, 
+          <strong>💡 Interpretación:</strong> El punto donde la línea verde (ingresos) cruza
+          la línea roja (costos) es tu punto de equilibrio. Por encima de ese punto,
           estás generando beneficios.
         </p>
       </div>
