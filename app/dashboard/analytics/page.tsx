@@ -1,4 +1,4 @@
-﻿import { auth } from '@clerk/nextjs/server'
+import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import DashboardNav from '@/components/DashboardNav'
