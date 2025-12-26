@@ -18,6 +18,10 @@ interface FileWithPreview {
   id: string
 }
 
+const BATCH_SIZE = 5 // Procesar 5 archivos simultáneamente
+const MAX_RETRIES = 2 // Reintentar hasta 2 veces
+const TIMEOUT_MS = 30000 // Timeout de 30 segundos por archivo
+
 export default function UploadSalesTicket() {
   const router = useRouter()
   const [dragActive, setDragActive] = useState(false)
@@ -27,6 +31,8 @@ export default function UploadSalesTicket() {
   const [processing, setProcessing] = useState(false)
   const [results, setResults] = useState<any[]>([])
   const [mode, setMode] = useState<'select' | 'folder' | null>(null)
+  const [currentBatch, setCurrentBatch] = useState(0)
+  const [totalBatches, setTotalBatches] = useState(0)
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -40,10 +46,10 @@ export default function UploadSalesTicket() {
 
   const loadFiles = async (fileList: FileList | File[], autoSelect: boolean = false) => {
     const newFiles: FileWithPreview[] = []
-    
+
     for (let i = 0; i < fileList.length; i++) {
       const file = fileList[i]
-      
+
       if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
         continue
       }
@@ -54,7 +60,7 @@ export default function UploadSalesTicket() {
       } else if (file.type === 'application/pdf') {
         preview = 'pdf'
       }
-      
+
       newFiles.push({
         file,
         preview,
@@ -62,7 +68,7 @@ export default function UploadSalesTicket() {
         id: `${file.name}-${Date.now()}-${i}`
       })
     }
-    
+
     setFiles(newFiles)
     setError(null)
   }
@@ -81,7 +87,7 @@ export default function UploadSalesTicket() {
       setMode('select')
       loadFiles(e.target.files, true)
     }
-    }
+  }
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -90,7 +96,7 @@ export default function UploadSalesTicket() {
 
     if (e.dataTransfer.files) {
       setMode('select')
-      loadFiles(e.dataTransfer.files, true) // TRUE = auto-seleccionar todos
+      loadFiles(e.dataTransfer.files, true)
     }
   }, [])
 
@@ -126,13 +132,62 @@ export default function UploadSalesTicket() {
     setError(null)
     setSuccess(null)
     setMode(null)
+    setCurrentBatch(0)
+    setTotalBatches(0)
   }
 
+  // Función para procesar un archivo con timeout y reintentos
+  const processFileWithRetry = async (fileItem: FileWithPreview, retries = MAX_RETRIES): Promise<any> => {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const formData = new FormData()
+        formData.append('file', fileItem.file)
+
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS)
+
+        const response = await fetch('/api/process-sales-ticket', {
+          method: 'POST',
+          body: formData,
+          signal: controller.signal
+        })
+
+        clearTimeout(timeoutId)
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Error al procesar el ticket')
+        }
+
+        return {
+          fileName: fileItem.file.name,
+          success: true,
+          data: data.sale
+        }
+
+      } catch (err: any) {
+        if (attempt < retries) {
+          // Esperar 1 segundo antes de reintentar
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          continue
+        }
+        
+        return {
+          fileName: fileItem.file.name,
+          success: false,
+          error: err.name === 'AbortError' ? 'Timeout - archivo muy grande o servidor lento' : err.message
+        }
+      }
+    }
+  }
+
+  // Función para procesar archivos en lotes
   const processFiles = async () => {
-    const filesToProcess = mode === 'folder' 
+    const filesToProcess = mode === 'folder'
       ? files
       : files.filter(f => f.selected)
-    
+
     if (filesToProcess.length === 0) {
       setError('No hay archivos para procesar')
       return
@@ -143,52 +198,51 @@ export default function UploadSalesTicket() {
     setSuccess(null)
     setResults([])
 
+    const totalFiles = filesToProcess.length
+    const batches = Math.ceil(totalFiles / BATCH_SIZE)
+    setTotalBatches(batches)
+
     let successCount = 0
     let errorCount = 0
-    const newResults: any[] = []
+    const allResults: any[] = []
 
-    for (let i = 0; i < filesToProcess.length; i++) {
-      const fileItem = filesToProcess[i]
+    // Procesar en lotes
+    for (let batchIndex = 0; batchIndex < batches; batchIndex++) {
+      setCurrentBatch(batchIndex + 1)
       
-      try {
-        const formData = new FormData()
-        formData.append('file', fileItem.file)
+      const startIdx = batchIndex * BATCH_SIZE
+      const endIdx = Math.min(startIdx + BATCH_SIZE, totalFiles)
+      const batch = filesToProcess.slice(startIdx, endIdx)
 
-        const response = await fetch('/api/process-sales-ticket', {
-          method: 'POST',
-          body: formData
-        })
+      // Procesar archivos del lote simultáneamente
+      const batchPromises = batch.map(fileItem => processFileWithRetry(fileItem))
+      const batchResults = await Promise.all(batchPromises)
 
-        const data = await response.json()
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Error al procesar el ticket')
+      // Actualizar contadores y resultados
+      batchResults.forEach(result => {
+        if (result.success) {
+          successCount++
+        } else {
+          errorCount++
         }
+        allResults.push(result)
+      })
 
-        newResults.push({
-          fileName: fileItem.file.name,
-          success: true,
-          data: data.sale
-        })
-        successCount++
+      setResults([...allResults])
 
-      } catch (err: any) {
-        newResults.push({
-          fileName: fileItem.file.name,
-          success: false,
-          error: err.message
-        })
-        errorCount++
+      // Pequeña pausa entre lotes para evitar rate limiting
+      if (batchIndex < batches - 1) {
+        await new Promise(resolve => setTimeout(resolve, 500))
       }
-      
-      setResults([...newResults])
     }
 
     setProcessing(false)
+    setCurrentBatch(0)
+    setTotalBatches(0)
 
     if (successCount > 0) {
       setSuccess(`✅ ${successCount} ticket(s) procesado(s) correctamente`)
-      
+
       setTimeout(() => {
         router.refresh()
       }, 3000)
@@ -219,7 +273,7 @@ export default function UploadSalesTicket() {
                 <p className="text-sm text-blue-700 mb-4">
                   Sube una carpeta con todos tus tickets. Se analizarán automáticamente TODOS los archivos.
                 </p>
-                <label className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold cursor-pointer transition-colors">
+                <label className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold cursor-pointer transition-colors">   
                   📂 Seleccionar Carpeta Completa
                   <input
                     type="file"
@@ -245,7 +299,7 @@ export default function UploadSalesTicket() {
                 <p className="text-sm text-green-700 mb-4">
                   Elige específicamente qué tickets quieres analizar. Puedes seleccionar múltiples archivos.
                 </p>
-                <label className="inline-block px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold cursor-pointer transition-colors">
+                <label className="inline-block px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold cursor-pointer transition-colors"> 
                   📄 Seleccionar Archivos
                   <input
                     type="file"
@@ -314,7 +368,7 @@ export default function UploadSalesTicket() {
               <div className="flex gap-2 mt-3">
                 <button
                   onClick={toggleAll}
-                  className="px-3 py-1 text-sm bg-[#3d3d3d] hover:bg-[#4d4d4d] rounded-lg transition-colors"
+                  className="px-3 py-1 text-sm bg-[#3d3d3d] hover:bg-[#4d4d4d] text-[#FFFCFF] rounded-lg transition-colors"
                 >
                   {files.every(f => f.selected) ? 'Deseleccionar todos' : 'Seleccionar todos'}
                 </button>
@@ -343,8 +397,7 @@ export default function UploadSalesTicket() {
                   </button>
                 )}
 
-                <div
-                >
+                <div>
                   {fileItem.preview === 'pdf' ? (
                     <div className="aspect-square bg-red-100 rounded flex items-center justify-center">
                       <span className="text-3xl">📄</span>
@@ -392,18 +445,28 @@ export default function UploadSalesTicket() {
       )}
 
       {processing && (
-        <div className="mt-4">
-          <div className="w-full bg-[#3d3d3d] rounded-full h-3">
+        <div className="mt-4 space-y-3">
+          <div className="w-full bg-[#3d3d3d] rounded-full h-4">
             <div
-              className="bg-gradient-to-r from-blue-600 to-green-600 h-3 rounded-full transition-all duration-300"
+              className="bg-gradient-to-r from-blue-600 to-green-600 h-4 rounded-full transition-all duration-300"
               style={{
                 width: `${(results.length / (mode === 'folder' ? files.length : selectedCount)) * 100}%`
               }}
             ></div>
           </div>
-          <p className="text-sm text-[#ACACAC] text-center mt-2 font-semibold">
-            ⚡ Procesando {results.length} de {mode === 'folder' ? files.length : selectedCount}...
-          </p>
+          <div className="flex justify-between text-sm text-[#ACACAC]">
+            <span className="font-semibold">
+              ⚡ Procesando {results.length} de {mode === 'folder' ? files.length : selectedCount}
+            </span>
+            <span className="font-semibold">
+              📦 Lote {currentBatch} de {totalBatches}
+            </span>
+          </div>
+          <div className="bg-blue-100 border border-blue-300 rounded-lg p-3">
+            <p className="text-sm text-blue-800">
+              💡 Procesando {BATCH_SIZE} archivos simultáneamente con reintentos automáticos
+            </p>
+          </div>
         </div>
       )}
 
@@ -428,7 +491,7 @@ export default function UploadSalesTicket() {
                   </p>
                   {result.success && result.data && (
                     <p className="text-xs text-green-600 mt-1">
-                      💰 Total: €{result.data.total?.toFixed(2) || '0.00'} | 📅 {result.data.date || 'N/A'}
+                      💰 Total: €{result.data.total?.toFixed(2) || '0.00'} | 📅 {result.data.sale_date || 'N/A'}
                     </p>
                   )}
                   {!result.success && (
