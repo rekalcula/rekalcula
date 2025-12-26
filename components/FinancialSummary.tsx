@@ -17,6 +17,7 @@ interface Props {
 
 export default function FinancialSummary({ data }: Props) {
   const isProfit = data.netProfit >= 0
+  
   const progressToBreakEven = data.breakEvenPoint > 0 
     ? Math.min((data.totalSales / data.breakEvenPoint) * 100, 100)
     : 100
@@ -55,7 +56,7 @@ export default function FinancialSummary({ data }: Props) {
           <span className="text-2xl">{isProfit ? '📈' : '📉'}</span>
         </div>
         <p className={`text-sm ${isProfit ? 'text-green-600' : 'text-red-600'}`}>
-          Beneficio Neto
+          Beneficio Bruto
         </p>
         <p className={`text-2xl font-bold ${isProfit ? 'text-green-700' : 'text-red-700'}`}>
           €{data.netProfit.toFixed(2)}
@@ -76,7 +77,7 @@ export default function FinancialSummary({ data }: Props) {
         </p>
         <div className="mt-2">
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
+            <div
               className={`h-2 rounded-full transition-all ${
                 progressToBreakEven >= 100 ? 'bg-green-500' : 'bg-blue-500'
               }`}
@@ -84,7 +85,7 @@ export default function FinancialSummary({ data }: Props) {
             />
           </div>
           <p className="text-xs text-gray-500 mt-1">
-            {progressToBreakEven >= 100 
+            {progressToBreakEven >= 100
               ? `✅ Superado por €${data.salesAboveBreakEven.toFixed(0)}`
               : `${progressToBreakEven.toFixed(0)}% alcanzado`
             }
