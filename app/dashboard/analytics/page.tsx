@@ -1,4 +1,4 @@
-import { auth } from '@clerk/nextjs/server'
+ï»¿import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import DashboardNav from '@/components/DashboardNav'
@@ -51,7 +51,7 @@ export default async function AnalyticsPage() {
     
     if (categoryName.includes('alquiler') || categoryName.includes('hipoteca')) {
       rentCosts += monthly
-    } else if (categoryName.includes('personal') || categoryName.includes('salario') || categoryName.includes('nómina')) {
+    } else if (categoryName.includes('personal') || categoryName.includes('salario')) {
       laborCosts += monthly
     } else {
       otherFixedCosts += monthly
@@ -95,7 +95,7 @@ export default async function AnalyticsPage() {
       <div className="min-h-screen bg-[#262626]">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-[#d98c21]">Análisis Financiero
+            <h1 className="text-3xl font-bold text-[#d98c21]">Analisis Financiero
             </h1>
             <p className="mt-2 text-[#FFFCFF] text-[20px]">Punto de equilibrio y rentabilidad - {now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
             </p>
