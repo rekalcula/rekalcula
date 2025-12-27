@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import DateRangePicker from '@/components/DateRangePicker'
 import Link from 'next/link'
 import { Recomendacion, Prioridad } from '@/lib/advisor/types'
 
@@ -103,6 +104,9 @@ interface ConsejoAplicado extends Recomendacion {
 export default function AdvisorPage() {
   const [tabActiva, setTabActiva] = useState<'nuevo' | 'guardados' | 'aplicados'>('guardados')
   const [periodo, setPeriodo] = useState<'dia' | 'semana' | 'mes'>('mes')
+  const [fechaInicio, setFechaInicio] = useState('')
+  const [fechaFin, setFechaFin] = useState('')
+  const [diasSeleccionados, setDiasSeleccionados] = useState(0)
   const [generando, setGenerando] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [analisisActual, setAnalisisActual] = useState<AdvisorResponse | null>(null)
@@ -199,7 +203,8 @@ export default function AdvisorPage() {
     setAnalisisActual(null)
 
     try {
-      const response = await fetch(`/api/advisor?periodo=${periodo}`)
+      const url = fechaInicio && fechaFin ? `/api/advisor?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}` : `/api/advisor?periodo=${periodo}`
+      const response = await fetch(url)
       const result = await response.json()
 
       if (!result.success) {
@@ -417,18 +422,15 @@ export default function AdvisorPage() {
             <h2 className="text-lg font-semibold text-[#FFFCFF] mb-4">Configurar Anlisis</h2>
 
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
-              <div>
-                <label className="block text-xl font-medium text-[#FFFCFF] mb-1">Perodo a analizar</label>
-                <select
-                  value={periodo}
-                  onChange={(e) => setPeriodo(e.target.value as 'dia' | 'semana' | 'mes')}
-                  className="px-4 py-2 bg-[#262626] text-[#FFFCFF] border border-[#979797] rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-[#AC4A00]"
+              <div className="flex-1">
+                <DateRangePicker
+                  onDateChange={(inicio, fin, dias) => {
+                    setFechaInicio(inicio)
+                    setFechaFin(fin)
+                    setDiasSeleccionados(dias)
+                  }}
                   disabled={generando}
-                >
-                  <option value="dia">Hoy</option>
-                  <option value="semana">Esta semana</option>
-                  <option value="mes">Este mes</option>
-                </select>
+                />
               </div>
 
               <button
