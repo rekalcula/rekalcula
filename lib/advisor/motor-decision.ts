@@ -165,4 +165,3 @@ export function hayDatosSuficientes(metricas: MetricasNegocio): {
     mensaje: ''
   }
 }
-}
