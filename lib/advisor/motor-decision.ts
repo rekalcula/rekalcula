@@ -62,7 +62,7 @@ export function detectarOportunidades(
             id: principio.id,
             nombre: principio.nombre,
             autor: principio.autor,
-            aÃƒÂ±o: principio.aÃƒÂ±o
+            anio: principio.anio
           }
         })
       }
