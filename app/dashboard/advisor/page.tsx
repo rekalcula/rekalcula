@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -145,7 +145,7 @@ export default function AdvisorPage() {
     setConsejosAplicados(nuevosConsejos)
     localStorage.setItem('consejosAplicados', JSON.stringify(nuevosConsejos))
     
-    // Cambiar a la pestaÃ±a de aplicados
+    // Cambiar a la pestaa de aplicados
     setTabActiva('aplicados')
   }
 
@@ -170,7 +170,7 @@ export default function AdvisorPage() {
   const eliminarConsejosAplicados = () => {
     if (seleccionadosAplicados.size === 0) return
     
-    if (!confirm(`Â¿Eliminar ${seleccionadosAplicados.size} consejos aplicados?`)) return
+    if (!confirm(`Eliminar ${seleccionadosAplicados.size} consejos aplicados?`)) return
 
     const nuevosConsejos = consejosAplicados.filter(c => !seleccionadosAplicados.has(c.id))
     setConsejosAplicados(nuevosConsejos)
@@ -187,7 +187,7 @@ export default function AdvisorPage() {
         setAnalisisGuardados(result.analyses || [])
       }
     } catch (err) {
-      console.error('Error cargando anÃ¡lisis:', err)
+      console.error('Error cargando anlisis:', err)
     } finally {
       setCargandoGuardados(false)
     }
@@ -203,12 +203,12 @@ export default function AdvisorPage() {
       const result = await response.json()
 
       if (!result.success) {
-        throw new Error(result.error || 'Error generando anÃ¡lisis')
+        throw new Error(result.error || 'Error generando anlisis')
       }
 
       setAnalisisActual(result)
     } catch (err: any) {
-      setError(err.message || 'Error generando anÃ¡lisis')
+      setError(err.message || 'Error generando anlisis')
     } finally {
       setGenerando(false)
     }
@@ -282,7 +282,7 @@ export default function AdvisorPage() {
   const borrarSeleccionados = async () => {
     if (seleccionados.size === 0) return
 
-    if (!confirm(`Â¿Eliminar ${seleccionados.size} anÃ¡lisis?`)) return
+    if (!confirm(`Eliminar ${seleccionados.size} anlisis?`)) return
 
     setBorrando(true)
     try {
@@ -320,7 +320,7 @@ export default function AdvisorPage() {
 
   const traducirPeriodo = (p: string) => {
     switch(p) {
-      case 'dia': return 'DÃ­a'
+      case 'dia': return 'Da'
       case 'semana': return 'Semana'
       case 'mes': return 'Mes'
       default: return p
@@ -329,11 +329,11 @@ export default function AdvisorPage() {
 
   const traducirSector = (s: string) => {
     const sectores: Record<string, string> = {
-      'cafeteria': 'CafeterÃ­a',
+      'cafeteria': 'Cafetera',
       'restaurante': 'Restaurante',
-      'peluqueria': 'PeluquerÃ­a',
-      'taller_mecanico': 'Taller MecÃ¡nico',
-      'carpinteria': 'CarpinterÃ­a',
+      'peluqueria': 'Peluquera',
+      'taller_mecanico': 'Taller Mecnico',
+      'carpinteria': 'Carpintera',
       'general': 'General'
     }
     return sectores[s] || s
@@ -362,9 +362,9 @@ export default function AdvisorPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-[#d98c21] flex items-center gap-2">
-            <span className="text-2xl">ðŸ’¡</span> <span className="text-[#d98c21]">Asesor IA</span>
+            <span className="text-2xl"></span> <span className="text-[#d98c21]">Asesor IA</span>
           </h1>
-          <p className="text-xl text-[#FFFCFF] mt-1">Genera y guarda anÃ¡lisis de tu negocio
+          <p className="text-xl text-[#FFFCFF] mt-1">Genera y guarda anlisis de tu negocio
           </p>
         </div>
       </div>
@@ -378,7 +378,7 @@ export default function AdvisorPage() {
             }`}
           >
             <IconFolder />
-            AnÃ¡lisis Guardados
+            Anlisis Guardados
             {analisisGuardados.length > 0 && (
               <span className="bg-gray-100 text-[#ACACAC] px-2 py-0.5 rounded-full text-xs">
                 {analisisGuardados.length}
@@ -392,7 +392,7 @@ export default function AdvisorPage() {
             }`}
           >
             <IconLightbulb />
-            Nuevo AnÃ¡lisis
+            Nuevo Anlisis
           </button>
           <button
             onClick={() => setTabActiva('aplicados')}
@@ -414,11 +414,11 @@ export default function AdvisorPage() {
       {tabActiva === 'nuevo' && (
         <div className="space-y-6">
           <div className="bg-[#262626] rounded-xl p-4 sm:p-6">
-            <h2 className="text-lg font-semibold text-[#FFFCFF] mb-4">Configurar AnÃ¡lisis</h2>
+            <h2 className="text-lg font-semibold text-[#FFFCFF] mb-4">Configurar Anlisis</h2>
 
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
               <div>
-                <label className="block text-xl font-medium text-[#FFFCFF] mb-1">PerÃ­odo a analizar</label>
+                <label className="block text-xl font-medium text-[#FFFCFF] mb-1">Perodo a analizar</label>
                 <select
                   value={periodo}
                   onChange={(e) => setPeriodo(e.target.value as 'dia' | 'semana' | 'mes')}
@@ -444,7 +444,7 @@ export default function AdvisorPage() {
                 ) : (
                   <>
                     <IconPlay />
-                    Generar AnÃ¡lisis
+                    Generar Anlisis
                   </>
                 )}
               </button>
@@ -453,7 +453,7 @@ export default function AdvisorPage() {
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-              <p className="text-red-700">âš  {error}</p>
+              <p className="text-red-700"> {error}</p>
             </div>
           )}
 
@@ -463,7 +463,7 @@ export default function AdvisorPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
                     <h3 className="text-lg font-semibold text-[#FFFCFF]">
-                      AnÃ¡lisis Generado - {traducirSector(analisisActual.sector)}
+                      Anlisis Generado - {traducirSector(analisisActual.sector)}
                     </h3>
                     <p className="text-xl text-[#ACACAC]">
                       {analisisActual.recomendaciones?.length || 0} recomendaciones encontradas
@@ -474,7 +474,7 @@ export default function AdvisorPage() {
                     disabled={guardando}
                     className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 font-medium"
                   >
-                    {guardando ? 'Guardando...' : 'ðŸ’¾ Guardar AnÃ¡lisis'}
+                    {guardando ? 'Guardando...' : ' Guardar Anlisis'}
                   </button>
                 </div>
               </div>
@@ -501,7 +501,7 @@ export default function AdvisorPage() {
                           <p className="text-sm text-gray-800 mb-3">{rec.mensaje}</p>
                           <div className="flex flex-wrap gap-4 text-xs text-[#ACACAC] mb-3">
                             <span>Ventas: {rec.datosReales?.ventas || 0}</span>
-                            <span>Ingresos: â‚¬{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
+                            <span>Ingresos: {rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
                           </div>
                           <button
                             onClick={() => aplicarConsejo(rec, { sector: analisisDetalle?.sector, periodo: analisisDetalle?.periodo })}
@@ -524,7 +524,7 @@ export default function AdvisorPage() {
               <IconLightbulb />
               <h3 className="text-lg font-medium text-[#FFFCFF] mt-4 mb-2">Sin recomendaciones</h3>
               <p className="text-xl text-[#ACACAC]">
-                <strong>Requisito mÃ­nimo:</strong> Se necesitan al menos <strong>15 dÃ­as de datos de ventas</strong> para realizar un anÃ¡lisis cientÃ­ficamente vÃ¡lido y detectar tendencias significativas.
+                <strong>Requisito mnimo:</strong> Se necesitan al menos <strong>15 das de datos de ventas</strong> para realizar un anlisis cientficamente vlido y detectar tendencias significativas.
               </p>
               </div>
           )}
@@ -568,12 +568,12 @@ export default function AdvisorPage() {
             <div className="bg-[#262626] rounded-xl p-8 text-center">
               <IconCheck />
               <h3 className="text-lg font-medium text-[#FFFCFF] mt-4 mb-2">Sin consejos aplicados</h3>
-              <p className="text-[#ACACAC] text-[20px] mb-4">Los consejos que apliques aparecerÃ¡n aquÃ­</p>
+              <p className="text-[#ACACAC] text-[20px] mb-4">Los consejos que apliques aparecern aqu</p>
               <button
                 onClick={() => setTabActiva('nuevo')}
                 className="px-6 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors font-medium"
               >
-                Generar AnÃ¡lisis
+                Generar Anlisis
               </button>
             </div>
           ) : (
@@ -602,9 +602,9 @@ export default function AdvisorPage() {
                         <p className="text-sm text-gray-800 mb-3">{consejo.mensaje}</p>
                         <div className="flex flex-wrap gap-4 text-xs text-[#ACACAC]">
                           <span>Sector: {traducirSector(consejo.sector)}</span>
-                          <span>PerÃ­odo: {traducirPeriodo(consejo.periodoAnalisis)}</span>
+                          <span>Perodo: {traducirPeriodo(consejo.periodoAnalisis)}</span>
                           <span>Ventas: {consejo.datosReales?.ventas || 0}</span>
-                          <span>Ingresos: â‚¬{consejo.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
+                          <span>Ingresos: {consejo.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
                         </div>
                       </div>
                     </div>
@@ -653,18 +653,18 @@ export default function AdvisorPage() {
           {cargandoGuardados ? (
             <div className="bg-[#262626] rounded-xl p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-              <p className="text-[#ACACAC] mt-4">Cargando anÃ¡lisis...</p>
+              <p className="text-[#ACACAC] mt-4">Cargando anlisis...</p>
             </div>
           ) : analisisGuardados.length === 0 ? (
             <div className="bg-[#262626] rounded-xl p-8 text-center">
               <IconFolder />
-              <h3 className="text-lg font-medium text-[#FFFCFF] mt-4 mb-2">Sin anÃ¡lisis guardados</h3>
-              <p className="text-[#ACACAC] text-[20px] mb-4">Genera tu primer anÃ¡lisis para empezar</p>
+              <h3 className="text-lg font-medium text-[#FFFCFF] mt-4 mb-2">Sin anlisis guardados</h3>
+              <p className="text-[#ACACAC] text-[20px] mb-4">Genera tu primer anlisis para empezar</p>
               <button
                 onClick={() => setTabActiva('nuevo')}
                 className="px-6 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors font-medium"
               >
-                Crear AnÃ¡lisis
+                Crear Anlisis
               </button>
             </div>
           ) : (
@@ -689,7 +689,7 @@ export default function AdvisorPage() {
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <div>
                           <h3 className="font-medium text-[#FFFCFF]">
-                            AnÃ¡lisis #{analisisGuardados.length - analisisGuardados.indexOf(analisis)}
+                            Anlisis #{analisisGuardados.length - analisisGuardados.indexOf(analisis)}
                           </h3>
                           <p className="text-xl text-[#ACACAC]">
                             {formatearFecha(analisis.created_at)}
@@ -723,17 +723,17 @@ export default function AdvisorPage() {
               onClick={() => setAnalisisDetalle(null)}
               className="text-xl text-[#ACACAC] hover:text-[#FFFCFF] mb-4 flex items-center gap-1"
             >
-              â† Volver a la lista
+               Volver a la lista
             </button>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <h2 className="text-xl font-bold text-[#FFFCFF]">
-                  AnÃ¡lisis del {formatearFecha(analisisDetalle.created_at)}
+                  Anlisis del {formatearFecha(analisisDetalle.created_at)}
                 </h2>
                 <div className="flex flex-wrap gap-2 mt-2 text-xl">
                   <span className="bg-gray-100 text-[#ACACAC] px-2 py-1 rounded">
-                    PerÃ­odo: {traducirPeriodo(analisisDetalle.periodo)}
+                    Perodo: {traducirPeriodo(analisisDetalle.periodo)}
                   </span>
                   <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
                     Sector: {traducirSector(analisisDetalle.sector)}
@@ -775,7 +775,7 @@ export default function AdvisorPage() {
                         <p className="text-sm text-gray-800 mb-3">{rec.mensaje}</p>
                         <div className="flex flex-wrap gap-4 text-xs text-[#ACACAC]">
                           <span>Ventas: {rec.datosReales?.ventas || 0}</span>
-                          <span>Ingresos: â‚¬{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
+                          <span>Ingresos: {rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
                         </div>
                         <button
                           onClick={() => aplicarConsejo(rec, { sector: analisisDetalle?.sector, periodo: analisisDetalle?.periodo })}
