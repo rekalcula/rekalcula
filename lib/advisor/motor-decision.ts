@@ -62,7 +62,7 @@ export function detectarOportunidades(
             id: principio.id,
             nombre: principio.nombre,
             autor: principio.autor,
-            ano: principio.ano
+            año: principio.año
           }
         })
       }
