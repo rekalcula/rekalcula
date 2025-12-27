@@ -1,11 +1,11 @@
 // ============================================================
-// MOTOR DE DECISIÓN - EVALÚA REGLAS Y GENERA OPORTUNIDADES
+// MOTOR DE DECISION - EVALUA REGLAS Y GENERA OPORTUNIDADES
 // ============================================================
 //
-// Este es el cerebro del sistema. Evalúa cada regla contra
-// las métricas del negocio y genera oportunidades estructuradas.
+// Este es el cerebro del sistema. Evalua cada regla contra
+// las metricas del negocio y genera oportunidades estructuradas.
 //
-// IMPORTANTE: Todo es CÓDIGO PURO. La IA NO participa aquí.
+// IMPORTANTE: Todo es CODIGO PURO. La IA NO participa aqui.
 //
 // ============================================================
 
@@ -18,7 +18,7 @@ import { REGLAS } from './reglas'
 import { getPrincipio } from './principios'
 
 // --------------------------------------------------------
-// FUNCIÓN PRINCIPAL: Detectar oportunidades
+// FUNCION PRINCIPAL: Detectar oportunidades
 // --------------------------------------------------------
 export function detectarOportunidades(
   metricas: MetricasNegocio,
@@ -30,64 +30,86 @@ export function detectarOportunidades(
   // Evaluar cada regla
   for (const regla of REGLAS) {
     try {
-      // Ejecutar la función de evaluación de la regla
+      // Ejecutar la funcion de evaluacion de la regla
       const productoDetectado = regla.evaluar(metricas)
-      
+
       if (productoDetectado) {
-        // Obtener el principio científico asociado
+        // Obtener el principio cientifico asociado
         const principio = getPrincipio(regla.principioId)
-        
+
         if (!principio) {
           console.warn(`Principio no encontrado: ${regla.principioId}`)
           continue
         }
 
-        // Verificar que no tengamos ya una oportunidad para este producto
-        const yaExiste = oportunidades.some(o => 
-          o.producto.nombre === productoDetectado.nombre &&
-          o.tipo === regla.tipoOportunidad
-        )
-
-        if (!yaExiste) {
-          oportunidades.push({
-            id: `OPP-${Date.now()}-${regla.id}`,
-            reglaId: regla.id,
-            tipo: regla.tipoOportunidad,
-            prioridad: regla.prioridad,
-            producto: {
-              nombre: productoDetectado.nombre,
-              ventas: productoDetectado.ventas,
-              ingresos: productoDetectado.ingresos,
-              tendencia: productoDetectado.tendencia
-            },
-            contexto: {
-              mediaVentas: metricas.medias.ventasPorProducto,
-              mediaPrecio: metricas.medias.precioUnitario,
-              sector: metricas.sector
-            },
-            principio: {
-              id: principio.id,
-              nombre: principio.nombre,
-              autor: principio.autor,
-              año: principio.año
-            }
-          })
-        }
+        oportunidades.push({
+          id: `OPP-${Date.now()}-${regla.id}`,
+          reglaId: regla.id,
+          tipo: regla.tipoOportunidad,
+          prioridad: regla.prioridad,
+          producto: {
+            nombre: productoDetectado.nombre,
+            ventas: productoDetectado.ventas,
+            ingresos: productoDetectado.ingresos,
+            tendencia: productoDetectado.tendencia
+          },
+          contexto: {
+            mediaVentas: metricas.medias.ventasPorProducto,
+            mediaPrecio: metricas.medias.precioUnitario,
+            sector: metricas.sector
+          },
+          principio: {
+            id: principio.id,
+            nombre: principio.nombre,
+            autor: principio.autor,
+            ano: principio.ano
+          }
+        })
       }
     } catch (error) {
       console.error(`Error evaluando regla ${regla.id}:`, error)
     }
   }
 
+  // DEDUPLICACION: Eliminar productos repetidos, mantener solo la oportunidad de mayor prioridad
+  const oportunidadesUnicas = deduplicarPorProducto(oportunidades)
+
   // Ordenar por prioridad (1 = alta, 3 = baja)
-  oportunidades.sort((a, b) => a.prioridad - b.prioridad)
+  oportunidadesUnicas.sort((a, b) => a.prioridad - b.prioridad)
 
   // Limitar cantidad de oportunidades
-  return oportunidades.slice(0, maxOportunidades)
+  return oportunidadesUnicas.slice(0, maxOportunidades)
 }
 
 // --------------------------------------------------------
-// FUNCIÓN: Filtrar oportunidades por prioridad
+// FUNCION: Deduplicar oportunidades por producto
+// --------------------------------------------------------
+function deduplicarPorProducto(oportunidades: OportunidadDetectada[]): OportunidadDetectada[] {
+  const mapa = new Map<string, OportunidadDetectada>()
+
+  for (const oportunidad of oportunidades) {
+    const nombreProducto = oportunidad.producto.nombre.toLowerCase().trim()
+    
+    const existente = mapa.get(nombreProducto)
+    
+    if (!existente) {
+      // No existe, agregar
+      mapa.set(nombreProducto, oportunidad)
+    } else {
+      // Ya existe, comparar prioridades
+      if (oportunidad.prioridad < existente.prioridad) {
+        // Nueva tiene mayor prioridad (1 > 2 > 3), reemplazar
+        mapa.set(nombreProducto, oportunidad)
+      }
+      // Si tienen la misma prioridad, mantener la primera
+    }
+  }
+
+  return Array.from(mapa.values())
+}
+
+// --------------------------------------------------------
+// FUNCION: Filtrar oportunidades por prioridad
 // --------------------------------------------------------
 export function filtrarPorPrioridad(
   oportunidades: OportunidadDetectada[],
@@ -97,7 +119,7 @@ export function filtrarPorPrioridad(
 }
 
 // --------------------------------------------------------
-// FUNCIÓN: Obtener resumen de oportunidades
+// FUNCION: Obtener resumen de oportunidades
 // --------------------------------------------------------
 export function obtenerResumen(oportunidades: OportunidadDetectada[]): {
   total: number
@@ -116,13 +138,13 @@ export function obtenerResumen(oportunidades: OportunidadDetectada[]): {
 }
 
 // --------------------------------------------------------
-// FUNCIÓN: Verificar si hay datos suficientes
+// FUNCION: Verificar si hay datos suficientes
 // --------------------------------------------------------
 export function hayDatosSuficientes(metricas: MetricasNegocio): {
   suficientes: boolean
   mensaje: string
 } {
-  // Mínimo 3 productos para análisis significativo
+  // Minimo 3 productos para analisis significativo
   if (metricas.productos.length < 3) {
     return {
       suficientes: false,
@@ -130,7 +152,7 @@ export function hayDatosSuficientes(metricas: MetricasNegocio): {
     }
   }
 
-  // Mínimo 10 ventas totales
+  // Minimo 10 ventas totales
   if (metricas.totales.ventas < 10) {
     return {
       suficientes: false,
@@ -142,7 +164,7 @@ export function hayDatosSuficientes(metricas: MetricasNegocio): {
   if (metricas.sector === 'desconocido' || metricas.confianzaSector < 30) {
     return {
       suficientes: true, // Permitir continuar pero avisar
-      mensaje: `No se pudo detectar con certeza el tipo de negocio (confianza: ${metricas.confianzaSector}%). Las recomendaciones serán genéricas.`
+      mensaje: `No se pudo detectar con certeza el tipo de negocio (confianza: ${metricas.confianzaSector}%). Las recomendaciones seran genericas.`
     }
   }
 
