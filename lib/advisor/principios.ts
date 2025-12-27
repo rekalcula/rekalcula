@@ -1,9 +1,9 @@
 // ============================================================
-// PRINCIPIOS PSICOLÓGICOS CON BASE CIENTÍFICA VERIFICABLE
+// PRINCIPIOS PSICOLÃ“GICOS CON BASE CIENTÃFICA VERIFICABLE
 // ============================================================
 // 
 // IMPORTANTE: Estos 10 principios son INMUTABLES.
-// Cada uno tiene autor, estudio, año y publicación verificables.
+// Cada uno tiene autor, estudio, aÃ±o y publicaciÃ³n verificables.
 // El sistema NO puede inventar principios nuevos.
 //
 // ============================================================
@@ -19,16 +19,16 @@ export const PRINCIPIOS: PrincipioPsicologico[] = [
     nombre: 'Autoridad',
     autor: 'Robert Cialdini',
     estudio: 'Influence: The Psychology of Persuasion',
-    año: 1984,
+    aÃ±o: 1984,
     publicacion: 'Harper Business',
     hallazgo: 'Las personas siguen recomendaciones de figuras percibidas como expertas o con autoridad en la materia.',
-    aplicacionComercial: 'Destacar productos como "Recomendado" o "Selección del experto" aumenta su elección.',
+    aplicacionComercial: 'Destacar productos como "Recomendado" o "SelecciÃ³n del experto" aumenta su elecciÃ³n.',
     adaptaciones: {
-      cafeteria: 'Recomendación del barista',
+      cafeteria: 'RecomendaciÃ³n del barista',
       restaurante: 'Recomendado del chef',
       peluqueria: 'Favorito del estilista',
-      tienda: 'Selección del experto',
-      taller: 'Lo que yo haría con mi coche'
+      tienda: 'SelecciÃ³n del experto',
+      taller: 'Lo que yo harÃ­a con mi coche'
     }
   },
 
@@ -40,15 +40,15 @@ export const PRINCIPIOS: PrincipioPsicologico[] = [
     nombre: 'Escasez',
     autor: 'Robert Cialdini / Worchel, Lee & Adewole',
     estudio: 'Effects of supply and demand on ratings of object value',
-    año: 1975,
+    aÃ±o: 1975,
     publicacion: 'Journal of Personality and Social Psychology',
-    hallazgo: 'Los objetos escasos se perciben como más valiosos. En el experimento de las galletas, las que estaban en menor cantidad fueron valoradas como más deseables.',
+    hallazgo: 'Los objetos escasos se perciben como mÃ¡s valiosos. En el experimento de las galletas, las que estaban en menor cantidad fueron valoradas como mÃ¡s deseables.',
     aplicacionComercial: 'Indicar disponibilidad limitada o tiempo limitado aumenta el valor percibido y la urgencia de compra.',
     adaptaciones: {
-      cafeteria: 'Solo hoy, Últimas unidades',
-      restaurante: 'Plato del día, Solo quedan X',
-      peluqueria: 'Últimas citas disponibles',
-      tienda: 'Últimas tallas, Stock limitado',
+      cafeteria: 'Solo hoy, Ãšltimas unidades',
+      restaurante: 'Plato del dÃ­a, Solo quedan X',
+      peluqueria: 'Ãšltimas citas disponibles',
+      tienda: 'Ãšltimas tallas, Stock limitado',
       taller: 'Cita disponible solo hoy'
     }
   },
@@ -61,15 +61,15 @@ export const PRINCIPIOS: PrincipioPsicologico[] = [
     nombre: 'Anclaje (Anchoring Effect)',
     autor: 'Amos Tversky & Daniel Kahneman',
     estudio: 'Judgment under Uncertainty: Heuristics and Biases',
-    año: 1974,
+    aÃ±o: 1974,
     publicacion: 'Science, Vol. 185, Issue 4157',
-    hallazgo: 'El primer número que vemos (ancla) influye desproporcionadamente en nuestras estimaciones posteriores, incluso cuando es arbitrario.',
-    aplicacionComercial: 'Mostrar primero un precio alto hace que los siguientes parezcan más razonables.',
+    hallazgo: 'El primer nÃºmero que vemos (ancla) influye desproporcionadamente en nuestras estimaciones posteriores, incluso cuando es arbitrario.',
+    aplicacionComercial: 'Mostrar primero un precio alto hace que los siguientes parezcan mÃ¡s razonables.',
     adaptaciones: {
       cafeteria: 'Mostrar primero el desayuno premium',
-      restaurante: 'Colocar el plato más caro primero en la sección',
+      restaurante: 'Colocar el plato mÃ¡s caro primero en la secciÃ³n',
       peluqueria: 'Listar primero el tratamiento completo',
-      tienda: 'Mostrar primero la versión premium',
+      tienda: 'Mostrar primero la versiÃ³n premium',
       taller: 'Presentar primero el servicio completo'
     }
   },
@@ -82,16 +82,16 @@ export const PRINCIPIOS: PrincipioPsicologico[] = [
     nombre: 'Prueba Social (Social Proof)',
     autor: 'Robert Cialdini / Milgram, Bickman & Berkowitz',
     estudio: 'Note on the drawing power of crowds',
-    año: 1969,
+    aÃ±o: 1969,
     publicacion: 'Journal of Personality and Social Psychology',
-    hallazgo: 'Las personas imitan el comportamiento de otros, especialmente en situaciones de incertidumbre. Una multitud mirando al cielo hace que otros miren también.',
-    aplicacionComercial: 'Indicar que un producto es "el más vendido" o "elegido por X clientes" aumenta su atractivo.',
+    hallazgo: 'Las personas imitan el comportamiento de otros, especialmente en situaciones de incertidumbre. Una multitud mirando al cielo hace que otros miren tambiÃ©n.',
+    aplicacionComercial: 'Indicar que un producto es "el mÃ¡s vendido" o "elegido por X clientes" aumenta su atractivo.',
     adaptaciones: {
-      cafeteria: 'El más pedido, Favorito de nuestros clientes',
-      restaurante: 'El más vendido, La elección de la mesa de al lado',
-      peluqueria: 'El tratamiento más solicitado',
-      tienda: 'Más vendido, Lo que eligen nuestros clientes',
-      taller: 'El servicio más solicitado'
+      cafeteria: 'El mÃ¡s pedido, Favorito de nuestros clientes',
+      restaurante: 'El mÃ¡s vendido, La elecciÃ³n de la mesa de al lado',
+      peluqueria: 'El tratamiento mÃ¡s solicitado',
+      tienda: 'MÃ¡s vendido, Lo que eligen nuestros clientes',
+      taller: 'El servicio mÃ¡s solicitado'
     }
   },
 
@@ -103,100 +103,100 @@ export const PRINCIPIOS: PrincipioPsicologico[] = [
     nombre: 'Reciprocidad',
     autor: 'Robert Cialdini / Dennis Regan',
     estudio: 'Effects of a favor and liking on compliance',
-    año: 1971,
+    aÃ±o: 1971,
     publicacion: 'Journal of Experimental Social Psychology',
-    hallazgo: 'Recibir algo, incluso no solicitado, genera una sensación de obligación de devolver el favor.',
-    aplicacionComercial: 'Ofrecer algo gratis (muestra, tapa, detalle) predispone al cliente a gastar más o volver.',
+    hallazgo: 'Recibir algo, incluso no solicitado, genera una sensaciÃ³n de obligaciÃ³n de devolver el favor.',
+    aplicacionComercial: 'Ofrecer algo gratis (muestra, tapa, detalle) predispone al cliente a gastar mÃ¡s o volver.',
     adaptaciones: {
-      cafeteria: 'Café de cortesía, Tapa con la bebida',
-      restaurante: 'Aperitivo de la casa, Postre invitación',
-      peluqueria: 'Masaje capilar de cortesía, Muestra de producto',
+      cafeteria: 'CafÃ© de cortesÃ­a, Tapa con la bebida',
+      restaurante: 'Aperitivo de la casa, Postre invitaciÃ³n',
+      peluqueria: 'Masaje capilar de cortesÃ­a, Muestra de producto',
       tienda: 'Envoltorio regalo gratis, Detalle sorpresa',
-      taller: 'Revisión de niveles gratis, Lavado cortesía'
+      taller: 'RevisiÃ³n de niveles gratis, Lavado cortesÃ­a'
     }
   },
 
   // --------------------------------------------------------
-  // 6. PARADOJA DE LA ELECCIÓN
+  // 6. PARADOJA DE LA ELECCIÃ“N
   // --------------------------------------------------------
   {
     id: 'paradoja_eleccion',
-    nombre: 'Paradoja de la Elección (Choice Overload)',
+    nombre: 'Paradoja de la ElecciÃ³n (Choice Overload)',
     autor: 'Sheena Iyengar & Mark Lepper',
     estudio: 'When Choice is Demotivating',
-    año: 2000,
+    aÃ±o: 2000,
     publicacion: 'Journal of Personality and Social Psychology, Vol. 79, No. 6',
-    hallazgo: 'Demasiadas opciones paralizan la decisión. Con 24 mermeladas, solo 3% compró. Con 6 opciones, 30% compró.',
-    aplicacionComercial: 'Reducir opciones y destacar 3-4 productos principales facilita la decisión y aumenta ventas.',
+    hallazgo: 'Demasiadas opciones paralizan la decisiÃ³n. Con 24 mermeladas, solo 3% comprÃ³. Con 6 opciones, 30% comprÃ³.',
+    aplicacionComercial: 'Reducir opciones y destacar 3-4 productos principales facilita la decisiÃ³n y aumenta ventas.',
     adaptaciones: {
       cafeteria: 'Nuestros 3 desayunos estrella',
-      restaurante: 'Menú del día con 3 opciones',
-      peluqueria: 'Nuestros 3 servicios más populares',
-      tienda: 'Nuestra selección destacada',
+      restaurante: 'MenÃº del dÃ­a con 3 opciones',
+      peluqueria: 'Nuestros 3 servicios mÃ¡s populares',
+      tienda: 'Nuestra selecciÃ³n destacada',
       taller: 'Packs de mantenimiento recomendados'
     }
   },
 
   // --------------------------------------------------------
-  // 7. EFECTO SEÑUELO
+  // 7. EFECTO SEÃ‘UELO
   // --------------------------------------------------------
   {
     id: 'efecto_senuelo',
-    nombre: 'Efecto Señuelo (Decoy Effect)',
+    nombre: 'Efecto SeÃ±uelo (Decoy Effect)',
     autor: 'Joel Huber, John Payne & Christopher Puto',
     estudio: 'Adding Asymmetrically Dominated Alternatives',
-    año: 1982,
+    aÃ±o: 1982,
     publicacion: 'Journal of Consumer Research, Vol. 9, No. 1',
-    hallazgo: 'Añadir una tercera opción inferior a una de las dos principales hace que esa opción parezca mejor en comparación.',
-    aplicacionComercial: 'Crear tres versiones (pequeño/mediano/grande) donde la mediana sea la más rentable.',
+    hallazgo: 'AÃ±adir una tercera opciÃ³n inferior a una de las dos principales hace que esa opciÃ³n parezca mejor en comparaciÃ³n.',
+    aplicacionComercial: 'Crear tres versiones (pequeÃ±o/mediano/grande) donde la mediana sea la mÃ¡s rentable.',
     adaptaciones: {
-      cafeteria: 'Café pequeño / mediano / grande',
-      restaurante: 'Ración / Media ración / Tapa',
-      peluqueria: 'Corte básico / completo / premium',
-      tienda: 'Básico / Estándar / Premium',
-      taller: 'Revisión básica / completa / premium'
+      cafeteria: 'CafÃ© pequeÃ±o / mediano / grande',
+      restaurante: 'RaciÃ³n / Media raciÃ³n / Tapa',
+      peluqueria: 'Corte bÃ¡sico / completo / premium',
+      tienda: 'BÃ¡sico / EstÃ¡ndar / Premium',
+      taller: 'RevisiÃ³n bÃ¡sica / completa / premium'
     }
   },
 
   // --------------------------------------------------------
-  // 8. AVERSIÓN A LA PÉRDIDA
+  // 8. AVERSIÃ“N A LA PÃ‰RDIDA
   // --------------------------------------------------------
   {
     id: 'aversion_perdida',
-    nombre: 'Aversión a la Pérdida (Loss Aversion)',
+    nombre: 'AversiÃ³n a la PÃ©rdida (Loss Aversion)',
     autor: 'Daniel Kahneman & Amos Tversky',
     estudio: 'Prospect Theory: An Analysis of Decision under Risk',
-    año: 1979,
+    aÃ±o: 1979,
     publicacion: 'Econometrica, Vol. 47, No. 2',
-    hallazgo: 'El dolor de perder es aproximadamente el doble de intenso que el placer de ganar la misma cantidad. Kahneman recibió el Nobel de Economía en 2002.',
-    aplicacionComercial: 'Enmarcar el mensaje en términos de lo que el cliente podría perder si no actúa.',
+    hallazgo: 'El dolor de perder es aproximadamente el doble de intenso que el placer de ganar la misma cantidad. Kahneman recibiÃ³ el Nobel de EconomÃ­a en 2002.',
+    aplicacionComercial: 'Enmarcar el mensaje en tÃ©rminos de lo que el cliente podrÃ­a perder si no actÃºa.',
     adaptaciones: {
       cafeteria: 'No te quedes sin probar...',
-      restaurante: 'Última oportunidad para...',
-      peluqueria: 'No dejes escapar esta promoción',
+      restaurante: 'Ãšltima oportunidad para...',
+      peluqueria: 'No dejes escapar esta promociÃ³n',
       tienda: 'No te pierdas esta oferta',
-      taller: 'Evita averías costosas con...'
+      taller: 'Evita averÃ­as costosas con...'
     }
   },
 
   // --------------------------------------------------------
-  // 9. EFECTO PRIMACÍA Y RECENCIA
+  // 9. EFECTO PRIMACÃA Y RECENCIA
   // --------------------------------------------------------
   {
     id: 'primacia_recencia',
-    nombre: 'Efecto Primacía y Recencia',
+    nombre: 'Efecto PrimacÃ­a y Recencia',
     autor: 'Hermann Ebbinghaus',
     estudio: 'Memory: A Contribution to Experimental Psychology',
-    año: 1885,
-    publicacion: 'Publicación original en alemán, traducida en 1913',
-    hallazgo: 'Recordamos mejor los elementos al principio (primacía) y al final (recencia) de una lista que los del medio.',
-    aplicacionComercial: 'Colocar los productos más rentables al inicio y al final de la carta o lista.',
+    aÃ±o: 1885,
+    publicacion: 'PublicaciÃ³n original en alemÃ¡n, traducida en 1913',
+    hallazgo: 'Recordamos mejor los elementos al principio (primacÃ­a) y al final (recencia) de una lista que los del medio.',
+    aplicacionComercial: 'Colocar los productos mÃ¡s rentables al inicio y al final de la carta o lista.',
     adaptaciones: {
       cafeteria: 'Destacar al inicio y final de la pizarra',
-      restaurante: 'Primer y último plato de cada sección',
-      peluqueria: 'Primero y último servicio del listado',
-      tienda: 'Primera y última estantería',
-      taller: 'Primer y último servicio del presupuesto'
+      restaurante: 'Primer y Ãºltimo plato de cada secciÃ³n',
+      peluqueria: 'Primero y Ãºltimo servicio del listado',
+      tienda: 'Primera y Ãºltima estanterÃ­a',
+      taller: 'Primer y Ãºltimo servicio del presupuesto'
     }
   },
 
@@ -208,29 +208,29 @@ export const PRINCIPIOS: PrincipioPsicologico[] = [
     nombre: 'Efecto Compromiso (Compromise Effect)',
     autor: 'Itamar Simonson',
     estudio: 'Choice Based on Reasons',
-    año: 1989,
+    aÃ±o: 1989,
     publicacion: 'Journal of Consumer Research, Vol. 16, No. 2',
-    hallazgo: 'Cuando hay tres opciones, la mayoría de personas elige la intermedia como "punto medio seguro".',
-    aplicacionComercial: 'Diseñar tres opciones donde la intermedia sea la más rentable para el negocio.',
+    hallazgo: 'Cuando hay tres opciones, la mayorÃ­a de personas elige la intermedia como "punto medio seguro".',
+    aplicacionComercial: 'DiseÃ±ar tres opciones donde la intermedia sea la mÃ¡s rentable para el negocio.',
     adaptaciones: {
-      cafeteria: 'Diseñar el menú mediano como el más rentable',
-      restaurante: 'El menú de precio medio como estrella',
-      peluqueria: 'El pack intermedio como el más completo',
-      tienda: 'La opción media con mejor margen',
+      cafeteria: 'DiseÃ±ar el menÃº mediano como el mÃ¡s rentable',
+      restaurante: 'El menÃº de precio medio como estrella',
+      peluqueria: 'El pack intermedio como el mÃ¡s completo',
+      tienda: 'La opciÃ³n media con mejor margen',
       taller: 'El pack de mantenimiento intermedio'
     }
   }
 ]
 
 // --------------------------------------------------------
-// FUNCIÓN AUXILIAR: Obtener principio por ID
+// FUNCIÃ“N AUXILIAR: Obtener principio por ID
 // --------------------------------------------------------
 export function getPrincipio(id: string): PrincipioPsicologico | undefined {
   return PRINCIPIOS.find(p => p.id === id)
 }
 
 // --------------------------------------------------------
-// FUNCIÓN AUXILIAR: Obtener adaptación por sector
+// FUNCIÃ“N AUXILIAR: Obtener adaptaciÃ³n por sector
 // --------------------------------------------------------
 export function getAdaptacion(principioId: string, sector: string): string {
   const principio = getPrincipio(principioId)

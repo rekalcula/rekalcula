@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // TIPOS DEL SISTEMA DE ASESORAMIENTO - ReKalcula
 // ============================================================
 
@@ -48,7 +48,7 @@ export interface PrincipioPsicologico {
   nombre: string
   autor: string
   estudio: string
-  año: number
+  anio: number
   publicacion: string
   hallazgo: string
   aplicacionComercial: string
@@ -155,7 +155,7 @@ export interface OportunidadDetectada {
     id: PrincipioId
     nombre: string
     autor: string
-    año: number
+    anio: number
   }
 }
 
@@ -184,7 +184,7 @@ export interface Recomendacion {
     id: PrincipioId
     nombre: string
     autor: string
-    año: number
+    anio: number
     publicacion: string
   }
   

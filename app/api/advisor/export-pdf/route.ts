@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Calcular métricas
+    // Calcular mÃ©tricas
     const metricas = agregarMetricas(
       {
         ventasActuales: ventasActuales || [],
@@ -111,8 +111,8 @@ export async function GET(request: NextRequest) {
 
     const traducirSector = (s: string) => {
       const t: Record<string, string> = {
-        cafeteria: 'Cafetería', restaurante: 'Restaurante',
-        peluqueria: 'Peluquería', tienda: 'Tienda',
+        cafeteria: 'CafeterÃ­a', restaurante: 'Restaurante',
+        peluqueria: 'PeluquerÃ­a', tienda: 'Tienda',
         taller: 'Taller', desconocido: 'Negocio'
       }
       return t[s] || s
@@ -161,15 +161,15 @@ export async function GET(request: NextRequest) {
 </head>
 <body>
   <div class="header">
-    <h1>💡 Informe de Asesoramiento</h1>
+    <h1>ðŸ’¡ Informe de Asesoramiento</h1>
     <p>ReKalcula - Generado el ${fechaActual}</p>
   </div>
 
   <div class="section">
-    <h2>📊 Resumen del Análisis</h2>
+    <h2>ðŸ“Š Resumen del AnÃ¡lisis</h2>
     <div class="info-box">
       <div class="info-row">
-        <span class="info-label">Período analizado:</span>
+        <span class="info-label">PerÃ­odo analizado:</span>
         <span class="info-value">${traducirPeriodo(periodo)}</span>
       </div>
       <div class="info-row">
@@ -186,7 +186,7 @@ export async function GET(request: NextRequest) {
       </div>
       <div class="info-row">
         <span class="info-label">Total ingresos:</span>
-        <span class="info-value">€${metricas.totales.ingresos.toFixed(2)}</span>
+        <span class="info-value">â‚¬${metricas.totales.ingresos.toFixed(2)}</span>
       </div>
       <div class="info-row">
         <span class="info-label">Recomendaciones generadas:</span>
@@ -196,7 +196,7 @@ export async function GET(request: NextRequest) {
   </div>
 
   <div class="section">
-    <h2>💡 Recomendaciones</h2>
+    <h2>ðŸ’¡ Recomendaciones</h2>
     ${recomendaciones.length > 0 ? recomendaciones.map(rec => `
       <div class="recommendation ${rec.prioridad === 1 ? 'alta' : rec.prioridad === 2 ? 'media' : 'baja'}">
         <div class="rec-header">
@@ -207,20 +207,20 @@ export async function GET(request: NextRequest) {
         </div>
         <p class="rec-message">${rec.mensaje}</p>
         <div class="metrics">
-          <span class="metric">📦 Ventas: ${rec.datosReales.ventas}</span>
-          <span class="metric">📊 Media: ${Math.round(rec.datosReales.mediaVentas)}</span>
-          <span class="metric">📈 Tendencia: ${rec.datosReales.tendencia > 0 ? '+' : ''}${rec.datosReales.tendencia}%</span>
+          <span class="metric">ðŸ“¦ Ventas: ${rec.datosReales.ventas}</span>
+          <span class="metric">ðŸ“Š Media: ${Math.round(rec.datosReales.mediaVentas)}</span>
+          <span class="metric">ðŸ“ˆ Tendencia: ${rec.datosReales.tendencia > 0 ? '+' : ''}${rec.datosReales.tendencia}%</span>
         </div>
         <div class="rec-principle">
-          <strong>📚 Principio:</strong> ${rec.principio.nombre} (${rec.principio.autor}, ${rec.principio.año})
+          <strong>ðŸ“š Principio:</strong> ${rec.principio.nombre} (${rec.principio.autor}, ${rec.principio.anio})
         </div>
       </div>
-    `).join('') : '<p class="no-data">No se detectaron recomendaciones para este período.</p>'}
+    `).join('') : '<p class="no-data">No se detectaron recomendaciones para este perÃ­odo.</p>'}
   </div>
 
   ${historial && historial.length > 0 ? `
   <div class="section">
-    <h2>✅ Recomendaciones Aplicadas Recientemente</h2>
+    <h2>âœ… Recomendaciones Aplicadas Recientemente</h2>
     ${historial.map(h => `
       <div class="info-box">
         <div class="info-row">
@@ -241,14 +241,14 @@ export async function GET(request: NextRequest) {
   ` : ''}
 
   <div class="footer">
-    <p>Este informe fue generado automáticamente por ReKalcula.</p>
-    <p>Las recomendaciones están basadas en principios de psicología del consumidor con respaldo científico.</p>
+    <p>Este informe fue generado automÃ¡ticamente por ReKalcula.</p>
+    <p>Las recomendaciones estÃ¡n basadas en principios de psicologÃ­a del consumidor con respaldo cientÃ­fico.</p>
   </div>
 </body>
 </html>
     `
 
-    // Devolver HTML (el frontend lo convertirá a PDF)
+    // Devolver HTML (el frontend lo convertirÃ¡ a PDF)
     return new NextResponse(htmlContent, {
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
