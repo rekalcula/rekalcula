@@ -68,7 +68,7 @@ export async function generarRecomendaciones(
           id: oportunidad.principio.id,
           nombre: oportunidad.principio.nombre,
           autor: oportunidad.principio.autor,
-          año: oportunidad.principio.año,
+          anio: oportunidad.principio.anio,
           publicacion: principio?.publicacion || ''
         },
         sector: oportunidad.contexto.sector,
@@ -97,7 +97,7 @@ export async function generarRecomendaciones(
           id: oportunidad.principio.id,
           nombre: oportunidad.principio.nombre,
           autor: oportunidad.principio.autor,
-          año: oportunidad.principio.año,
+          anio: oportunidad.principio.anio,
           publicacion: principio?.publicacion || ''
         },
         sector: oportunidad.contexto.sector,
@@ -237,7 +237,7 @@ export function generarRecomendacionesSinIA(
         id: oportunidad.principio.id,
         nombre: oportunidad.principio.nombre,
         autor: oportunidad.principio.autor,
-        año: oportunidad.principio.año,
+        anio: oportunidad.principio.anio,
         publicacion: principio?.publicacion || ''
       },
       sector: oportunidad.contexto.sector,
