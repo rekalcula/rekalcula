@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -497,7 +497,7 @@ export default function AdvisorPage() {
                               </span>
                             )}
                           </div>
-                          <h4 className="font-semibold text-[#FFFCFF] mb-2">{rec.titulo}</h4>
+                          <h4 className="font-semibold text-[#262626] mb-2">{rec.titulo}</h4>
                           <p className="text-sm text-gray-800 mb-3">{rec.mensaje}</p>
                           <div className="flex flex-wrap gap-4 text-xs text-[#ACACAC] mb-3">
                             <span>Ventas: {rec.datosReales?.ventas || 0}</span>
@@ -598,7 +598,7 @@ export default function AdvisorPage() {
                             Aplicado: {formatearFecha(consejo.aplicadoEn)}
                           </span>
                         </div>
-                        <h4 className="font-semibold text-[#FFFCFF] mb-2">{consejo.titulo}</h4>
+                        <h4 className="font-semibold text-[#262626] mb-2">{consejo.titulo}</h4>
                         <p className="text-sm text-gray-800 mb-3">{consejo.mensaje}</p>
                         <div className="flex flex-wrap gap-4 text-xs text-[#ACACAC]">
                           <span>Sector: {traducirSector(consejo.sector)}</span>
@@ -771,7 +771,7 @@ export default function AdvisorPage() {
                             </span>
                           )}
                         </div>
-                        <h4 className="font-semibold text-[#FFFCFF] mb-2">{rec.titulo}</h4>
+                        <h4 className="font-semibold text-[#262626] mb-2">{rec.titulo}</h4>
                         <p className="text-sm text-gray-800 mb-3">{rec.mensaje}</p>
                         <div className="flex flex-wrap gap-4 text-xs text-[#ACACAC]">
                           <span>Ventas: {rec.datosReales?.ventas || 0}</span>
