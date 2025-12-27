@@ -62,7 +62,7 @@ export function detectarOportunidades(
             id: principio.id,
             nombre: principio.nombre,
             autor: principio.autor,
-            aÃƒÂ±o: principio.aÃƒÂ±o
+            anio: principio.anio
           }
         })
       }
@@ -144,18 +144,26 @@ export function hayDatosSuficientes(metricas: MetricasNegocio): {
   suficientes: boolean
   mensaje: string
 } {
-  // Verificar que haya al menos 1 venta
-  if (metricas.totales.ventas === 0) {
+  // Minimo 3 productos para analisis significativo
+  if (metricas.productos.length < 3) {
     return {
       suficientes: false,
-      mensaje: 'No hay ventas en el periodo seleccionado. Selecciona un rango de fechas con datos.'
+      mensaje: `Solo hay ${metricas.productos.length} producto(s) registrado(s). Se necesitan al menos 3 productos diferentes para generar recomendaciones significativas.`
     }
   }
 
-  // Sector desconocido con baja confianza (solo advertencia)
+  // Minimo 10 ventas totales
+  if (metricas.totales.ventas < 10) {
+    return {
+      suficientes: false,
+      mensaje: `Solo hay ${metricas.totales.ventas} venta(s) registrada(s). Se necesitan al menos 10 ventas para generar recomendaciones fiables.`
+    }
+  }
+
+  // Sector desconocido con baja confianza
   if (metricas.sector === 'desconocido' || metricas.confianzaSector < 30) {
     return {
-      suficientes: true,
+      suficientes: true, // Permitir continuar pero avisar
       mensaje: `No se pudo detectar con certeza el tipo de negocio (confianza: ${metricas.confianzaSector}%). Las recomendaciones seran genericas.`
     }
   }
@@ -164,5 +172,4 @@ export function hayDatosSuficientes(metricas: MetricasNegocio): {
     suficientes: true,
     mensaje: ''
   }
-}
 }
