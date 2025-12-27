@@ -3,7 +3,7 @@
 // ============================================================
 // 
 // IMPORTANTE: Estos 10 principios son INMUTABLES.
-// Cada uno tiene autor, estudio, año y publicación verificables.
+// Cada uno tiene autor, estudio, anio y publicación verificables.
 // El sistema NO puede inventar principios nuevos.
 //
 // ============================================================

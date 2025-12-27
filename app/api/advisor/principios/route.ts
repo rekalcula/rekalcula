@@ -17,7 +17,7 @@ export async function GET() {
     id: p.id,
     nombre: p.nombre,
     autor: p.autor,
-    año: p.año,
+    anio: p.anio,
     publicacion: p.publicacion,
     hallazgo: p.hallazgo,
     aplicacionComercial: p.aplicacionComercial
