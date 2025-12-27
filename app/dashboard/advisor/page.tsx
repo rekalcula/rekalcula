@@ -695,17 +695,6 @@ export default function AdvisorPage() {
                             {formatearFecha(analisis.created_at)}
                           </p>
                         </div>
-                        <div className="flex flex-wrap gap-2 text-xs">
-                          <span className="bg-gray-100 text-[#ACACAC] px-2 py-1 rounded">
-                            {traducirPeriodo(analisis.periodo)}
-                          </span>
-                          <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                            {traducirSector(analisis.sector)}
-                          </span>
-                          <span className="bg-green-100 text-green-700 px-2 py-1 rounded">
-                            {analisis.num_recomendaciones} recomendaciones
-                          </span>
-                        </div>
                       </div>
                     </div>
                   </div>
