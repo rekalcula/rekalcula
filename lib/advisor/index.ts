@@ -2,32 +2,32 @@
 // SISTEMA DE ASESORAMIENTO - ReKalcula
 // ============================================================
 //
-// Exporta todos los módulos del sistema de asesoramiento.
+// Exporta todos los mÃ³dulos del sistema de asesoramiento.
 //
 // ============================================================
 
 // Tipos
 export * from './types'
 
-// Principios científicos (inmutables)
+// Principios cientÃ­ficos (inmutables)
 export { PRINCIPIOS, getPrincipio, getAdaptacion } from './principios'
 
-// Umbrales científicos
+// Umbrales cientÃ­ficos
 export { 
   UMBRALES_CIENTIFICOS,
   cumpleUmbralesMinimos,
   esTendenciaSignificativa
 } from './umbrales-cientificos'
-// Reglas de detección
+// Reglas de detecciÃ³n
 export { REGLAS, getRegla, getReglasPorPrioridad } from './reglas'
 
 // Detector de sector
 export { detectarSector, getKeywordsSector } from './detector-sector'
 
-// Agregador de métricas
-export { agregarMetricas, calcularRangoFechas } from './agregador-metricas'
+// Agregador de mÃ©tricas
+export { agregarMetricas, calcularRangoFechas, calcularRangoFechasPersonalizado } from './agregador-metricas'
 
-// Motor de decisión
+// Motor de decisiÃ³n
 export { 
   detectarOportunidades, 
   filtrarPorPrioridad, 
