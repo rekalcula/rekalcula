@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
       diasSeleccionados = rangoFechas.diasSeleccionados
     } else {
       // Modo periodo predefinido
-      rangoFechas = calcularRangoFechas, calcularRangoFechasPersonalizado(periodo)
+      rangoFechas = calcularRangoFechas(periodo)
     }
     
     const { inicioActual, finActual, inicioAnterior, finAnterior } = rangoFechas
