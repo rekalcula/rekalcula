@@ -191,7 +191,7 @@ export default function AdvisorPage() {
         setAnalisisGuardados(result.analyses || [])
       }
     } catch (err) {
-      console.error('Error cargando Análisis:', err)
+      console.error('Error cargando AnÃ¡lisis:', err)
     } finally {
       setCargandoGuardados(false)
     }
@@ -208,12 +208,12 @@ export default function AdvisorPage() {
       const result = await response.json()
 
       if (!result.success) {
-        throw new Error(result.error || 'Error generando Análisis')
+        throw new Error(result.error || 'Error generando AnÃ¡lisis')
       }
 
       setAnalisisActual(result)
     } catch (err: any) {
-      setError(err.message || 'Error generando Análisis')
+      setError(err.message || 'Error generando AnÃ¡lisis')
     } finally {
       setGenerando(false)
     }
@@ -287,7 +287,7 @@ export default function AdvisorPage() {
   const borrarSeleccionados = async () => {
     if (seleccionados.size === 0) return
 
-    if (!confirm(`Eliminar ${seleccionados.size} Análisis?`)) return
+    if (!confirm(`Eliminar ${seleccionados.size} AnÃ¡lisis?`)) return
 
     setBorrando(true)
     try {
@@ -369,7 +369,7 @@ export default function AdvisorPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-[#d98c21] flex items-center gap-2">
             <span className="text-2xl"></span> <span className="text-[#d98c21]">Asesor IA</span>
           </h1>
-          <p className="text-xl text-[#FFFCFF] mt-1">Genera y guarda Análisis de tu negocio
+          <p className="text-xl text-[#FFFCFF] mt-1">Genera y guarda AnÃ¡lisis de tu negocio
           </p>
         </div>
       </div>
@@ -383,7 +383,7 @@ export default function AdvisorPage() {
             }`}
           >
             <IconFolder />
-            Análisis Guardados
+            AnÃ¡lisis Guardados
             {analisisGuardados.length > 0 && (
               <span className="bg-gray-100 text-[#ACACAC] px-2 py-0.5 rounded-full text-xs">
                 {analisisGuardados.length}
@@ -397,7 +397,7 @@ export default function AdvisorPage() {
             }`}
           >
             <IconLightbulb />
-            Nuevo Análisis
+            Nuevo AnÃ¡lisis
           </button>
           <button
             onClick={() => setTabActiva('aplicados')}
@@ -419,11 +419,11 @@ export default function AdvisorPage() {
       {tabActiva === 'nuevo' && (
         <div className="space-y-6">
           <div className="bg-[#262626] rounded-xl p-4 sm:p-6">
-            <h2 className="text-lg font-semibold text-[#d98c21] mb-4">Configurar Análisis</h2>
+            <h2 className="text-lg font-semibold text-[#d98c21] mb-4">Configurar AnÃ¡lisis</h2>
 
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
               <div>
-                <label className="block text-xl font-medium text-[#FFFCFF] mb-1">Período a analizar</label>
+                <label className="block text-xl font-medium text-[#FFFCFF] mb-1">PerÃ­odo a analizar</label>
               <DateRangePicker
                 onDateChange={(inicio, fin, dias) => {
                   setFechaInicio(inicio)
@@ -447,7 +447,7 @@ export default function AdvisorPage() {
                 ) : (
                   <>
                     <IconPlay />
-                    Generar Análisis
+                    Generar AnÃ¡lisis
                   </>
                 )}
               </button>
@@ -466,7 +466,7 @@ export default function AdvisorPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
                     <h3 className="text-lg font-semibold text-[#FFFCFF]">
-                      Análisis Generado - {traducirSector(analisisActual.sector)}
+                      AnÃ¡lisis Generado - {traducirSector(analisisActual.sector)}
                     </h3>
                     <p className="text-xl text-[#ACACAC]">
                       {analisisActual.recomendaciones?.length || 0} recomendaciones encontradas
@@ -477,7 +477,7 @@ export default function AdvisorPage() {
                     disabled={guardando}
                     className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 font-medium"
                   >
-                    {guardando ? 'Guardando...' : ' Guardar Análisis'}
+                    {guardando ? 'Guardando...' : ' Guardar AnÃ¡lisis'}
                   </button>
                 </div>
               </div>
@@ -527,7 +527,7 @@ export default function AdvisorPage() {
               <IconLightbulb />
               <h3 className="text-lg font-medium text-[#FFFCFF] mt-4 mb-2">Sin recomendaciones</h3>
               <p className="text-xl text-[#ACACAC]">
-                <strong>Requisito mnimo:</strong> Se necesitan al menos <strong>15 das de datos de ventas</strong> para realizar un Análisis cientficamente vlido y detectar tendencias significativas.
+                <strong>Requisito mnimo:</strong> Se necesitan al menos <strong>15 das de datos de ventas</strong> para realizar un AnÃ¡lisis cientficamente vlido y detectar tendencias significativas.
               </p>
               </div>
           )}
@@ -576,7 +576,7 @@ export default function AdvisorPage() {
                 onClick={() => setTabActiva('nuevo')}
                 className="px-6 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors font-medium"
               >
-                Generar Análisis
+                Generar AnÃ¡lisis
               </button>
             </div>
           ) : (
@@ -656,18 +656,18 @@ export default function AdvisorPage() {
           {cargandoGuardados ? (
             <div className="bg-[#262626] rounded-xl p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-              <p className="text-[#ACACAC] mt-4">Cargando Análisis...</p>
+              <p className="text-[#ACACAC] mt-4">Cargando AnÃ¡lisis...</p>
             </div>
           ) : analisisGuardados.length === 0 ? (
             <div className="bg-[#262626] rounded-xl p-8 text-center">
               <IconFolder />
-              <h3 className="text-lg font-medium text-[#FFFCFF] mt-4 mb-2">Sin Análisis guardados</h3>
-              <p className="text-[#ACACAC] text-[20px] mb-4">Genera tu primer Análisis para empezar</p>
+              <h3 className="text-lg font-medium text-[#FFFCFF] mt-4 mb-2">Sin AnÃ¡lisis guardados</h3>
+              <p className="text-[#ACACAC] text-[20px] mb-4">Genera tu primer AnÃ¡lisis para empezar</p>
               <button
                 onClick={() => setTabActiva('nuevo')}
                 className="px-6 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors font-medium"
               >
-                Crear Análisis
+                Crear AnÃ¡lisis
               </button>
             </div>
           ) : (
@@ -692,7 +692,7 @@ export default function AdvisorPage() {
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <div>
                           <h3 className="font-medium text-[#FFFCFF]">
-                            Análisis #{analisisGuardados.length - analisisGuardados.indexOf(analisis)}
+                            AnÃ¡lisis #{analisisGuardados.length - analisisGuardados.indexOf(analisis)}
                           </h3>
                           <p className="text-xl text-[#ACACAC]">
                             {formatearFecha(analisis.created_at)}
@@ -721,7 +721,7 @@ export default function AdvisorPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <h2 className="text-xl font-bold text-[#FFFCFF]">
-                  Análisis del {formatearFecha(analisisDetalle.created_at)}
+                  AnÃ¡lisis del {formatearFecha(analisisDetalle.created_at)}
                 </h2>
                 <div className="flex flex-wrap gap-2 mt-2 text-xl">
                   <span className="bg-gray-100 text-[#ACACAC] px-2 py-1 rounded">
