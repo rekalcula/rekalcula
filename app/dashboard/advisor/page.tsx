@@ -67,7 +67,7 @@ interface AdvisorResponse {
   success: boolean
   sector: string
   confianzaSector: number
-  Período: string
+  periodo: string
   recomendaciones: Recomendacion[]
   sinRecomendaciones?: boolean
   mensaje?: string
@@ -77,7 +77,7 @@ interface AdvisorResponse {
 interface AnalysisItem {
   id: string
   created_at: string
-  Período: string
+  periodo: string
   sector: string
   total_ventas: number
   total_ingresos: number
@@ -87,7 +87,7 @@ interface AnalysisItem {
 interface AnalysisDetail {
   id: string
   created_at: string
-  Período: string
+  periodo: string
   sector: string
   total_ventas: number
   total_ingresos: number
@@ -98,12 +98,12 @@ interface AnalysisDetail {
 
 interface ConsejoAplicado extends Recomendacion {
   aplicadoEn: string
-  PeríodoAnalisis: string
+  periodoAnalisis: string
 }
 
 export default function AdvisorPage() {
   const [tabActiva, setTabActiva] = useState<'nuevo' | 'guardados' | 'aplicados'>('guardados')
-  const [Período, setPeríodo] = useState<'dia' | 'semana' | 'mes'>('mes')
+  const [periodo, setPeriodo] = useState<'dia' | 'semana' | 'mes'>('mes')
   const [fechaInicio, setFechaInicio] = useState('')
   const [fechaFin, setFechaFin] = useState('')
   const [diasSeleccionados, setDiasSeleccionados] = useState(0)
@@ -138,11 +138,11 @@ export default function AdvisorPage() {
     }
   }
 
-  const aplicarConsejo = (rec: Recomendacion, contexto?: { sector?: string, Período?: string }) => {
+  const aplicarConsejo = (rec: Recomendacion, contexto?: { sector?: string, periodo?: string }) => {
     const consejoAplicado: ConsejoAplicado = {
       ...rec,
       aplicadoEn: new Date().toISOString(),
-      PeríodoAnalisis: contexto?.Período || analisisActual?.Período || ''
+      periodoAnalisis: contexto?.periodo || analisisActual?.periodo || ''
     }
 
     const nuevosConsejos = [...consejosAplicados, consejoAplicado]
@@ -203,7 +203,7 @@ export default function AdvisorPage() {
     setAnalisisActual(null)
 
     try {
-      const url = fechaInicio && fechaFin ? `/api/advisor?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}` : `/api/advisor?Período=${Período}`
+      const url = fechaInicio && fechaFin ? `/api/advisor?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}` : `/api/advisor?periodo=${periodo}`
       const response = await fetch(url)
       const result = await response.json()
 
@@ -228,7 +228,7 @@ export default function AdvisorPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          Período: analisisActual.Período,
+          periodo: analisisActual.periodo,
           sector: analisisActual.sector,
           totalVentas: analisisActual.recomendaciones?.reduce((acc, r) => acc + (r.datosReales?.ventas || 0), 0),
           totalIngresos: analisisActual.recomendaciones?.reduce((acc, r) => acc + (r.datosReales?.ingresos || 0), 0),
@@ -323,9 +323,9 @@ export default function AdvisorPage() {
     })
   }
 
-  const traducirPeríodo = (p: string) => {
+  const traducirPeriodo = (p: string) => {
     switch(p) {
-      case 'dia': return 'Da'
+      case 'dia': return 'Día'
       case 'semana': return 'Semana'
       case 'mes': return 'Mes'
       default: return p
@@ -334,11 +334,11 @@ export default function AdvisorPage() {
 
   const traducirSector = (s: string) => {
     const sectores: Record<string, string> = {
-      'cafeteria': 'Cafetera',
+      'cafeteria': 'Cafetería',
       'restaurante': 'Restaurante',
-      'peluqueria': 'Peluquera',
-      'taller_mecanico': 'Taller Mecnico',
-      'carpinteria': 'Carpintera',
+      'peluqueria': 'Peluquería',
+      'taller_mecanico': 'Taller Mecánico',
+      'carpinteria': 'Carpintería',
       'general': 'General'
     }
     return sectores[s] || s
@@ -367,7 +367,7 @@ export default function AdvisorPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-[#d98c21] flex items-center gap-2">
-            <span className="text-2xl"></span> <span className="text-[#d98c21]">Asesor IA</span>
+            <span className="text-2xl">💡</span> <span className="text-[#d98c21]">Asesor IA</span>
           </h1>
           <p className="text-xl text-[#FFFCFF] mt-1">Genera y guarda Análisis de tu negocio
           </p>
@@ -455,7 +455,7 @@ export default function AdvisorPage() {
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-              <p className="text-red-700"> {error}</p>
+              <p className="text-red-700">⚠️ {error}</p>
             </div>
           )}
 
@@ -476,7 +476,7 @@ export default function AdvisorPage() {
                     disabled={guardando}
                     className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 font-medium"
                   >
-                    {guardando ? 'Guardando...' : ' Guardar Análisis'}
+                    {guardando ? 'Guardando...' : '💾 Guardar Análisis'}
                   </button>
                 </div>
               </div>
@@ -503,10 +503,10 @@ export default function AdvisorPage() {
                           <p className="text-sm text-gray-800 mb-3">{rec.mensaje}</p>
                           <div className="flex flex-wrap gap-4 text-xs text-[#ACACAC] mb-3">
                             <span>Ventas: {rec.datosReales?.ventas || 0}</span>
-                            <span>Ingresos: {rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
+                            <span>Ingresos: €{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
                           </div>
                           <button
-                            onClick={() => aplicarConsejo(rec, { sector: analisisDetalle?.sector, Período: analisisDetalle?.Período })}
+                            onClick={() => aplicarConsejo(rec, { sector: analisisDetalle?.sector, periodo: analisisDetalle?.periodo })}
                             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xl font-medium"
                           >
                             <IconCheck />
@@ -523,12 +523,12 @@ export default function AdvisorPage() {
 
           {analisisActual?.sinRecomendaciones && (
             <div className="bg-[#262626] rounded-xl p-8 text-center">
-              <IconLightbulb />
+              <div className="text-6xl mb-4">💡</div>
               <h3 className="text-lg font-medium text-[#FFFCFF] mt-4 mb-2">Sin recomendaciones</h3>
               <p className="text-xl text-[#ACACAC]">
-                <strong>Requisito mnimo:</strong> Se necesitan al menos <strong>15 das de datos de ventas</strong> para realizar un Análisis cientficamente vlido y detectar tendencias significativas.
+                {analisisActual.mensaje || 'No se detectaron oportunidades con los datos actuales.'}
               </p>
-              </div>
+            </div>
           )}
         </div>
       )}
@@ -568,9 +568,9 @@ export default function AdvisorPage() {
 
           {consejosAplicados.length === 0 ? (
             <div className="bg-[#262626] rounded-xl p-8 text-center">
-              <IconCheck />
+              <div className="text-6xl mb-4">✓</div>
               <h3 className="text-lg font-medium text-[#FFFCFF] mt-4 mb-2">Sin consejos aplicados</h3>
-              <p className="text-[#ACACAC] text-[20px] mb-4">Los consejos que apliques aparecern aqu</p>
+              <p className="text-[#ACACAC] text-[20px] mb-4">Los consejos que apliques aparecerán aquí</p>
               <button
                 onClick={() => setTabActiva('nuevo')}
                 className="px-6 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors font-medium"
@@ -604,9 +604,9 @@ export default function AdvisorPage() {
                         <p className="text-sm text-gray-800 mb-3">{consejo.mensaje}</p>
                         <div className="flex flex-wrap gap-4 text-xs text-[#ACACAC]">
                           <span>Sector: {traducirSector(consejo.sector)}</span>
-                          <span>Perodo: {traducirPeríodo(consejo.PeríodoAnalisis)}</span>
+                          <span>Período: {traducirPeriodo(consejo.periodoAnalisis)}</span>
                           <span>Ventas: {consejo.datosReales?.ventas || 0}</span>
-                          <span>Ingresos: {consejo.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
+                          <span>Ingresos: €{consejo.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
                         </div>
                       </div>
                     </div>
@@ -659,7 +659,7 @@ export default function AdvisorPage() {
             </div>
           ) : analisisGuardados.length === 0 ? (
             <div className="bg-[#262626] rounded-xl p-8 text-center">
-              <IconFolder />
+              <div className="text-6xl mb-4">📁</div>
               <h3 className="text-lg font-medium text-[#FFFCFF] mt-4 mb-2">Sin Análisis guardados</h3>
               <p className="text-[#ACACAC] text-[20px] mb-4">Genera tu primer Análisis para empezar</p>
               <button
@@ -714,7 +714,7 @@ export default function AdvisorPage() {
               onClick={() => setAnalisisDetalle(null)}
               className="text-xl text-[#ACACAC] hover:text-[#FFFCFF] mb-4 flex items-center gap-1"
             >
-               Volver a la lista
+              ← Volver a la lista
             </button>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -724,7 +724,7 @@ export default function AdvisorPage() {
                 </h2>
                 <div className="flex flex-wrap gap-2 mt-2 text-xl">
                   <span className="bg-gray-100 text-[#ACACAC] px-2 py-1 rounded">
-                    Perodo: {traducirPeríodo(analisisDetalle.Período)}
+                    Período: {traducirPeriodo(analisisDetalle.periodo)}
                   </span>
                   <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
                     Sector: {traducirSector(analisisDetalle.sector)}
@@ -766,10 +766,10 @@ export default function AdvisorPage() {
                         <p className="text-sm text-gray-800 mb-3">{rec.mensaje}</p>
                         <div className="flex flex-wrap gap-4 text-xs text-[#ACACAC]">
                           <span>Ventas: {rec.datosReales?.ventas || 0}</span>
-                          <span>Ingresos: {rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
+                          <span>Ingresos: €{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
                         </div>
                         <button
-                          onClick={() => aplicarConsejo(rec, { sector: analisisDetalle?.sector, Período: analisisDetalle?.Período })}
+                          onClick={() => aplicarConsejo(rec, { sector: analisisDetalle?.sector, periodo: analisisDetalle?.periodo })}
                           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xl font-medium mt-3"
                         >
                           <IconCheck />
