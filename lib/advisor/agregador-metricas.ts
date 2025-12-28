@@ -1,16 +1,16 @@
 // ============================================================
-// AGREGADOR DE MÃƒâ€°TRICAS - CALCULA ESTADÃƒÂSTICAS DE VENTAS
+// AGREGADOR DE MÃƒÆ’Ã¢â‚¬Â°TRICAS - CALCULA ESTADÃƒÆ’Ã‚ÂSTICAS DE VENTAS
 // ============================================================
 //
-// Este mÃƒÂ³dulo procesa los datos crudos de ventas y genera
-// mÃƒÂ©tricas estructuradas que el motor de decisiÃƒÂ³n puede evaluar.
+// Este mÃƒÆ’Ã‚Â³dulo procesa los datos crudos de ventas y genera
+// mÃƒÆ’Ã‚Â©tricas estructuradas que el motor de decisiÃƒÆ’Ã‚Â³n puede evaluar.
 //
-// Todo es CÃƒâ€œDIGO PURO - no hay IA involucrada.
+// Todo es CÃƒÆ’Ã¢â‚¬Å“DIGO PURO - no hay IA involucrada.
 //
-// ACTUALIZADO: Incluye anÃƒÂ¡lisis cientÃƒÂ­fico basado en:
+// ACTUALIZADO: Incluye anÃƒÆ’Ã‚Â¡lisis cientÃƒÆ’Ã‚Â­fico basado en:
 // - Porcentajes relativos
-// - Impacto econÃƒÂ³mico real
-// - Umbrales estadÃƒÂ­sticamente significativos
+// - Impacto econÃƒÆ’Ã‚Â³mico real
+// - Umbrales estadÃƒÆ’Ã‚Â­sticamente significativos
 //
 // ============================================================
 
@@ -35,14 +35,14 @@ interface VentaCruda {
   }[]
 }
 
-// Tipo para ventas del perÃƒÂ­odo anterior (para calcular tendencia)
+// Tipo para ventas del perÃƒÆ’Ã‚Â­odo anterior (para calcular tendencia)
 interface DatosComparacion {
   ventasActuales: VentaCruda[]
   ventasAnteriores: VentaCruda[]
 }
 
 // --------------------------------------------------------
-// FUNCIÃƒâ€œN PRINCIPAL: Agregar mÃƒÂ©tricas de ventas
+// FUNCIÃƒÆ’Ã¢â‚¬Å“N PRINCIPAL: Agregar mÃƒÆ’Ã‚Â©tricas de ventas
 // --------------------------------------------------------
 export function agregarMetricas(
   datos: DatosComparacion,
@@ -51,7 +51,7 @@ export function agregarMetricas(
 
   const { ventasActuales, ventasAnteriores } = datos
 
-  // 1. Extraer todos los productos ÃƒÂºnicos del perÃƒÂ­odo actual
+  // 1. Extraer todos los productos ÃƒÆ’Ã‚Âºnicos del perÃƒÆ’Ã‚Â­odo actual
   const productosMap = new Map<string, {
     ventas: number
     ingresos: number
@@ -72,7 +72,7 @@ export function agregarMetricas(
     }
   }
 
-  // 2. Calcular ventas E INGRESOS del perÃƒÂ­odo anterior (para tendencias e impacto)
+  // 2. Calcular ventas E INGRESOS del perÃƒÆ’Ã‚Â­odo anterior (para tendencias e impacto)
   const productosAnterioresMap = new Map<string, {
     ventas: number
     ingresos: number
@@ -103,7 +103,7 @@ export function agregarMetricas(
     totalIngresosAnteriores += datos.ingresos
   }
 
-  // 4. Construir array de productos con mÃƒÂ©tricas cientÃƒÂ­ficas
+  // 4. Construir array de productos con mÃƒÆ’Ã‚Â©tricas cientÃƒÆ’Ã‚Â­ficas
   const productos: ProductoConMetricas[] = []
 
   let ranking = 0
@@ -120,7 +120,7 @@ export function agregarMetricas(
     
     const tendencia = calcularTendencia(datos.ventas, ventasAnteriores)
     
-    // NUEVOS CÃƒÂLCULOS - Impacto econÃƒÂ³mico
+    // NUEVOS CÃƒÆ’Ã‚ÂLCULOS - Impacto econÃƒÆ’Ã‚Â³mico
     const impactoEconomicoAbsoluto = datos.ingresos - ingresosAnteriores
     const impactoEconomicoRelativo = totalIngresosAnteriores > 0
       ? (impactoEconomicoAbsoluto / totalIngresosAnteriores) * 100
@@ -134,7 +134,7 @@ export function agregarMetricas(
       ? (datos.ingresos / totalIngresos) * 100
       : 0
 
-    // Validar si cumple umbrales cientÃƒÂ­ficos
+    // Validar si cumple umbrales cientÃƒÆ’Ã‚Â­ficos
     const cumpleUmbrales = cumpleUmbralesMinimos(
       datos.ventas,
       ventasAnteriores,
@@ -154,7 +154,7 @@ export function agregarMetricas(
       tendencia,
       ranking,
       
-      // Nuevos campos cientÃƒÂ­ficos
+      // Nuevos campos cientÃƒÆ’Ã‚Â­ficos
       ventasAnteriores,
       impactoEconomicoAbsoluto: Math.round(impactoEconomicoAbsoluto * 100) / 100,
       impactoEconomicoRelativo: Math.round(impactoEconomicoRelativo * 100) / 100,
@@ -193,7 +193,7 @@ export function agregarMetricas(
       : null
   }
 
-  // 8. Construir y devolver mÃƒÂ©tricas completas
+  // 8. Construir y devolver mÃƒÆ’Ã‚Â©tricas completas
   return {
     sector,
     confianzaSector: confianza,
@@ -210,22 +210,22 @@ export function agregarMetricas(
 }
 
 // --------------------------------------------------------
-// FUNCIÃƒâ€œN: Normalizar nombre de producto
+// FUNCIÃƒÆ’Ã¢â‚¬Å“N: Normalizar nombre de producto
 // --------------------------------------------------------
 function normalizarNombreProducto(nombre: string): string {
   if (!nombre) return 'Producto sin nombre'
 
-  // Capitalizar primera letra, resto en minÃƒÂºsculas
+  // Capitalizar primera letra, resto en minÃƒÆ’Ã‚Âºsculas
   const normalizado = nombre.trim().toLowerCase()
   return normalizado.charAt(0).toUpperCase() + normalizado.slice(1)
 }
 
 // --------------------------------------------------------
-// FUNCIÃƒâ€œN: Calcular tendencia (% cambio)
+// FUNCIÃƒÆ’Ã¢â‚¬Å“N: Calcular tendencia (% cambio)
 // --------------------------------------------------------
 function calcularTendencia(actual: number, anterior: number): number {
   if (anterior === 0) {
-    // Si no habÃƒÂ­a ventas antes, cualquier venta es crecimiento infinito
+    // Si no habÃƒÆ’Ã‚Â­a ventas antes, cualquier venta es crecimiento infinito
     // Lo limitamos a 100% para no distorsionar
     return actual > 0 ? 100 : 0
   }
@@ -235,7 +235,7 @@ function calcularTendencia(actual: number, anterior: number): number {
 }
 
 // --------------------------------------------------------
-// FUNCIÃƒâ€œN: Calcular fechas de perÃƒÂ­odo
+// FUNCIÃƒÆ’Ã¢â‚¬Å“N: Calcular fechas de perÃƒÆ’Ã‚Â­odo
 // --------------------------------------------------------
 export function calcularRangoFechas(periodo: 'dia' | 'semana' | 'mes'): {
   inicioActual: Date
@@ -278,40 +278,7 @@ export function calcularRangoFechas(periodo: 'dia' | 'semana' | 'mes'): {
 }
 
 // --------------------------------------------------------
-// FUNCION: Calcular rango de fechas personalizado
-// --------------------------------------------------------
-export function calcularRangoFechasPersonalizado(
-  fechaInicio: string,
-  fechaFin: string
-): {
-  inicioActual: Date
-  finActual: Date
-  inicioAnterior: Date
-  finAnterior: Date
-  diasSeleccionados: number
-} {
-  const inicioActual = new Date(fechaInicio)
-  const finActual = new Date(fechaFin)
-  
-  // Calcular dias seleccionados
-  const diffTime = Math.abs(finActual.getTime() - inicioActual.getTime())
-  const diasSeleccionados = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
-  
-  // Calcular periodo anterior (mismo numero de dias antes)
-  const finAnterior = new Date(inicioActual)
-  finAnterior.setDate(finAnterior.getDate() - 1)
-  
-  const inicioAnterior = new Date(finAnterior)
-  inicioAnterior.setDate(inicioAnterior.getDate() - diasSeleccionados + 1)
-  
-  return {
-    inicioActual,
-    finActual,
-    inicioAnterior,
-    finAnterior,
-    diasSeleccionados
-  }
-}
+
 
 // --------------------------------------------------------
 // FUNCION: Calcular rango de fechas personalizado
