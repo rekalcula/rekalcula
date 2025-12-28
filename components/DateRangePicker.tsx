@@ -22,11 +22,9 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
         const data = await response.json()
         
         if (data.success && data.dates && data.dates.length > 0) {
-          // Convertir strings a objetos Date
           const dates = data.dates.map((d: string) => new Date(d + 'T00:00:00'))
           setFechasConVentas(dates)
           
-          // Establecer rango por defecto (últimos 30 días)
           const lastDate = dates[dates.length - 1]
           const firstDate = dates[Math.max(0, dates.length - 30)]
           
@@ -48,7 +46,6 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
       
       setDiasSeleccionados(dias)
       
-      // Formatear a YYYY-MM-DD
       const formatDate = (date: Date) => {
         const year = date.getFullYear()
         const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -60,7 +57,6 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
     }
   }, [fechaInicio, fechaFin, onDateChange])
 
-  // Función para marcar días con ventas
   const dayClassName = (date: Date) => {
     const hasData = fechasConVentas.some(d => 
       d.getDate() === date.getDate() &&
@@ -115,7 +111,7 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
           </label>
           <DatePicker
             selected={fechaInicio}
-            onChange={(date) => setFechaInicio(date)}
+            onChange={(date: Date | null) => setFechaInicio(date)}
             selectsStart
             startDate={fechaInicio}
             endDate={fechaFin}
@@ -132,7 +128,7 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
           </label>
           <DatePicker
             selected={fechaFin}
-            onChange={(date) => setFechaFin(date)}
+            onChange={(date: Date | null) => setFechaFin(date)}
             selectsEnd
             startDate={fechaInicio}
             endDate={fechaFin}
