@@ -423,7 +423,7 @@ export default function AdvisorPage() {
 
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
               <div>
-                <label className="block text-xl font-medium text-[#FFFCFF] mb-1">Perodo a analizar</label>
+                <label className="block text-xl font-medium text-[#FFFCFF] mb-1">Período a analizar</label>
               <DateRangePicker
                 onDateChange={(inicio, fin, dias) => {
                   setFechaInicio(inicio)
