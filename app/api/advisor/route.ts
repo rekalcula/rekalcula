@@ -4,7 +4,7 @@
 //
 // GET /api/advisor
 //   - Obtiene datos de ventas
-//   - Calcula mÃƒÂ©tricas
+//   - Calcula mÃƒÆ’Ã‚Â©tricas
 //   - Detecta oportunidades
 //   - Genera recomendaciones
 //
@@ -19,7 +19,7 @@ import { auth } from '@clerk/nextjs/server'
 import { createClient } from '@supabase/supabase-js'
 import {
   agregarMetricas,
-  calcularRangoFechas,
+  calcularRangoFechas, calcularRangoFechasPersonalizado,
   detectarOportunidades,
   hayDatosSuficientes,
   generarRecomendaciones,
@@ -39,7 +39,7 @@ const supabase = createClient(
 // --------------------------------------------------------
 export async function GET(request: NextRequest) {
   try {
-    // 1. Verificar autenticaciÃƒÂ³n
+    // 1. Verificar autenticaciÃƒÆ’Ã‚Â³n
     const { userId } = await auth()
     
     if (!userId) {
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 2. Obtener parÃƒÂ¡metros
+    // 2. Obtener parÃƒÆ’Ã‚Â¡metros
     const searchParams = request.nextUrl.searchParams
     const periodo = (searchParams.get('periodo') || 'mes') as 'dia' | 'semana' | 'mes'
     const usarIA = searchParams.get('usarIA') !== 'false'
@@ -66,12 +66,12 @@ export async function GET(request: NextRequest) {
       diasSeleccionados = rangoFechas.diasSeleccionados
     } else {
       // Modo periodo predefinido
-      rangoFechas = calcularRangoFechas(periodo)
+      rangoFechas = calcularRangoFechas, calcularRangoFechasPersonalizado(periodo)
     }
     
     const { inicioActual, finActual, inicioAnterior, finAnterior } = rangoFechas
 
-    // 4. Obtener ventas del perÃƒÂ­odo actual
+    // 4. Obtener ventas del perÃƒÆ’Ã‚Â­odo actual
     const { data: ventasActuales, error: errorActuales } = await supabase
       .from('sales')
       .select(`
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 5. Obtener ventas del perÃƒÂ­odo anterior (para tendencias)
+    // 5. Obtener ventas del perÃƒÆ’Ã‚Â­odo anterior (para tendencias)
     const { data: ventasAnteriores, error: errorAnteriores } = await supabase
       .from('sales')
       .select(`
@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
 
     if (errorAnteriores) {
       console.error('Error obteniendo ventas anteriores:', errorAnteriores)
-      // No es crÃƒÂ­tico, continuamos sin datos de tendencia
+      // No es crÃƒÆ’Ã‚Â­tico, continuamos sin datos de tendencia
     }
 
     // 6. Verificar que hay datos
@@ -129,12 +129,12 @@ export async function GET(request: NextRequest) {
         periodo: traducirPeriodo(periodo),
         recomendaciones: [],
         sinRecomendaciones: true,
-        mensaje: 'No hay ventas registradas en este perÃƒÂ­odo. Sube algunos tickets de venta para recibir recomendaciones personalizadas.'
+        mensaje: 'No hay ventas registradas en este perÃƒÆ’Ã‚Â­odo. Sube algunos tickets de venta para recibir recomendaciones personalizadas.'
       }
       return NextResponse.json(response)
     }
 
-    // 7. Agregar mÃƒÂ©tricas
+    // 7. Agregar mÃƒÆ’Ã‚Â©tricas
     const metricas = agregarMetricas(
       {
         ventasActuales: ventasActuales || [],
@@ -171,7 +171,7 @@ export async function GET(request: NextRequest) {
         periodo: traducirPeriodo(periodo),
         recomendaciones: [],
         sinRecomendaciones: true,
-        mensaje: 'No se detectaron oportunidades claras con los datos actuales. Esto puede significar que tu negocio estÃƒÂ¡ bien equilibrado o que necesitamos mÃƒÂ¡s datos para un anÃƒÂ¡lisis preciso.'
+        mensaje: 'No se detectaron oportunidades claras con los datos actuales. Esto puede significar que tu negocio estÃƒÆ’Ã‚Â¡ bien equilibrado o que necesitamos mÃƒÆ’Ã‚Â¡s datos para un anÃƒÆ’Ã‚Â¡lisis preciso.'
       }
       return NextResponse.json(response)
     }
@@ -220,7 +220,7 @@ export async function GET(request: NextRequest) {
 }
 
 // --------------------------------------------------------
-// FunciÃƒÂ³n auxiliar: Traducir perÃƒÂ­odo
+// FunciÃƒÆ’Ã‚Â³n auxiliar: Traducir perÃƒÆ’Ã‚Â­odo
 // --------------------------------------------------------
 function traducirPeriodo(periodo: 'dia' | 'semana' | 'mes'): string {
   const traducciones = {
