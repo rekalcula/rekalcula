@@ -419,11 +419,10 @@ export default function AdvisorPage() {
       {tabActiva === 'nuevo' && (
         <div className="space-y-6">
           <div className="bg-[#262626] rounded-xl p-4 sm:p-6">
-            <h2 className="text-lg font-semibold text-[#d98c21] mb-4">Configurar Análisis</h2>
-
+            
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
               <div>
-                <label className="block text-xl font-medium text-[#FFFCFF] mb-1">Período a analizar</label>
+                <label className="block text-xl font-medium text-[#d98c21] mb-1">Período a analizar</label>
               <DateRangePicker
                 onDateChange={(inicio, fin, dias) => {
                   setFechaInicio(inicio)
