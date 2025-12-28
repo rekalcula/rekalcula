@@ -203,7 +203,8 @@ export default function AdvisorPage() {
     setAnalisisActual(null)
 
     try {
-      const response = await fetch(`/api/advisor?periodo=${periodo}`)
+      const url = fechaInicio && fechaFin ? `/api/advisor?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}` : `/api/advisor?periodo=${periodo}`
+      const response = await fetch(url)
       const result = await response.json()
 
       if (!result.success) {
