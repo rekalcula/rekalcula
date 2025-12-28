@@ -63,7 +63,7 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
             value={fechaInicio}
             onChange={(e) => setFechaInicio(e.target.value)}
             disabled={disabled}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+            className="w-full px-3 py-2 border-2 border-[#d98c21] bg-[#0d0d0d] text-[#FFFCFF] rounded-lg focus:ring-2 focus:ring-[#d98c21] focus:border-[#d98c21] disabled:opacity-50"
           />
         </div>
         
@@ -76,7 +76,7 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
             value={fechaFin}
             onChange={(e) => setFechaFin(e.target.value)}
             disabled={disabled}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+            className="w-full px-3 py-2 border-2 border-[#d98c21] bg-[#0d0d0d] text-[#FFFCFF] rounded-lg focus:ring-2 focus:ring-[#d98c21] focus:border-[#d98c21] disabled:opacity-50"
           />
         </div>
       </div>
@@ -95,7 +95,7 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
           {diasSeleccionados < 15 && (
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
               <div className="flex items-start">
-                <span className="text-2xl mr-3">âš ï¸</span>
+                <span className="text-2xl mr-3">Ã¢Å¡Â Ã¯Â¸Â</span>
                 <div>
                   <h3 className="text-sm font-semibold text-yellow-800">
                     Periodo menor a 15 dias
