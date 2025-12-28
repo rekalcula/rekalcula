@@ -144,26 +144,13 @@ export function hayDatosSuficientes(metricas: MetricasNegocio): {
   suficientes: boolean
   mensaje: string
 } {
-  // Minimo 3 productos para analisis significativo
-  if (metricas.productos.length < 3) {
-    return {
-      suficientes: false,
-      mensaje: `Solo hay ${metricas.productos.length} producto(s) registrado(s). Se necesitan al menos 3 productos diferentes para generar recomendaciones significativas.`
-    }
-  }
-
-  // Minimo 10 ventas totales
-  if (metricas.totales.ventas < 10) {
-    return {
-      suficientes: false,
-      mensaje: `Solo hay ${metricas.totales.ventas} venta(s) registrada(s). Se necesitan al menos 10 ventas para generar recomendaciones fiables.`
-    }
-  }
-
-  // Sector desconocido con baja confianza
+  // VALIDACIONES DE MINIMOS ELIMINADAS
+  // Ahora acepta cualquier cantidad de productos y ventas
+  
+  // Sector desconocido con baja confianza (SOLO ADVERTENCIA)
   if (metricas.sector === 'desconocido' || metricas.confianzaSector < 30) {
     return {
-      suficientes: true, // Permitir continuar pero avisar
+      suficientes: true,
       mensaje: `No se pudo detectar con certeza el tipo de negocio (confianza: ${metricas.confianzaSector}%). Las recomendaciones seran genericas.`
     }
   }
