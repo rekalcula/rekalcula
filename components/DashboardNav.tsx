@@ -36,6 +36,7 @@ export default function DashboardNav() {
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: '📊' },
     { href: '/dashboard/invoices', label: 'Facturas', icon: '📄' },
+    { href: '/dashboard/fiscal', label: 'Configuración Fiscal', icon: '⚖️' },
     { href: '/dashboard/sales', label: 'Ventas', icon: '🛒' },
     { href: '/dashboard/costs', label: 'Costos Fijos', icon: '💸' },
     { href: '/dashboard/analytics', label: 'Análisis', icon: '📈' },
