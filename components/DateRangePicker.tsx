@@ -55,7 +55,7 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-[#ACACAC] mb-1">
             Fecha inicio
           </label>
           <input
@@ -68,7 +68,7 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-[#ACACAC] mb-1">
             Fecha fin
           </label>
           <input
@@ -83,7 +83,7 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
 
       {fechaInicio && fechaFin && (
         <div className="space-y-2">
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-[#ACACAC]">
             <span className="font-medium">{diasSeleccionados}</span> dias seleccionados
             {diasConVentas > 0 && (
               <span className="ml-2">
@@ -95,7 +95,7 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
           {diasSeleccionados < 15 && (
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
               <div className="flex items-start">
-                <span className="text-2xl mr-3">⚠️</span>
+                <span className="text-2xl mr-3">âš ï¸</span>
                 <div>
                   <h3 className="text-sm font-semibold text-yellow-800">
                     Periodo menor a 15 dias
