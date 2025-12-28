@@ -1,4 +1,5 @@
 'use client'
+import DateRangePicker from '@/components/DateRangePicker'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -103,6 +104,9 @@ interface ConsejoAplicado extends Recomendacion {
 export default function AdvisorPage() {
   const [tabActiva, setTabActiva] = useState<'nuevo' | 'guardados' | 'aplicados'>('guardados')
   const [periodo, setPeriodo] = useState<'dia' | 'semana' | 'mes'>('mes')
+  const [fechaInicio, setFechaInicio] = useState('')
+  const [fechaFin, setFechaFin] = useState('')
+  const [diasSeleccionados, setDiasSeleccionados] = useState(0)
   const [generando, setGenerando] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [analisisActual, setAnalisisActual] = useState<AdvisorResponse | null>(null)
