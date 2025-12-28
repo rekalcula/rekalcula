@@ -4,7 +4,7 @@
 //
 // GET /api/advisor
 //   - Obtiene datos de ventas
-//   - Calcula métricas
+//   - Calcula mÃ©tricas
 //   - Detecta oportunidades
 //   - Genera recomendaciones
 //
@@ -39,7 +39,7 @@ const supabase = createClient(
 // --------------------------------------------------------
 export async function GET(request: NextRequest) {
   try {
-    // 1. Verificar autenticación
+    // 1. Verificar autenticaciÃ³n
     const { userId } = await auth()
     
     if (!userId) {
@@ -49,15 +49,29 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 2. Obtener parámetros
+    // 2. Obtener parÃ¡metros
     const searchParams = request.nextUrl.searchParams
     const periodo = (searchParams.get('periodo') || 'mes') as 'dia' | 'semana' | 'mes'
     const usarIA = searchParams.get('usarIA') !== 'false'
+    const fechaInicio = searchParams.get('fechaInicio')
+    const fechaFin = searchParams.get('fechaFin')
 
     // 3. Calcular rangos de fecha
-    const { inicioActual, finActual, inicioAnterior, finAnterior } = calcularRangoFechas(periodo)
+    let rangoFechas
+    let diasSeleccionados = 0
+    
+    if (fechaInicio && fechaFin) {
+      // Modo fechas personalizadas
+      rangoFechas = calcularRangoFechasPersonalizado(fechaInicio, fechaFin)
+      diasSeleccionados = rangoFechas.diasSeleccionados
+    } else {
+      // Modo periodo predefinido
+      rangoFechas = calcularRangoFechas(periodo)
+    }
+    
+    const { inicioActual, finActual, inicioAnterior, finAnterior } = rangoFechas
 
-    // 4. Obtener ventas del período actual
+    // 4. Obtener ventas del perÃ­odo actual
     const { data: ventasActuales, error: errorActuales } = await supabase
       .from('sales')
       .select(`
@@ -83,7 +97,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 5. Obtener ventas del período anterior (para tendencias)
+    // 5. Obtener ventas del perÃ­odo anterior (para tendencias)
     const { data: ventasAnteriores, error: errorAnteriores } = await supabase
       .from('sales')
       .select(`
@@ -103,7 +117,7 @@ export async function GET(request: NextRequest) {
 
     if (errorAnteriores) {
       console.error('Error obteniendo ventas anteriores:', errorAnteriores)
-      // No es crítico, continuamos sin datos de tendencia
+      // No es crÃ­tico, continuamos sin datos de tendencia
     }
 
     // 6. Verificar que hay datos
@@ -115,12 +129,12 @@ export async function GET(request: NextRequest) {
         periodo: traducirPeriodo(periodo),
         recomendaciones: [],
         sinRecomendaciones: true,
-        mensaje: 'No hay ventas registradas en este período. Sube algunos tickets de venta para recibir recomendaciones personalizadas.'
+        mensaje: 'No hay ventas registradas en este perÃ­odo. Sube algunos tickets de venta para recibir recomendaciones personalizadas.'
       }
       return NextResponse.json(response)
     }
 
-    // 7. Agregar métricas
+    // 7. Agregar mÃ©tricas
     const metricas = agregarMetricas(
       {
         ventasActuales: ventasActuales || [],
@@ -157,7 +171,7 @@ export async function GET(request: NextRequest) {
         periodo: traducirPeriodo(periodo),
         recomendaciones: [],
         sinRecomendaciones: true,
-        mensaje: 'No se detectaron oportunidades claras con los datos actuales. Esto puede significar que tu negocio está bien equilibrado o que necesitamos más datos para un análisis preciso.'
+        mensaje: 'No se detectaron oportunidades claras con los datos actuales. Esto puede significar que tu negocio estÃ¡ bien equilibrado o que necesitamos mÃ¡s datos para un anÃ¡lisis preciso.'
       }
       return NextResponse.json(response)
     }
@@ -206,7 +220,7 @@ export async function GET(request: NextRequest) {
 }
 
 // --------------------------------------------------------
-// Función auxiliar: Traducir período
+// FunciÃ³n auxiliar: Traducir perÃ­odo
 // --------------------------------------------------------
 function traducirPeriodo(periodo: 'dia' | 'semana' | 'mes'): string {
   const traducciones = {
