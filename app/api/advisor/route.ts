@@ -4,7 +4,7 @@
 //
 // GET /api/advisor
 //   - Obtiene datos de ventas
-//   - Calcula mÃ©tricas
+//   - Calcula mÃƒÂ©tricas
 //   - Detecta oportunidades
 //   - Genera recomendaciones
 //
@@ -39,7 +39,7 @@ const supabase = createClient(
 // --------------------------------------------------------
 export async function GET(request: NextRequest) {
   try {
-    // 1. Verificar autenticaciÃ³n
+    // 1. Verificar autenticaciÃƒÂ³n
     const { userId } = await auth()
     
     if (!userId) {
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 2. Obtener parÃ¡metros
+    // 2. Obtener parÃƒÂ¡metros
     const searchParams = request.nextUrl.searchParams
     const periodo = (searchParams.get('periodo') || 'mes') as 'dia' | 'semana' | 'mes'
     const usarIA = searchParams.get('usarIA') !== 'false'
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
     
     const { inicioActual, finActual, inicioAnterior, finAnterior } = rangoFechas
 
-    // 4. Obtener ventas del perÃ­odo actual
+    // 4. Obtener ventas del perÃƒÂ­odo actual
     const { data: ventasActuales, error: errorActuales } = await supabase
       .from('sales')
       .select(`
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 5. Obtener ventas del perÃ­odo anterior (para tendencias)
+    // 5. Obtener ventas del perÃƒÂ­odo anterior (para tendencias)
     const { data: ventasAnteriores, error: errorAnteriores } = await supabase
       .from('sales')
       .select(`
@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
 
     if (errorAnteriores) {
       console.error('Error obteniendo ventas anteriores:', errorAnteriores)
-      // No es crÃ­tico, continuamos sin datos de tendencia
+      // No es crÃƒÂ­tico, continuamos sin datos de tendencia
     }
 
     // 6. Verificar que hay datos
@@ -129,12 +129,12 @@ export async function GET(request: NextRequest) {
         periodo: traducirPeriodo(periodo),
         recomendaciones: [],
         sinRecomendaciones: true,
-        mensaje: 'No hay ventas registradas en este perÃ­odo. Sube algunos tickets de venta para recibir recomendaciones personalizadas.'
+        mensaje: 'No hay ventas registradas en este perÃƒÂ­odo. Sube algunos tickets de venta para recibir recomendaciones personalizadas.'
       }
       return NextResponse.json(response)
     }
 
-    // 7. Agregar mÃ©tricas
+    // 7. Agregar mÃƒÂ©tricas
     const metricas = agregarMetricas(
       {
         ventasActuales: ventasActuales || [],
@@ -171,7 +171,7 @@ export async function GET(request: NextRequest) {
         periodo: traducirPeriodo(periodo),
         recomendaciones: [],
         sinRecomendaciones: true,
-        mensaje: 'No se detectaron oportunidades claras con los datos actuales. Esto puede significar que tu negocio estÃ¡ bien equilibrado o que necesitamos mÃ¡s datos para un anÃ¡lisis preciso.'
+        mensaje: 'No se detectaron oportunidades claras con los datos actuales. Esto puede significar que tu negocio estÃƒÂ¡ bien equilibrado o que necesitamos mÃƒÂ¡s datos para un anÃƒÂ¡lisis preciso.'
       }
       return NextResponse.json(response)
     }
@@ -220,7 +220,7 @@ export async function GET(request: NextRequest) {
 }
 
 // --------------------------------------------------------
-// FunciÃ³n auxiliar: Traducir perÃ­odo
+// FunciÃƒÂ³n auxiliar: Traducir perÃƒÂ­odo
 // --------------------------------------------------------
 function traducirPeriodo(periodo: 'dia' | 'semana' | 'mes'): string {
   const traducciones = {
