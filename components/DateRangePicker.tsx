@@ -132,7 +132,7 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
             selectsEnd
             startDate={fechaInicio}
             endDate={fechaFin}
-            minDate={fechaInicio}
+            minDate={fechaInicio ?? undefined}
             dayClassName={dayClassName}
             disabled={disabled}
             dateFormat="dd/MM/yyyy"
