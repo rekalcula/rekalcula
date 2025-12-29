@@ -4,7 +4,7 @@
 //
 // GET /api/advisor
 //   - Obtiene datos de ventas
-//   - Calcula mÃƒÆ’Ã‚Â©tricas
+//   - Calcula métricas
 //   - Detecta oportunidades
 //   - Genera recomendaciones
 //
@@ -19,7 +19,8 @@ import { auth } from '@clerk/nextjs/server'
 import { createClient } from '@supabase/supabase-js'
 import {
   agregarMetricas,
-  calcularRangoFechas, calcularRangoFechasPersonalizado,
+  calcularRangoFechas,
+  calcularRangoFechasPersonalizado,
   detectarOportunidades,
   hayDatosSuficientes,
   generarRecomendaciones,
@@ -39,9 +40,9 @@ const supabase = createClient(
 // --------------------------------------------------------
 export async function GET(request: NextRequest) {
   try {
-    // 1. Verificar autenticaciÃƒÆ’Ã‚Â³n
+    // 1. Verificar autenticación
     const { userId } = await auth()
-    
+
     if (!userId) {
       return NextResponse.json(
         { success: false, error: 'No autorizado' },
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 2. Obtener parÃƒÆ’Ã‚Â¡metros
+    // 2. Obtener parámetros
     const searchParams = request.nextUrl.searchParams
     const periodo = (searchParams.get('periodo') || 'mes') as 'dia' | 'semana' | 'mes'
     const usarIA = searchParams.get('usarIA') !== 'false'
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
     // 3. Calcular rangos de fecha
     let rangoFechas
     let diasSeleccionados = 0
-    
+
     if (fechaInicio && fechaFin) {
       // Modo fechas personalizadas
       rangoFechas = calcularRangoFechasPersonalizado(fechaInicio, fechaFin)
@@ -68,10 +69,10 @@ export async function GET(request: NextRequest) {
       // Modo periodo predefinido
       rangoFechas = calcularRangoFechas(periodo)
     }
-    
+
     const { inicioActual, finActual, inicioAnterior, finAnterior } = rangoFechas
 
-    // 4. Obtener ventas del perÃƒÆ’Ã‚Â­odo actual
+    // 4. Obtener ventas del período actual
     const { data: ventasActuales, error: errorActuales } = await supabase
       .from('sales')
       .select(`
@@ -97,7 +98,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 5. Obtener ventas del perÃƒÆ’Ã‚Â­odo anterior (para tendencias)
+    // 5. Obtener ventas del período anterior (para tendencias)
     const { data: ventasAnteriores, error: errorAnteriores } = await supabase
       .from('sales')
       .select(`
@@ -117,7 +118,7 @@ export async function GET(request: NextRequest) {
 
     if (errorAnteriores) {
       console.error('Error obteniendo ventas anteriores:', errorAnteriores)
-      // No es crÃƒÆ’Ã‚Â­tico, continuamos sin datos de tendencia
+      // No es crítico, continuamos sin datos de tendencia
     }
 
     // 6. Verificar que hay datos
@@ -126,15 +127,18 @@ export async function GET(request: NextRequest) {
         success: true,
         sector: 'desconocido',
         confianzaSector: 0,
-        periodo: fechaInicio && fechaFin ? ``` - ````` : traducirPeriodo(periodo),
+        periodo: fechaInicio && fechaFin
+          ? `${fechaInicio} - ${fechaFin}`
+          : traducirPeriodo(periodo),
         recomendaciones: [],
         sinRecomendaciones: true,
-        mensaje: 'No hay ventas registradas en este perÃƒÆ’Ã‚Â­odo. Sube algunos tickets de venta para recibir recomendaciones personalizadas.'
+        mensaje:
+          'No hay ventas registradas en este período. Sube algunos tickets de venta para recibir recomendaciones personalizadas.'
       }
       return NextResponse.json(response)
     }
 
-    // 7. Agregar mÃƒÆ’Ã‚Â©tricas
+    // 7. Agregar métricas
     const metricas = agregarMetricas(
       {
         ventasActuales: ventasActuales || [],
@@ -145,13 +149,15 @@ export async function GET(request: NextRequest) {
 
     // 8. Verificar si hay datos suficientes
     const { suficientes, mensaje: mensajeDatos } = hayDatosSuficientes(metricas)
-    
+
     if (!suficientes) {
       const response: AdvisorResponse = {
         success: true,
         sector: metricas.sector,
         confianzaSector: metricas.confianzaSector,
-        periodo: fechaInicio && fechaFin ? ``` - ````` : traducirPeriodo(periodo),
+        periodo: fechaInicio && fechaFin
+          ? `${fechaInicio} - ${fechaFin}`
+          : traducirPeriodo(periodo),
         recomendaciones: [],
         sinRecomendaciones: true,
         mensaje: mensajeDatos
@@ -168,17 +174,20 @@ export async function GET(request: NextRequest) {
         success: true,
         sector: metricas.sector,
         confianzaSector: metricas.confianzaSector,
-        periodo: fechaInicio && fechaFin ? ``` - ````` : traducirPeriodo(periodo),
+        periodo: fechaInicio && fechaFin
+          ? `${fechaInicio} - ${fechaFin}`
+          : traducirPeriodo(periodo),
         recomendaciones: [],
         sinRecomendaciones: true,
-        mensaje: 'No se detectaron oportunidades claras con los datos actuales. Esto puede significar que tu negocio estÃƒÆ’Ã‚Â¡ bien equilibrado o que necesitamos mÃƒÆ’Ã‚Â¡s datos para un anÃƒÆ’Ã‚Â¡lisis preciso.'
+        mensaje:
+          'No se detectaron oportunidades claras con los datos actuales. Esto puede significar que tu negocio está bien equilibrado o que necesitamos más datos para un análisis preciso.'
       }
       return NextResponse.json(response)
     }
 
     // 11. Generar recomendaciones
     let recomendaciones
-    
+
     if (usarIA) {
       try {
         recomendaciones = await generarRecomendaciones(oportunidades, true)
@@ -198,7 +207,9 @@ export async function GET(request: NextRequest) {
       success: true,
       sector: metricas.sector,
       confianzaSector: metricas.confianzaSector,
-      periodo: fechaInicio && fechaFin ? ``` - ````` : traducirPeriodo(periodo),
+      periodo: fechaInicio && fechaFin
+        ? `${fechaInicio} - ${fechaFin}`
+        : traducirPeriodo(periodo),
       recomendaciones,
       sinRecomendaciones: false,
       mensaje: mensajeDatos || undefined
@@ -209,8 +220,8 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error en API advisor:', error)
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Error interno del servidor',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
@@ -220,7 +231,7 @@ export async function GET(request: NextRequest) {
 }
 
 // --------------------------------------------------------
-// FunciÃƒÆ’Ã‚Â³n auxiliar: Traducir perÃƒÆ’Ã‚Â­odo
+// Función auxiliar: Traducir período
 // --------------------------------------------------------
 function traducirPeriodo(periodo: 'dia' | 'semana' | 'mes'): string {
   const traducciones = {
