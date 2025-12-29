@@ -737,9 +737,6 @@ export default function AdvisorPage() {
                     Período: {traducirPeriodo(analisisDetalle.periodo)}
                   </span>
                   <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                    Sector: {traducirSector(analisisDetalle.sector)}
-                  </span>
-                </div>
               </div>
             </div>
           </div>
