@@ -702,12 +702,8 @@ export default function AdvisorPage() {
                       onClick={() => verDetalleAnalisis(analisis.id)}
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                        <div>
-
-                          <p className="text-xl text-[#ACACAC]">
                             {formatearFecha(analisis.created_at)} · {formatearPeriodoAnalisis(analisis)}                          </p>
                         </div>
-                      </div>
                     </div>
                   </div>
                 </div>
