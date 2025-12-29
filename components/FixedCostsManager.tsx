@@ -115,7 +115,7 @@ export default function FixedCostsManager({ initialCategories, initialCosts }: P
 
       {/* Formulario nuevo costo */}
       {showAddCost && (
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-gray-200 rounded-xl shadow-sm p-6">
           <h3 className="font-semibold text-gray-900 mb-4">Nuevo Costo Fijo</h3>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
@@ -212,7 +212,7 @@ export default function FixedCostsManager({ initialCategories, initialCosts }: P
         const categoryTotal = categoryCosts.reduce((sum, c) => sum + getMonthlyAmount(c), 0)
 
         return (
-          <div key={catId} className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <div key={catId} className="bg-gray-200 rounded-xl shadow-sm overflow-hidden">
             <div className="px-6 py-4 bg-gray-50 border-b flex justify-between items-center">
               <h3 className="font-semibold text-gray-900 text-[20px]">
                 {category?.icon} {category?.name || 'Otros'}
@@ -259,7 +259,7 @@ export default function FixedCostsManager({ initialCategories, initialCosts }: P
       })}
 
       {costs.length === 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+        <div className="bg-gray-200 rounded-xl shadow-sm p-12 text-center">
           <span className="text-4xl block mb-2">💰</span>
           <p className="text-gray-500">No hay costos fijos registrados</p>
           <p className="text-sm text-gray-400 mt-1">

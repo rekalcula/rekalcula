@@ -56,7 +56,7 @@ export default function ProfitabilityAnalysis({ data }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6">
+    <div className="bg-gray-200 rounded-xl shadow-sm p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
         📈 Análisis de Rentabilidad
       </h3>

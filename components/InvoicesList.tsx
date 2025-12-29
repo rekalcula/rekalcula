@@ -126,7 +126,7 @@ export default function InvoicesList({ invoices }: InvoicesListProps) {
 
   if (invoices.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow p-12 text-center">
+      <div className="bg-gray-200 rounded-lg shadow p-12 text-center">
         <div className="text-6xl mb-4">📄</div>
         <h3 className="text-xl font-semibold text-gray-900 mb-2">
           No hay facturas aún
@@ -159,7 +159,7 @@ export default function InvoicesList({ invoices }: InvoicesListProps) {
       </div>
 
       {/* Tabla */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-gray-200 rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -184,7 +184,7 @@ export default function InvoicesList({ invoices }: InvoicesListProps) {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-gray-200 divide-y divide-gray-200">
               {filteredInvoices.map((invoice) => (
                 <tr key={invoice.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

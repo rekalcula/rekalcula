@@ -69,7 +69,7 @@ export default function BusinessSetupForm({ existingConfig, businessTypes }: Pro
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* Tipo de Negocio */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-gray-200 rounded-xl shadow-sm p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">
           ¿Qué tipo de negocio tienes?
         </h2>
@@ -105,7 +105,7 @@ export default function BusinessSetupForm({ existingConfig, businessTypes }: Pro
       </div>
 
       {/* Información del Negocio */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-gray-200 rounded-xl shadow-sm p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">
           Información del Negocio
         </h2>

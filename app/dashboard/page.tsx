@@ -41,21 +41,21 @@ export default async function DashboardPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-gray-200 rounded-lg shadow p-6">
           <div className="text-xl text-gray-500">Total Facturas</div>
           <div className="text-3xl font-bold text-gray-900 mt-2">
             {totalInvoices}
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-gray-200 rounded-lg shadow p-6">
           <div className="text-xl text-gray-500">Gasto Total</div>
           <div className="text-3xl font-bold text-gray-900 mt-2">
             {totalAmount.toFixed(2)}€
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-gray-200 rounded-lg shadow p-6">
           <div className="text-xl text-gray-500">Promedio por Factura</div>
           <div className="text-3xl font-bold text-gray-900 mt-2">
             {avgAmount.toFixed(2)}€
@@ -88,7 +88,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Link
           href="/dashboard/upload"
-          className="bg-white rounded-lg shadow p-8 hover:shadow-lg transition-shadow cursor-pointer group"
+          className="bg-gray-200 rounded-lg shadow p-8 hover:shadow-lg transition-shadow cursor-pointer group"
         >
           <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">📤</div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -101,7 +101,7 @@ export default async function DashboardPage() {
 
         <Link
           href="/dashboard/invoices"
-          className="bg-white rounded-lg shadow p-8 hover:shadow-lg transition-shadow cursor-pointer group"
+          className="bg-gray-200 rounded-lg shadow p-8 hover:shadow-lg transition-shadow cursor-pointer group"
         >
           <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">📄</div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">

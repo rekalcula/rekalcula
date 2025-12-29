@@ -112,7 +112,7 @@ export default function QuickSaleForm({ products, categories }: Props) {
       {/* Panel izquierdo: Productos */}
       <div className="md:col-span-2 space-y-4">
         {/* Fecha */}
-        <div className="bg-white rounded-xl shadow-sm p-4">
+        <div className="bg-gray-200 rounded-xl shadow-sm p-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Fecha de venta
           </label>
@@ -125,7 +125,7 @@ export default function QuickSaleForm({ products, categories }: Props) {
         </div>
 
         {/* Categorías */}
-        <div className="bg-white rounded-xl shadow-sm p-4">
+        <div className="bg-gray-200 rounded-xl shadow-sm p-4">
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setActiveCategory(null)}
@@ -154,7 +154,7 @@ export default function QuickSaleForm({ products, categories }: Props) {
         </div>
 
         {/* Grid de productos */}
-        <div className="bg-white rounded-xl shadow-sm p-4">
+        <div className="bg-gray-200 rounded-xl shadow-sm p-4">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {filteredProducts.map((product) => {
               const itemInCart = items.find(i => i.product_id === product.id)
@@ -189,7 +189,7 @@ export default function QuickSaleForm({ products, categories }: Props) {
 
       {/* Panel derecho: Resumen */}
       <div className="space-y-4">
-        <div className="bg-white rounded-xl shadow-sm p-6 sticky top-4">
+        <div className="bg-gray-200 rounded-xl shadow-sm p-6 sticky top-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Resumen de Venta
           </h3>

@@ -74,7 +74,7 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
     <>
       {/* Barra de selección */}
       {allIds.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-6 flex items-center justify-between">
+        <div className="bg-gray-200 rounded-xl shadow-sm p-4 mb-6 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <label className="flex items-center space-x-2 cursor-pointer">
               <input
@@ -109,7 +109,7 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
       {/* Lista de facturas */}
       <div className="space-y-6">
         {sortedDates.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+          <div className="bg-gray-200 rounded-xl shadow-sm p-12 text-center">
             <span className="text-4xl block mb-2">📄</span>
             <p className="text-gray-500">No hay facturas registradas</p>
             <Link
@@ -133,7 +133,7 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
               : 'Sin fecha'
 
             return (
-              <div key={date} className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div key={date} className="bg-gray-200 rounded-xl shadow-sm overflow-hidden">
                 {/* Cabecera de fecha */}
                 <div className="px-6 py-4 bg-gray-50 border-b flex justify-between items-center">
                   <h3 className="font-semibold text-gray-900 capitalize">
