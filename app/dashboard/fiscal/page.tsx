@@ -82,7 +82,7 @@ export default function FiscalPage() {
       <div className="bg-[#0d0d0d] rounded-xl p-6 space-y-6">
         
         <div>
-          <label className="block text-sm font-medium text-[#ACACAC] mb-2">Tipo de Entidad</label>
+          <label className="block text-[18px] font-medium text-[#ACACAC] mb-2">Tipo de Entidad</label>
           <select
             value={config.tipo_entidad}
             onChange={(e) => setConfig({ ...config, tipo_entidad: e.target.value as TipoEntidad })}
@@ -95,7 +95,7 @@ export default function FiscalPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[#ACACAC] mb-2">Regimen Fiscal</label>
+          <label className="block text-[18px] font-medium text-[#ACACAC] mb-2">Regimen Fiscal</label>
           <select
             value={config.regimen_fiscal}
             onChange={(e) => setConfig({ ...config, regimen_fiscal: e.target.value as RegimenFiscal })}
@@ -110,7 +110,7 @@ export default function FiscalPage() {
 
         {config.tipo_entidad === 'autonomo' && (
           <div>
-            <label className="block text-sm font-medium text-[#ACACAC] mb-2">IRPF (%)</label>
+            <label className="block text-[18px] font-medium text-[#ACACAC] mb-2">IRPF (%)</label>
             <input
               type="number"
               step="0.01"
@@ -123,7 +123,7 @@ export default function FiscalPage() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-[#ACACAC] mb-2">Tipo IVA</label>
+            <label className="block text-[18px] font-medium text-[#ACACAC] mb-2">Tipo IVA</label>
             <select
               value={config.tipo_iva}
               onChange={(e) => setConfig({ ...config, tipo_iva: e.target.value as TipoIVA })}
@@ -137,7 +137,7 @@ export default function FiscalPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#ACACAC] mb-2">% IVA</label>
+            <label className="block text-[18px] font-medium text-[#ACACAC] mb-2">% IVA</label>
             <input
               type="number"
               step="0.01"
@@ -150,7 +150,7 @@ export default function FiscalPage() {
 
         {(config.tipo_entidad === 'sl' || config.tipo_entidad === 'sa') && (
           <div>
-            <label className="block text-sm font-medium text-[#ACACAC] mb-2">Impuesto Sociedades (%)</label>
+            <label className="block text-[18px] font-medium text-[#ACACAC] mb-2">Impuesto Sociedades (%)</label>
             <input
               type="number"
               step="0.01"
@@ -165,7 +165,7 @@ export default function FiscalPage() {
           <h3 className="text-lg font-semibold text-[#d98c21] mb-4">Umbrales</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[#ACACAC] mb-2">Umbral 1</label>
+              <label className="block text-[18px] font-medium text-[#ACACAC] mb-2">Umbral 1</label>
               <input
                 type="number"
                 value={config.umbral_alerta_1}
@@ -174,7 +174,7 @@ export default function FiscalPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#ACACAC] mb-2">Umbral 2</label>
+              <label className="block text-[18px] font-medium text-[#ACACAC] mb-2">Umbral 2</label>
               <input
                 type="number"
                 value={config.umbral_alerta_2}
