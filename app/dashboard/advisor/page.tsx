@@ -536,7 +536,7 @@ export default function AdvisorPage() {
       {tabActiva === 'aplicados' && (
         <div className="space-y-4">
           {consejosAplicados.length > 0 && (
-            <div className="bg-[#262626] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="bg-[#262626] rounded-xl p-4inline-flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -621,7 +621,7 @@ export default function AdvisorPage() {
       {tabActiva === 'guardados' && !analisisDetalle && (
         <div className="space-y-4">
           {analisisGuardados.length > 0 && (
-            <div className="bg-[#262626] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="bg-[#262626] rounded-xl p-4inline-flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
