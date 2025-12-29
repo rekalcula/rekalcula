@@ -114,7 +114,7 @@ export default function SalesAnalyticsChart() {
               <button
                 onClick={() => setPeriod('day')}
                 className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[20px] font-medium transition-colors ${
-                  period === 'day' ? 'bg-gray-200 shadow text-[#c15f3c]' : 'text-gray-600 hover:text-gray-900'
+                  period === 'day' ? 'bg-gray-200 shadow text-[#c15f3c]' : 'text-[#FFFFFF] hover:text-gray-300'
                 }`}
               >
                 Día
@@ -122,7 +122,7 @@ export default function SalesAnalyticsChart() {
               <button
                 onClick={() => setPeriod('week')}
                 className={`px-4 py-2 rounded-lg text-[20px] font-medium transition-colors ${
-                  period === 'week' ? 'bg-gray-200 shadow text-[#c15f3c]' : 'text-gray-600 hover:text-gray-900'
+                  period === 'week' ? 'bg-gray-200 shadow text-[#c15f3c]' : 'text-[#FFFFFF] hover:text-gray-300'
                 }`}
               >
                 Semana
@@ -130,7 +130,7 @@ export default function SalesAnalyticsChart() {
               <button
                 onClick={() => setPeriod('month')}
                 className={`px-4 py-2 rounded-lg text-[20px] font-medium transition-colors ${
-                  period === 'month' ? 'bg-gray-200 shadow text-[#c15f3c]' : 'text-gray-600 hover:text-gray-900'
+                  period === 'month' ? 'bg-gray-200 shadow text-[#c15f3c]' : 'text-[#FFFFFF] hover:text-gray-300'
                 }`}
               >
                 Mes
@@ -158,7 +158,7 @@ export default function SalesAnalyticsChart() {
               <button
                 onClick={() => setViewMode('quantity')}
                 className={`px-4 py-2 rounded-lg text-[20px] font-medium transition-colors ${
-                  viewMode === 'quantity' ? 'bg-gray-200 shadow text-[#c15f3c]' : 'text-gray-600 hover:text-gray-900'
+                  viewMode === 'quantity' ? 'bg-gray-200 shadow text-[#c15f3c]' : 'text-[#FFFFFF] hover:text-gray-300'
                 }`}
               >
                 Cantidad
@@ -166,7 +166,7 @@ export default function SalesAnalyticsChart() {
               <button
                 onClick={() => setViewMode('revenue')}
                 className={`px-4 py-2 rounded-lg text-[20px] font-medium transition-colors ${
-                  viewMode === 'revenue' ? 'bg-gray-200 shadow text-[#c15f3c]' : 'text-gray-600 hover:text-gray-900'
+                  viewMode === 'revenue' ? 'bg-gray-200 shadow text-[#c15f3c]' : 'text-[#FFFFFF] hover:text-gray-300'
                 }`}
               >
                 Ingresos
