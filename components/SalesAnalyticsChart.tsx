@@ -110,11 +110,11 @@ export default function SalesAnalyticsChart() {
           {/* Período */}
           <div className="flex items-center space-x-2">
             <span className="text-[20px] font-medium text-gray-700">Período:</span>
-            <div className="flex bg-[#0D0D0D] rounded-lg p-1">
+            <div className="flex bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setPeriod('day')}
                 className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[20px] font-medium transition-colors ${
-                  period === 'day' ? 'bg-gray-200 shadow text-[#c15f3c]' : 'text-[#FFFFFF] hover:text-gray-300'
+                  period === 'day' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#FFFFFF] hover:text-gray-300'
                 }`}
               >
                 Día
@@ -122,7 +122,7 @@ export default function SalesAnalyticsChart() {
               <button
                 onClick={() => setPeriod('week')}
                 className={`px-4 py-2 rounded-lg text-[20px] font-medium transition-colors ${
-                  period === 'week' ? 'bg-gray-200 shadow text-[#c15f3c]' : 'text-[#FFFFFF] hover:text-gray-300'
+                  period === 'week' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#FFFFFF] hover:text-gray-300'
                 }`}
               >
                 Semana
@@ -130,7 +130,7 @@ export default function SalesAnalyticsChart() {
               <button
                 onClick={() => setPeriod('month')}
                 className={`px-4 py-2 rounded-lg text-[20px] font-medium transition-colors ${
-                  period === 'month' ? 'bg-gray-200 shadow text-[#c15f3c]' : 'text-[#FFFFFF] hover:text-gray-300'
+                  period === 'month' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#FFFFFF] hover:text-gray-300'
                 }`}
               >
                 Mes
@@ -154,11 +154,11 @@ export default function SalesAnalyticsChart() {
           {/* Vista */}
           <div className="flex items-center space-x-2">
             <span className="text-[20px] font-medium text-gray-700">Ver:</span>
-            <div className="flex bg-[#0D0D0D] rounded-lg p-1">
+            <div className="flex bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setViewMode('quantity')}
                 className={`px-4 py-2 rounded-lg text-[20px] font-medium transition-colors ${
-                  viewMode === 'quantity' ? 'bg-gray-200 shadow text-[#c15f3c]' : 'text-[#FFFFFF] hover:text-gray-300'
+                  viewMode === 'quantity' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#FFFFFF] hover:text-gray-300'
                 }`}
               >
                 Cantidad
@@ -166,7 +166,7 @@ export default function SalesAnalyticsChart() {
               <button
                 onClick={() => setViewMode('revenue')}
                 className={`px-4 py-2 rounded-lg text-[20px] font-medium transition-colors ${
-                  viewMode === 'revenue' ? 'bg-gray-200 shadow text-[#c15f3c]' : 'text-[#FFFFFF] hover:text-gray-300'
+                  viewMode === 'revenue' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#FFFFFF] hover:text-gray-300'
                 }`}
               >
                 Ingresos
