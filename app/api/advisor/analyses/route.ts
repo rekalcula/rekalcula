@@ -7,7 +7,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// GET: Obtener lista de an�lisis guardados
+// GET: Obtener lista de análisis guardados
 export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth()
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Guardar un nuevo an�lisis
+// POST: Guardar un nuevo análisis
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth()
@@ -45,9 +45,9 @@ export async function POST(request: NextRequest) {
       .insert({
         user_id: userId,
         periodo,
-        sector,
         fecha_inicio: fechaInicio || null,
         fecha_fin: fechaFin || null,
+        sector,
         total_ventas: totalVentas || 0,
         total_ingresos: totalIngresos || 0,
         num_recomendaciones: recomendaciones?.length || 0,
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE: Borrar an�lisis (uno o varios)
+// DELETE: Borrar análisis (uno o varios)
 export async function DELETE(request: NextRequest) {
   try {
     const { userId } = await auth()
