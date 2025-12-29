@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 // API DEL ASESOR - ENDPOINT PRINCIPAL
 // ============================================================
 //
@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
         success: true,
         sector: 'desconocido',
         confianzaSector: 0,
-        periodo: traducirPeriodo(periodo),
+        periodo: fechaInicio && fechaFin ? ``` - ````` : traducirPeriodo(periodo),
         recomendaciones: [],
         sinRecomendaciones: true,
         mensaje: 'No hay ventas registradas en este perÃƒÆ’Ã‚Â­odo. Sube algunos tickets de venta para recibir recomendaciones personalizadas.'
@@ -151,7 +151,7 @@ export async function GET(request: NextRequest) {
         success: true,
         sector: metricas.sector,
         confianzaSector: metricas.confianzaSector,
-        periodo: traducirPeriodo(periodo),
+        periodo: fechaInicio && fechaFin ? ``` - ````` : traducirPeriodo(periodo),
         recomendaciones: [],
         sinRecomendaciones: true,
         mensaje: mensajeDatos
@@ -168,7 +168,7 @@ export async function GET(request: NextRequest) {
         success: true,
         sector: metricas.sector,
         confianzaSector: metricas.confianzaSector,
-        periodo: traducirPeriodo(periodo),
+        periodo: fechaInicio && fechaFin ? ``` - ````` : traducirPeriodo(periodo),
         recomendaciones: [],
         sinRecomendaciones: true,
         mensaje: 'No se detectaron oportunidades claras con los datos actuales. Esto puede significar que tu negocio estÃƒÆ’Ã‚Â¡ bien equilibrado o que necesitamos mÃƒÆ’Ã‚Â¡s datos para un anÃƒÆ’Ã‚Â¡lisis preciso.'
@@ -198,7 +198,7 @@ export async function GET(request: NextRequest) {
       success: true,
       sector: metricas.sector,
       confianzaSector: metricas.confianzaSector,
-      periodo: traducirPeriodo(periodo),
+      periodo: fechaInicio && fechaFin ? ``` - ````` : traducirPeriodo(periodo),
       recomendaciones,
       sinRecomendaciones: false,
       mensaje: mensajeDatos || undefined
