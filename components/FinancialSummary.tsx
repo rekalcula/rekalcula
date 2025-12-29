@@ -25,7 +25,7 @@ export default function FinancialSummary({ data }: Props) {
   return (
     <div className="grid md:grid-cols-4 gap-6">
       {/* Ventas */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-gray-200 rounded-xl shadow-sm p-6">
         <div className="flex items-center justify-between mb-2">
           <span className="text-2xl">💰</span>
           <span className="text-xs text-gray-500">Este mes</span>
@@ -37,7 +37,7 @@ export default function FinancialSummary({ data }: Props) {
       </div>
 
       {/* Costos */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-gray-200 rounded-xl shadow-sm p-6">
         <div className="flex items-center justify-between mb-2">
           <span className="text-2xl">📊</span>
         </div>
@@ -67,7 +67,7 @@ export default function FinancialSummary({ data }: Props) {
       </div>
 
       {/* Punto de Equilibrio */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-gray-200 rounded-xl shadow-sm p-6">
         <div className="flex items-center justify-between mb-2">
           <span className="text-2xl">🎯</span>
         </div>

@@ -68,7 +68,7 @@ export default async function InvoicesPage() {
           </div>
 
           {/* Resumen */}
-          <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+          <div className="bg-gray-200 rounded-xl shadow-sm p-6 mb-6">
             <div className="grid md:grid-cols-3 gap-6">
               <div>
                 <p className="text-xl text-gray-500">Gasto Total</p>

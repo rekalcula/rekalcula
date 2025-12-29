@@ -73,7 +73,7 @@ export default function TemporalComparison({ invoices }: TemporalComparisonProps
     <div className="space-y-6">
       {/* Comparación Mes Actual vs Anterior */}
       {comparison && (
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-gray-200 rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Comparativa Mensual
           </h3>
@@ -115,7 +115,7 @@ export default function TemporalComparison({ invoices }: TemporalComparisonProps
       )}
 
       {/* Gráfica de Evolución Temporal */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-gray-200 rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Evolución de Gastos
         </h3>
@@ -133,7 +133,7 @@ export default function TemporalComparison({ invoices }: TemporalComparisonProps
       </div>
 
       {/* Gráfica de Cantidad de Facturas */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-gray-200 rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Cantidad de Facturas por Mes
         </h3>
@@ -150,7 +150,7 @@ export default function TemporalComparison({ invoices }: TemporalComparisonProps
 
       {/* Tendencias y Predicciones */}
       {monthlyData.length >= 3 && (
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-gray-200 rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             📊 Análisis de Tendencias
           </h3>

@@ -130,7 +130,7 @@ export default function ProductsManager({ initialCategories, initialProducts }: 
   return (
     <div className="space-y-6">
       {/* Categorías */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-gray-200 rounded-xl shadow-sm p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Categorías</h2>
           <button
@@ -206,7 +206,7 @@ export default function ProductsManager({ initialCategories, initialProducts }: 
       </div>
 
       {/* Productos */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-gray-200 rounded-xl shadow-sm p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-gray-900">
             Productos/Servicios

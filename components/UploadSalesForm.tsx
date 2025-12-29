@@ -71,7 +71,7 @@ export default function UploadSalesForm() {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-8">
+    <div className="bg-gray-200 rounded-xl shadow-sm p-8">
       <div
         className={`relative border-2 border-dashed rounded-xl p-12 text-center transition-colors ${
           dragActive 

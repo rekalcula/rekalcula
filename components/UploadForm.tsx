@@ -150,7 +150,7 @@ export default function UploadForm() {
 
       {/* Lista de archivos seleccionados */}
       {files.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-gray-200 rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Archivos seleccionados ({files.length})
           </h3>
@@ -188,7 +188,7 @@ export default function UploadForm() {
 
       {/* Barra de progreso */}
       {uploading && (
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-gray-200 rounded-lg shadow p-6">
           <div className="mb-2 flex justify-between items-center">
             <span className="text-sm font-medium text-gray-700">
               Procesando archivos...

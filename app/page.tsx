@@ -73,7 +73,7 @@ export default function HomePage() {
         {/* Beneficios */}
         <div className="mt-16 sm:mt-32 max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-            <div className="bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-gray-100">
+            <div className="bg-gray-200 p-6 sm:p-8 rounded-xl shadow-sm border border-gray-100">
               <div className="bg-[#FFF5ED] w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-4">
                 <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-[#d98c21]" />
               </div>
@@ -83,7 +83,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-gray-100">
+            <div className="bg-gray-200 p-6 sm:p-8 rounded-xl shadow-sm border border-gray-100">
               <div className="bg-green-100 w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-4">
                 <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
               </div>
@@ -93,7 +93,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-gray-100">
+            <div className="bg-gray-200 p-6 sm:p-8 rounded-xl shadow-sm border border-gray-100">
               <div className="bg-purple-100 w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-4">
                 <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
               </div>
@@ -157,7 +157,7 @@ export default function HomePage() {
           </p>
           <Link
             href="/sign-up"
-            className="inline-flex items-center gap-2 bg-white text-[#d98c21] px-6 py-3 sm:px-8 sm:py-4 rounded-lg hover:bg-gray-100 transition text-base sm:text-lg font-semibold shadow-lg"
+            className="inline-flex items-center gap-2 bg-gray-200 text-[#d98c21] px-6 py-3 sm:px-8 sm:py-4 rounded-lg hover:bg-gray-100 transition text-base sm:text-lg font-semibold shadow-lg"
           >
             Empezar ahora gratis
             <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />

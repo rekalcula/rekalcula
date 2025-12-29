@@ -65,7 +65,7 @@ export default async function CostsPage() {
               <p className="mt-2 text-[#FFFCFF] text-[20px]">Gestiona tus gastos fijos mensuales
               </p>
             </div>
-            <div className="bg-white rounded-xl shadow-sm p-6 border-2 border-[#979797] text-right">
+            <div className="bg-gray-200 rounded-xl shadow-sm p-6 border-2 border-[#979797] text-right">
               <p className="text-xl text-gray-500">Total Mensual</p>
               <p className="text-3xl font-bold text-red-600">
                 €{monthlyTotal.toFixed(2)}

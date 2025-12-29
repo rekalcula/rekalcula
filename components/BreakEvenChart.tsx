@@ -55,7 +55,7 @@ export default function BreakEvenChart({ data }: Props) {
   const yTicks = Array.from({ length: tickCount + 1 }, (_, i) => i * tickInterval)
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6">
+    <div className="bg-gray-200 rounded-xl shadow-sm p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
         📊 Gráfico de Punto de Equilibrio
       </h3>

@@ -40,7 +40,7 @@ export default function ExpenseChart({ invoices }: ExpenseChartProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Gráfica de Barras */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-gray-200 rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Gastos por Categoría
         </h3>
@@ -56,7 +56,7 @@ export default function ExpenseChart({ invoices }: ExpenseChartProps) {
       </div>
 
       {/* Gráfica de Pastel */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-gray-200 rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Distribución de Gastos
         </h3>

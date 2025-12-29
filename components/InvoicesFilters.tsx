@@ -52,7 +52,7 @@ export default function InvoicesFilters({ onFilterChange, categories, suppliers 
   const hasActiveFilters = Object.values(filters).some(value => value !== '')
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 mb-6">
+    <div className="bg-gray-200 rounded-lg shadow p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">Filtros</h3>
         {hasActiveFilters && (
