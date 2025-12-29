@@ -77,7 +77,7 @@ interface AdvisorResponse {
 interface AnalysisItem {
   id: string
   created_at: string
-  periodo: string
+  periodo: string`r`n  fecha_inicio?: string`r`n  fecha_fin?: string
   sector: string
   total_ventas: number
   total_ingresos: number
@@ -332,6 +332,15 @@ export default function AdvisorPage() {
       case 'mes': return 'Mes'
       default: return p
     }
+
+  const formatearPeriodoAnalisis = (analisis: AnalysisItem) => {
+    if (analisis.fecha_inicio && analisis.fecha_fin) {
+      const inicio = new Date(analisis.fecha_inicio).toLocaleDateString('es-ES', { day: 'numeric', month: 'numeric', year: 'numeric' })
+      const fin = new Date(analisis.fecha_fin).toLocaleDateString('es-ES', { day: 'numeric', month: 'numeric', year: 'numeric' })
+      return ${inicio} - 
+    }
+    return traducirPeriodo(analisis.periodo)
+  }
   }
 
   const traducirSector = (s: string) => {
@@ -694,7 +703,7 @@ export default function AdvisorPage() {
                         <div>
 
                           <p className="text-xl text-[#ACACAC]">
-                            {formatearFecha(analisis.created_at)} · {traducirPeriodo(analisis.periodo)}                          </p>
+                            {formatearFecha(analisis.created_at)} · {formatearPeriodoAnalisis(analisis)}                          </p>
                         </div>
                       </div>
                     </div>
