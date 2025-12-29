@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabase
       .from('advisor_analyses')
-      .select('id, created_at, periodo, sector, total_ventas, total_ingresos, num_recomendaciones')
+      .select('id, created_at, periodo, sector, fecha_inicio, fecha_fin, total_ventas, total_ingresos, num_recomendaciones')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
 
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { periodo, sector, totalVentas, totalIngresos, recomendaciones, resumen } = body
+    const { periodo, fechaInicio, fechaFin, sector, totalVentas, totalIngresos, recomendaciones, resumen } = body
 
     const { data, error } = await supabase
       .from('advisor_analyses')
@@ -46,6 +46,8 @@ export async function POST(request: NextRequest) {
         user_id: userId,
         periodo,
         sector,
+        fecha_inicio: fechaInicio || null,
+        fecha_fin: fechaFin || null,
         total_ventas: totalVentas || 0,
         total_ingresos: totalIngresos || 0,
         num_recomendaciones: recomendaciones?.length || 0,
