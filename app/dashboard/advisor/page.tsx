@@ -732,7 +732,6 @@ export default function AdvisorPage() {
           <h2 className="text-xl font-bold text-[#FFFCFF]">
             Análisis del {formatearFecha(analisisDetalle.created_at)}
           </h2>
-
           <div className="flex flex-wrap gap-2 mt-2 text-xl">
             <span className="bg-gray-100 text-[#ACACAC] px-2 py-1 rounded">
               Período: {traducirPeriodo(analisisDetalle.periodo)}
@@ -755,54 +754,29 @@ export default function AdvisorPage() {
 
         {analisisDetalle.recomendaciones?.map((rec: any) => {
           const colors = getColorPrioridad(rec.prioridad)
-
           return (
-            <div
-              key={rec.id}
-              className={`${colors.bg} border ${colors.border} rounded-xl p-4 sm:p-5`}
-            >
+            <div key={rec.id} className={`${colors.bg} border ${colors.border} rounded-xl p-4 sm:p-5`}>
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors.badge}`}>
                       {getTextoPrioridad(rec.prioridad)}
                     </span>
-
                     {rec.datosReales?.tendencia !== 0 && (
-                      <span
-                        className={`flex items-center gap-1 text-xs ${
-                          rec.datosReales?.tendencia > 0 ? 'text-green-600' : 'text-red-600'
-                        }`}
-                      >
+                      <span className={`flex items-center gap-1 text-xs ${rec.datosReales?.tendencia > 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {rec.datosReales?.tendencia > 0 ? <IconTrendingUp /> : <IconTrendingDown />}
-                        {rec.datosReales?.tendencia > 0 ? '+' : ''}
-                        {rec.datosReales?.tendencia}%
+                        {rec.datosReales?.tendencia > 0 ? '+' : ''}{rec.datosReales?.tendencia}%
                       </span>
                     )}
                   </div>
-
-                  <h4 className="font-semibold text-[#262626] mb-2">
-                    {rec.titulo}
-                  </h4>
-
-                  <p className="text-sm text-gray-800 mb-3">
-                    {rec.mensaje}
-                  </p>
-
+                  <h4 className="font-semibold text-[#262626] mb-2">{rec.titulo}</h4>
+                  <p className="text-sm text-gray-800 mb-3">{rec.mensaje}</p>
                   <div className="flex flex-wrap gap-4 text-xs text-[#ACACAC]">
                     <span>Ventas: {rec.datosReales?.ventas || 0}</span>
-                    <span>
-                      Ingresos: €{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}
-                    </span>
+                    <span>Ingresos: €{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
                   </div>
-
                   <button
-                    onClick={() =>
-                      aplicarConsejo(rec, {
-                        sector: analisisDetalle?.sector,
-                        periodo: analisisDetalle?.periodo
-                      })
-                    }
+                    onClick={() => aplicarConsejo(rec, { sector: analisisDetalle?.sector, periodo: analisisDetalle?.periodo })}
                     className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xl font-medium mt-3"
                   >
                     <IconCheck />
@@ -816,5 +790,4 @@ export default function AdvisorPage() {
       </div>
     )}
   </div>
-  )
-}
+)}  // ✅ CORRECTO: Paréntesis + llave
