@@ -46,14 +46,10 @@ export function cumpleUmbralesMinimos(
   porcentajeVentasTotal: number,
   impactoEconomicoRelativo: number
 ): boolean {
-  // 1. Debe tener mínimo 3 ventas en cada período
-  if (ventasProducto < UMBRALES_CIENTIFICOS.VENTAS_MINIMAS_POR_PERIODO) {
-    return false
-  }
-  
-  if (ventasAnterioresProducto < UMBRALES_CIENTIFICOS.VENTAS_MINIMAS_POR_PERIODO) {
-    return false
-  }
+  // VALIDACIONES ELIMINADAS - Ahora acepta cualquier producto con datos
+  // Simplemente verificamos que tenga al menos 1 venta
+  return ventasProducto > 0
+}
   
   // 2. Debe representar al menos 5% de las ventas totales
   if (porcentajeVentasTotal < UMBRALES_CIENTIFICOS.PARTICIPACION_VENTAS_MINIMA) {
