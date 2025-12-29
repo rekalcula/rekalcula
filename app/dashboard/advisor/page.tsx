@@ -379,7 +379,7 @@ export default function AdvisorPage() {
           <button
             onClick={() => { setTabActiva('guardados'); setAnalisisDetalle(null) }}
             className={`flex items-center gap-2 px-4 sm:px-6 py-3 font-medium text-xl transition-colors ${
-              tabActiva === 'guardados' ? 'bg-[#0d0d0d] text-[#979797]' : 'text-[#979797] hover:bg-[#2d2d2d]'
+              tabActiva === '' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#0D0D0D] hover:bg-[#2d2d2d]'
             }`}
           >
             <IconFolder />
@@ -393,7 +393,7 @@ export default function AdvisorPage() {
           <button
             onClick={() => { setTabActiva('nuevo'); setAnalisisDetalle(null) }}
             className={`flex items-center gap-2 px-4 sm:px-6 py-3 font-medium text-xl transition-colors ${
-              tabActiva === 'nuevo' ? 'bg-[#0d0d0d] text-[#979797]' : 'text-[#979797] hover:bg-[#2d2d2d]'
+              tabActiva === '' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#0D0D0D] hover:bg-[#2d2d2d]'
             }`}
           >
             <IconLightbulb />
@@ -402,7 +402,7 @@ export default function AdvisorPage() {
           <button
             onClick={() => setTabActiva('aplicados')}
             className={`flex items-center gap-2 px-4 sm:px-6 py-3 font-medium text-xl transition-colors ${
-              tabActiva === 'aplicados' ? 'bg-[#0d0d0d] text-[#979797]' : 'text-[#979797] hover:bg-[#2d2d2d]'
+              tabActiva === '' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#0D0D0D] hover:bg-[#2d2d2d]'
             }`}
           >
             <IconCheck />
