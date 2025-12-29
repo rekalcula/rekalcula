@@ -105,7 +105,7 @@ export default function SalesAnalyticsChart() {
   return (
     <div className="space-y-6">
       {/* Filtros */}
-      <div className="bg-gray-200 rounded-xl shadow-sm p-4">
+      <div className="bg-[#0D0D0D] rounded-xl shadow-sm p-4 text-[#FFFFFF]">
         <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-4">
           {/* Período */}
           <div className="flex items-center space-x-2">
