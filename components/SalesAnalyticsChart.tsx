@@ -212,7 +212,7 @@ export default function SalesAnalyticsChart() {
           <p className="text-[20px] text-gray-700">Producto Más Vendido</p>
           <p className="text-2xl font-bold text-[#c15f3c]">{data?.topProduct?.name || '-'}</p>
           {data?.topProduct && (
-            <p className="text-[20px] mt-1 text-gray-700">
+            <p className="text-[20px] mt-1 text-[#10B981]">
               {data.topProduct.quantity} uds · €{data.topProduct.revenue.toFixed(2)}
             </p>
           )}
@@ -245,7 +245,7 @@ export default function SalesAnalyticsChart() {
                   <div className="flex justify-between items-center">
                     <span className="font-medium text-gray-900">{product.name}</span>
                     <div className="flex items-center space-x-4">
-                      <span className="text-[#FFFFFF]">
+                      <span className="text-[#10B981]">
                         {viewMode === 'quantity'
                           ? `${product.quantity} uds`
                           : `€${product.revenue.toFixed(2)}`
