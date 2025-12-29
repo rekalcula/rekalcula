@@ -791,3 +791,6 @@ export default function AdvisorPage() {
     )}
   </div>
 )}  // ✅ CORRECTO: Paréntesis + llave
+    </div>
+  )
+}
