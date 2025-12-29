@@ -109,12 +109,12 @@ export default function SalesAnalyticsChart() {
         <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-4">
           {/* Período */}
           <div className="flex items-center space-x-2">
-            <span className="text-[20px] font-medium text-gray-700">Período:</span>
+            <span className="text-[20px] font-medium text-[#FFFFFF]">Período:</span>
             <div className="flex bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setPeriod('day')}
                 className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[20px] font-medium transition-colors ${
-                  period === 'day' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#FFFFFF] hover:text-gray-300'
+                  period === 'day' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#0D0D0D] hover:text-[#2D2D2D]'
                 }`}
               >
                 Día
@@ -122,7 +122,7 @@ export default function SalesAnalyticsChart() {
               <button
                 onClick={() => setPeriod('week')}
                 className={`px-4 py-2 rounded-lg text-[20px] font-medium transition-colors ${
-                  period === 'week' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#FFFFFF] hover:text-gray-300'
+                  period === 'week' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#0D0D0D] hover:text-[#2D2D2D]'
                 }`}
               >
                 Semana
@@ -130,7 +130,7 @@ export default function SalesAnalyticsChart() {
               <button
                 onClick={() => setPeriod('month')}
                 className={`px-4 py-2 rounded-lg text-[20px] font-medium transition-colors ${
-                  period === 'month' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#FFFFFF] hover:text-gray-300'
+                  period === 'month' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#0D0D0D] hover:text-[#2D2D2D]'
                 }`}
               >
                 Mes
@@ -146,19 +146,19 @@ export default function SalesAnalyticsChart() {
               onChange={(e) => setCompare(e.target.checked)}
               className="w-5 h-5 rounded border-gray-300 text-[#c15f3c] focus:ring-[#c15f3c]"
             />
-            <span className="text-[20px] font-medium text-gray-700">
+            <span className="text-[20px] font-medium text-[#FFFFFF]">
               Comparar {getCompareLabel()}
             </span>
           </label>
 
           {/* Vista */}
           <div className="flex items-center space-x-2">
-            <span className="text-[20px] font-medium text-gray-700">Ver:</span>
+            <span className="text-[20px] font-medium text-[#FFFFFF]">Ver:</span>
             <div className="flex bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setViewMode('quantity')}
                 className={`px-4 py-2 rounded-lg text-[20px] font-medium transition-colors ${
-                  viewMode === 'quantity' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#FFFFFF] hover:text-gray-300'
+                  viewMode === 'quantity' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#0D0D0D] hover:text-[#2D2D2D]'
                 }`}
               >
                 Cantidad
@@ -166,7 +166,7 @@ export default function SalesAnalyticsChart() {
               <button
                 onClick={() => setViewMode('revenue')}
                 className={`px-4 py-2 rounded-lg text-[20px] font-medium transition-colors ${
-                  viewMode === 'revenue' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#FFFFFF] hover:text-gray-300'
+                  viewMode === 'revenue' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#0D0D0D] hover:text-[#2D2D2D]'
                 }`}
               >
                 Ingresos
@@ -245,7 +245,7 @@ export default function SalesAnalyticsChart() {
                   <div className="flex justify-between items-center">
                     <span className="font-medium text-gray-900">{product.name}</span>
                     <div className="flex items-center space-x-4">
-                      <span className="text-gray-600">
+                      <span className="text-[#FFFFFF]">
                         {viewMode === 'quantity'
                           ? `${product.quantity} uds`
                           : `€${product.revenue.toFixed(2)}`
