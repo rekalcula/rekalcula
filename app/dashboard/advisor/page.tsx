@@ -690,12 +690,9 @@ export default function AdvisorPage() {
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <div>
-                          <h3 className="font-medium text-[#FFFCFF]">
-                            Análisis #{analisisGuardados.length - analisisGuardados.indexOf(analisis)}
-                          </h3>
+
                           <p className="text-xl text-[#ACACAC]">
-                            {formatearFecha(analisis.created_at)}
-                          </p>
+                            {formatearFecha(analisis.created_at)} · {traducirPeriodo(analisis.periodo)}                          </p>
                         </div>
                       </div>
                     </div>
