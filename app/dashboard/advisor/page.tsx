@@ -735,8 +735,6 @@ export default function AdvisorPage() {
                 <div className="flex flex-wrap gap-2 mt-2 text-xl">
                   <span className="bg-gray-100 text-[#ACACAC] px-2 py-1 rounded">
                     Período: {traducirPeriodo(analisisDetalle.periodo)}
-                  </span>
-                  <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
               </div>
             </div>
           </div>
