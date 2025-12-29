@@ -41,24 +41,15 @@ export const UMBRALES_CIENTIFICOS = {
 
 // FunciÃ³n auxiliar: validar que un producto cumple umbrales mÃ­nimos
 export function cumpleUmbralesMinimos(
-  // VALIDACIONES ELIMINADAS - Ahora acepta cualquier producto con datos
+  ventasProducto: number,
+  ventasAnterioresProducto: number,
+  porcentajeVentasTotal: number,
+  impactoEconomicoRelativo: number
+): boolean {
+  // VALIDACIONES ELIMINADAS - Ahora acepta cualquier producto con ventas
   return ventasProducto > 0
 }
-  
-  // 2. Debe representar al menos 5% de las ventas totales
-  if (porcentajeVentasTotal < UMBRALES_CIENTIFICOS.PARTICIPACION_VENTAS_MINIMA) {
-    return false
-  }
-  
-  // 3. Su impacto econÃ³mico debe ser al menos 2% del total
-  if (Math.abs(impactoEconomicoRelativo) < UMBRALES_CIENTIFICOS.IMPACTO_ECONOMICO_MINIMO) {
-    return false
-  }
-  
-  return true
-}
 
-// FunciÃ³n auxiliar: verificar si tendencia es estadÃ­sticamente significativa
 export function esTendenciaSignificativa(
   tendencia: number,
   tipoTendencia: 'crecimiento' | 'declive'
