@@ -549,7 +549,7 @@ export default function AdvisorPage() {
       {tabActiva === 'aplicados' && (
         <div className="space-y-4">
           {consejosAplicados.length > 0 && (
-            <div className="bg-[#262626] rounded-xl p-4inline-flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="bg-[#262626] rounded-xl p-4 inline-flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -634,7 +634,7 @@ export default function AdvisorPage() {
       {tabActiva === 'guardados' && !analisisDetalle && (
         <div className="space-y-4">
           {analisisGuardados.length > 0 && (
-            <div className="bg-[#262626] rounded-xl p-4inline-flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="bg-[#262626] rounded-xl p-4 inline-flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -717,76 +717,104 @@ export default function AdvisorPage() {
         </div>
       )}
 
-      {tabActiva === 'guardados' && analisisDetalle && (
-        <div className="space-y-4">
-          <div className="bg-[#262626] rounded-xl p-4 sm:p-6">
-            <button
-              onClick={() => setAnalisisDetalle(null)}
-              className="text-xl text-[#ACACAC] hover:text-[#FFFCFF] mb-4 flex items-center gap-1"
-            >
-              ← Volver a la lista
-            </button>
+{tabActiva === 'guardados' && analisisDetalle && (
+  <div className="space-y-4">
+    <div className="bg-[#262626] rounded-xl p-4 sm:p-6">
+      <button
+        onClick={() => setAnalisisDetalle(null)}
+        className="text-xl text-[#ACACAC] hover:text-[#FFFCFF] mb-4 flex items-center gap-1"
+      >
+        ← Volver a la lista
+      </button>
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-bold text-[#FFFCFF]">
-                  Análisis del {formatearFecha(analisisDetalle.created_at)}
-                </h2>
-                <div className="flex flex-wrap gap-2 mt-2 text-xl">
-                  <span className="bg-gray-100 text-[#ACACAC] px-2 py-1 rounded">
-                    Período: {traducirPeriodo(analisisDetalle.periodo)}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-bold text-[#FFFCFF]">
+            Análisis del {formatearFecha(analisisDetalle.created_at)}
+          </h2>
+
+          <div className="flex flex-wrap gap-2 mt-2 text-xl">
+            <span className="bg-gray-100 text-[#ACACAC] px-2 py-1 rounded">
+              Período: {traducirPeriodo(analisisDetalle.periodo)}
+            </span>
           </div>
-
-          {cargandoDetalle ? (
-            <div className="bg-[#262626] rounded-xl p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-              <p className="text-[#ACACAC] mt-4">Cargando detalles...</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <p className="text-xl text-[#ACACAC]">
-                {analisisDetalle.recomendaciones?.length || 0} recomendaciones
-              </p>
-
-              {analisisDetalle.recomendaciones?.map((rec: any) => {
-                const colors = getColorPrioridad(rec.prioridad)
-                return (
-                  <div key={rec.id} className={`${colors.bg} border ${colors.border} rounded-xl p-4 sm:p-5`}>
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors.badge}`}>
-                            {getTextoPrioridad(rec.prioridad)}
-                          </span>
-                          {rec.datosReales?.tendencia !== 0 && (
-                            <span className={`flex items-center gap-1 text-xs ${rec.datosReales?.tendencia > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {rec.datosReales?.tendencia > 0 ? <IconTrendingUp /> : <IconTrendingDown />}
-                              {rec.datosReales?.tendencia > 0 ? '+' : ''}{rec.datosReales?.tendencia}%
-                            </span>
-                          )}
-                        </div>
-                        <h4 className="font-semibold text-[#262626] mb-2">{rec.titulo}</h4>
-                        <p className="text-sm text-gray-800 mb-3">{rec.mensaje}</p>
-                        <div className="flex flex-wrap gap-4 text-xs text-[#ACACAC]">
-                          <span>Ventas: {rec.datosReales?.ventas || 0}</span>
-                          <span>Ingresos: €{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
-                        </div>
-                        <button
-                          onClick={() => aplicarConsejo(rec, { sector: analisisDetalle?.sector, periodo: analisisDetalle?.periodo })}
-                          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xl font-medium mt-3"
-                        >
-                          <IconCheck />
-                          Aplicar
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
         </div>
-      )}
+      </div>
     </div>
+
+    {cargandoDetalle ? (
+      <div className="bg-[#262626] rounded-xl p-8 text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+        <p className="text-[#ACACAC] mt-4">Cargando detalles...</p>
+      </div>
+    ) : (
+      <div className="space-y-4">
+        <p className="text-xl text-[#ACACAC]">
+          {analisisDetalle.recomendaciones?.length || 0} recomendaciones
+        </p>
+
+        {analisisDetalle.recomendaciones?.map((rec: any) => {
+          const colors = getColorPrioridad(rec.prioridad)
+
+          return (
+            <div
+              key={rec.id}
+              className={`${colors.bg} border ${colors.border} rounded-xl p-4 sm:p-5`}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors.badge}`}>
+                      {getTextoPrioridad(rec.prioridad)}
+                    </span>
+
+                    {rec.datosReales?.tendencia !== 0 && (
+                      <span
+                        className={`flex items-center gap-1 text-xs ${
+                          rec.datosReales?.tendencia > 0 ? 'text-green-600' : 'text-red-600'
+                        }`}
+                      >
+                        {rec.datosReales?.tendencia > 0 ? <IconTrendingUp /> : <IconTrendingDown />}
+                        {rec.datosReales?.tendencia > 0 ? '+' : ''}
+                        {rec.datosReales?.tendencia}%
+                      </span>
+                    )}
+                  </div>
+
+                  <h4 className="font-semibold text-[#262626] mb-2">
+                    {rec.titulo}
+                  </h4>
+
+                  <p className="text-sm text-gray-800 mb-3">
+                    {rec.mensaje}
+                  </p>
+
+                  <div className="flex flex-wrap gap-4 text-xs text-[#ACACAC]">
+                    <span>Ventas: {rec.datosReales?.ventas || 0}</span>
+                    <span>
+                      Ingresos: €{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() =>
+                      aplicarConsejo(rec, {
+                        sector: analisisDetalle?.sector,
+                        periodo: analisisDetalle?.periodo
+                      })
+                    }
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xl font-medium mt-3"
+                  >
+                    <IconCheck />
+                    Aplicar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    )}
+  </div>
   )
 }
