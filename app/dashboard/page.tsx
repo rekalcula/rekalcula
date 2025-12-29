@@ -103,7 +103,7 @@ export default async function DashboardPage() {
           href="/dashboard/invoices"
           className="bg-gray-200 rounded-lg shadow p-8 hover:shadow-lg transition-shadow cursor-pointer group"
         >
-          <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">📄</div>
+          <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">📁</div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
             Mis Facturas
           </h3>
