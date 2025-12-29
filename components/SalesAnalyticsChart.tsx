@@ -83,7 +83,7 @@ export default function SalesAnalyticsChart() {
   const getChangeColor = (change: number) => {
     if (change > 0) return 'text-green-600'
     if (change < 0) return 'text-[#D98C21]'
-    return 'text-gray-500'
+    return 'text-gray-700'
   }
 
   const getMaxValue = () => {
@@ -179,7 +179,7 @@ export default function SalesAnalyticsChart() {
       {/* Tarjetas de resumen */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-gray-200 rounded-xl shadow-sm p-6">
-          <p className="text-[20px] text-gray-500">Total Productos Vendidos</p>
+          <p className="text-[20px] text-gray-700">Total Productos Vendidos</p>
           <p className="text-2xl font-bold text-gray-900">{data?.totalQuantity || 0}</p>
           {compare && data?.comparison && (
             <p className={`text-[20px] mt-1 ${getChangeColor(data.comparison.quantityChange)}`}>
@@ -189,7 +189,7 @@ export default function SalesAnalyticsChart() {
         </div>
 
         <div className="bg-gray-200 rounded-xl shadow-sm p-6">
-          <p className="text-[20px] text-gray-500">Ingresos Totales</p>
+          <p className="text-[20px] text-gray-700">Ingresos Totales</p>
           <p className="text-2xl font-bold text-green-600">€{data?.totalRevenue?.toFixed(2) || '0.00'}</p>
           {compare && data?.comparison && (
             <p className={`text-[20px] mt-1 ${getChangeColor(data.comparison.revenueChange)}`}>
@@ -199,20 +199,20 @@ export default function SalesAnalyticsChart() {
         </div>
 
         <div className="bg-gray-200 rounded-xl shadow-sm p-6">
-          <p className="text-[20px] text-gray-500">Número de Ventas</p>
+          <p className="text-[20px] text-gray-700">Número de Ventas</p>
           <p className="text-2xl font-bold text-gray-900">{data?.totalSales || 0}</p>
           {compare && data?.comparison && (
-            <p className="text-[20px] mt-1 text-gray-500">
+            <p className="text-[20px] mt-1 text-gray-700">
               Anterior: {data.comparison.prevTotalSales}
             </p>
           )}
         </div>
 
         <div className="bg-gray-200 rounded-xl shadow-sm p-6">
-          <p className="text-[20px] text-gray-500">Producto Más Vendido</p>
+          <p className="text-[20px] text-gray-700">Producto Más Vendido</p>
           <p className="text-2xl font-bold text-[#c15f3c]">{data?.topProduct?.name || '-'}</p>
           {data?.topProduct && (
-            <p className="text-[20px] mt-1 text-gray-500">
+            <p className="text-[20px] mt-1 text-gray-700">
               {data.topProduct.quantity} uds · €{data.topProduct.revenue.toFixed(2)}
             </p>
           )}
@@ -228,7 +228,7 @@ export default function SalesAnalyticsChart() {
         {!data || data.products.length === 0 ? (
           <div className="text-center py-12">
             <span className="text-4xl block mb-2">📊</span>
-            <p className="text-gray-500">No hay datos para el período seleccionado</p>
+            <p className="text-gray-700">No hay datos para el período seleccionado</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -251,7 +251,7 @@ export default function SalesAnalyticsChart() {
                           : `€${product.revenue.toFixed(2)}`
                         }
                       </span>
-                      <span className="text-sm text-gray-400">
+                      <span className="text-sm text-gray-700">
                         ({viewMode === 'quantity'
                           ? product.percentage.toFixed(1)
                           : product.revenuePercentage.toFixed(1)
@@ -295,23 +295,23 @@ export default function SalesAnalyticsChart() {
 
         {!data || data.products.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500">No hay datos disponibles</p>
+            <p className="text-gray-700">No hay datos disponibles</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Cantidad</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Ingresos</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">% Cantidad</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">% Ingresos</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">#</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Producto</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase">Cantidad</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase">Ingresos</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase">% Cantidad</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase">% Ingresos</th>
                   {compare && (
                     <>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Var. Cantidad</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Var. Ingresos</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase">Var. Cantidad</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase">Var. Ingresos</th>
                     </>
                   )}
                 </tr>
@@ -319,12 +319,12 @@ export default function SalesAnalyticsChart() {
               <tbody className="divide-y divide-gray-200">
                 {data.products.map((product, index) => (
                   <tr key={product.name} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-500">{index + 1}</td>
+                    <td className="px-6 py-4 text-sm text-gray-700">{index + 1}</td>
                     <td className="px-6 py-4 font-medium text-gray-900">{product.name}</td>
                     <td className="px-6 py-4 text-right text-gray-900">{product.quantity}</td>
                     <td className="px-6 py-4 text-right text-green-600 font-medium">€{product.revenue.toFixed(2)}</td>
-                    <td className="px-6 py-4 text-right text-gray-500">{product.percentage.toFixed(1)}%</td>
-                    <td className="px-6 py-4 text-right text-gray-500">{product.revenuePercentage.toFixed(1)}%</td>
+                    <td className="px-6 py-4 text-right text-gray-700">{product.percentage.toFixed(1)}%</td>
+                    <td className="px-6 py-4 text-right text-gray-700">{product.revenuePercentage.toFixed(1)}%</td>
                     {compare && (
                       <>
                         <td className={`px-6 py-4 text-right font-medium ${getChangeColor(product.quantityChange)}`}>
