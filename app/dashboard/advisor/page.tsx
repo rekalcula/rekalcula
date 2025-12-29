@@ -229,6 +229,8 @@ export default function AdvisorPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           periodo: analisisActual.periodo,
+          fechaInicio: fechaInicio,
+          fechaFin: fechaFin,
           sector: analisisActual.sector,
           totalVentas: analisisActual.recomendaciones?.reduce((acc, r) => acc + (r.datosReales?.ventas || 0), 0),
           totalIngresos: analisisActual.recomendaciones?.reduce((acc, r) => acc + (r.datosReales?.ingresos || 0), 0),
