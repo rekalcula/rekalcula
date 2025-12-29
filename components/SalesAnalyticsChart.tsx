@@ -82,7 +82,7 @@ export default function SalesAnalyticsChart() {
 
   const getChangeColor = (change: number) => {
     if (change > 0) return 'text-green-600'
-    if (change < 0) return 'text-red-600'
+    if (change < 0) return 'text-[#D98C21]'
     return 'text-gray-500'
   }
 
@@ -110,7 +110,7 @@ export default function SalesAnalyticsChart() {
           {/* Período */}
           <div className="flex items-center space-x-2">
             <span className="text-[20px] font-medium text-gray-700">Período:</span>
-            <div className="flex bg-gray-100 rounded-lg p-1">
+            <div className="flex bg-[#0D0D0D] rounded-lg p-1">
               <button
                 onClick={() => setPeriod('day')}
                 className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[20px] font-medium transition-colors ${
@@ -154,7 +154,7 @@ export default function SalesAnalyticsChart() {
           {/* Vista */}
           <div className="flex items-center space-x-2">
             <span className="text-[20px] font-medium text-gray-700">Ver:</span>
-            <div className="flex bg-gray-100 rounded-lg p-1">
+            <div className="flex bg-[#0D0D0D] rounded-lg p-1">
               <button
                 onClick={() => setViewMode('quantity')}
                 className={`px-4 py-2 rounded-lg text-[20px] font-medium transition-colors ${
