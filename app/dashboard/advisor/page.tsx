@@ -512,9 +512,9 @@ export default function AdvisorPage() {
                               </span>
                             )}
                           </div>
-                          <h4 className="font-semibold text-[#262626] mb-2">{rec.titulo}</h4>
-                          <p className="text-sm text-gray-800 mb-3">{rec.mensaje}</p>
-                          <div className="flex flex-wrap gap-4 text-xs text-[#ACACAC] mb-3">
+                          <h4 className="font-semibold text-[#262626] mb-2 text-lg">{rec.titulo}</h4>
+                          <p className="text-lg text-gray-800 mb-3">{rec.mensaje}</p>
+                          <div className="flex flex-wrap gap-4 text-lg text-[#ACACAC] mb-3">
                             <span className="text-[#262626]">Ventas: <span className="text-gray-900">{rec.datosReales?.ventas || 0}</span></span>
                             <span className="text-[#262626]">Ingresos: <span className="text-green-600">€{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span></span>
                           </div>
@@ -615,7 +615,7 @@ export default function AdvisorPage() {
                         </div>
                         <h4 className="font-semibold text-[#262626] mb-2">{consejo.titulo}</h4>
                         <p className="text-sm text-gray-800 mb-3">{consejo.mensaje}</p>
-                        <div className="flex flex-wrap gap-4 text-xs text-[#ACACAC]">
+                        <div className="flex flex-wrap gap-4 text-lg text-[#ACACAC]">
                           <span>Sector: {traducirSector(consejo.sector)}</span>
                           <span>Período: {traducirPeriodo(consejo.periodoAnalisis)}</span>
                           <span className="text-[#262626]">Ventas: <span className="text-gray-900">{consejo.datosReales?.ventas || 0}</span></span>
@@ -769,9 +769,9 @@ export default function AdvisorPage() {
                       </span>
                     )}
                   </div>
-                  <h4 className="font-semibold text-[#262626] mb-2">{rec.titulo}</h4>
-                  <p className="text-sm text-gray-800 mb-3">{rec.mensaje}</p>
-                  <div className="flex flex-wrap gap-4 text-xs text-[#ACACAC]">
+                  <h4 className="font-semibold text-[#262626] mb-2 text-lg">{rec.titulo}</h4>
+                  <p className="text-lg text-gray-800 mb-3">{rec.mensaje}</p>
+                  <div className="flex flex-wrap gap-4 text-lg text-[#ACACAC]">
                     <span className="text-[#262626]">Ventas: <span className="text-gray-900">{rec.datosReales?.ventas || 0}</span></span>
                     <span className="text-[#262626]">Ingresos: <span className="text-green-600">€{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span></span>
                   </div>
