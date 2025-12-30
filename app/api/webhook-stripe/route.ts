@@ -24,8 +24,8 @@ export async function POST(request: NextRequest) {
       const userId = session.metadata?.userId
       const billingCycle = session.metadata?.billingCycle
 
-      if (userId) {
-        const subscription = await stripe.subscriptions.retrieve(
+      if (userId && session.subscription) {
+        const subscriptionData = await stripe.subscriptions.retrieve(
           session.subscription as string
         )
 
@@ -35,9 +35,9 @@ export async function POST(request: NextRequest) {
           plan: 'pro',
           billing_cycle: billingCycle,
           stripe_customer_id: session.customer as string,
-          stripe_subscription_id: subscription.id,
-          current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-          current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+          stripe_subscription_id: subscriptionData.id,
+          current_period_start: new Date(subscriptionData.current_period_start * 1000).toISOString(),
+          current_period_end: new Date(subscriptionData.current_period_end * 1000).toISOString(),
           trial_end: null,
           updated_at: new Date().toISOString()
         })
