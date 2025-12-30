@@ -151,7 +151,7 @@ export default function AlertsPanel({ invoices }: AlertsPanelProps) {
         {alerts.length > 0 && (
           <button
             onClick={() => setShowAlerts(false)}
-            className="text-sm text-gray-600 hover:text-gray-800"
+            className="text-lg text-gray-600 hover:text-gray-800"
           >
             Ocultar todo
           </button>
@@ -168,9 +168,9 @@ export default function AlertsPanel({ invoices }: AlertsPanelProps) {
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-1">
                   <span className="text-xl">{alert.icon}</span>
-                  <h4 className="font-semibold">{alert.title}</h4>
+                  <h4 className="font-semibold text-lg">{alert.title}</h4>
                 </div>
-                <p className="text-sm">{alert.message}</p>
+                <p className="text-lg">{alert.message}</p>
               </div>
               <button
                 onClick={() => dismissAlert(alert.id)}
