@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import DateRangePicker from '@/components/DateRangePicker'
 
 import { useState, useEffect } from 'react'
