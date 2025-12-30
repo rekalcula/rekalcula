@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       const billingCycle = session.metadata?.billingCycle
 
       if (userId && session.subscription) {
-        const subscriptionData = await stripe.subscriptions.retrieve(
+        const subscriptionData: any = await stripe.subscriptions.retrieve(
           session.subscription as string
         )
 
