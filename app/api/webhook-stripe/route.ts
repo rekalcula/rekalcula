@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     }
 
     case 'customer.subscription.deleted': {
-      const subscription = event.data.object as Stripe.Subscription
+      const subscription: any = event.data.object
       await supabase
         .from('subscriptions')
         .update({ status: 'canceled', updated_at: new Date().toISOString() })
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     }
 
     case 'invoice.payment_failed': {
-      const invoice = event.data.object as Stripe.Invoice
+      const invoice: any = event.data.object
       if (invoice.subscription) {
         await supabase
           .from('subscriptions')
