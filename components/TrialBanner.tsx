@@ -38,7 +38,7 @@ export default function TrialBanner() {
     const days = data.trialDaysRemaining
 
     // Colores según urgencia
-    let bgColor = 'bg-transparent border-blue-200'
+    let bgColor = 'bg-blue-50 border-blue-200'
     let textColor = 'text-blue-800'
     let icon = 'ℹ️'
 
