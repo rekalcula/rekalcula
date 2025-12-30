@@ -1,48 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Stripe from 'stripe'
 import { stripe } from '@/lib/stripe'
 import { supabase } from '@/lib/supabase'
-
-export const runtime = 'nodejs' // IMPORTANTE para Stripe webhooks
+import Stripe from 'stripe'
 
 export async function POST(request: NextRequest) {
   const body = await request.text()
-
-  const signature = request.headers.get('stripe-signature')
-  if (!signature) {
-    return NextResponse.json(
-      { error: 'Missing Stripe signature' },
-      { status: 400 }
-    )
-  }
+  const sig = request.headers.get('stripe-signature')!
 
   let event: Stripe.Event
 
   try {
     event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      body, sig, process.env.STRIPE_WEBHOOK_SECRET!
     )
-  } catch (error) {
-    console.error('❌ Stripe webhook error:', error)
-    return NextResponse.json(
-      { error: 'Invalid webhook signature' },
-      { status: 400 }
-    )
+  } catch (err) {
+    console.error('Webhook error:', err)
+    return NextResponse.json({ error: 'Webhook error' }, { status: 400 })
   }
 
-  try {
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session
+  switch (event.type) {
+    case 'checkout.session.completed': {
+      const session = event.data.object as Stripe.Checkout.Session
+      const userId = session.metadata?.userId
+      const billingCycle = session.metadata?.billingCycle
 
-        const userId = session.metadata?.userId
-        const billingCycle = session.metadata?.billingCycle
-
-        if (!userId || !session.subscription) break
-
-        const subscription = await stripe.subscriptions.retrieve(
+      if (userId && session.subscription) {
+        const subscriptionData: any = await stripe.subscriptions.retrieve(
           session.subscription as string
         )
 
@@ -52,60 +35,35 @@ export async function POST(request: NextRequest) {
           plan: 'pro',
           billing_cycle: billingCycle,
           stripe_customer_id: session.customer as string,
-          stripe_subscription_id: subscription.id,
-          current_period_start: new Date(
-            subscription.current_period_start * 1000
-          ).toISOString(),
-          current_period_end: new Date(
-            subscription.current_period_end * 1000
-          ).toISOString(),
+          stripe_subscription_id: subscriptionData.id,
+          current_period_start: new Date(subscriptionData.current_period_start * 1000).toISOString(),
+          current_period_end: new Date(subscriptionData.current_period_end * 1000).toISOString(),
           trial_end: null,
           updated_at: new Date().toISOString()
         })
-
-        break
       }
+      break
+    }
 
-      case 'customer.subscription.deleted': {
-        const subscription = event.data.object as Stripe.Subscription
+    case 'customer.subscription.deleted': {
+      const subscription: any = event.data.object
+      await supabase
+        .from('subscriptions')
+        .update({ status: 'canceled', updated_at: new Date().toISOString() })
+        .eq('stripe_subscription_id', subscription.id)
+      break
+    }
 
+    case 'invoice.payment_failed': {
+      const invoice: any = event.data.object
+      if (invoice.subscription) {
         await supabase
           .from('subscriptions')
-          .update({
-            status: 'canceled',
-            updated_at: new Date().toISOString()
-          })
-          .eq('stripe_subscription_id', subscription.id)
-
-        break
+          .update({ status: 'past_due', updated_at: new Date().toISOString() })
+          .eq('stripe_subscription_id', invoice.subscription as string)
       }
-
-      case 'invoice.payment_failed': {
-        const invoice = event.data.object as Stripe.Invoice
-
-        if (invoice.subscription) {
-          await supabase
-            .from('subscriptions')
-            .update({
-              status: 'past_due',
-              updated_at: new Date().toISOString()
-            })
-            .eq('stripe_subscription_id', invoice.subscription as string)
-        }
-
-        break
-      }
-
-      default:
-        // Eventos no manejados (no es error)
-        break
+      break
     }
-  } catch (error) {
-    console.error('❌ Error procesando webhook:', error)
-    return NextResponse.json(
-      { error: 'Webhook handler failed' },
-      { status: 500 }
-    )
   }
 
   return NextResponse.json({ received: true })
