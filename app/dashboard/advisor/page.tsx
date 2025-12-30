@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import DateRangePicker from '@/components/DateRangePicker'
 
 import { useState, useEffect } from 'react'
@@ -733,7 +733,7 @@ export default function AdvisorPage() {
             Análisis del {formatearFecha(analisisDetalle.created_at)}
           </h2>
           <div className="flex flex-wrap gap-2 mt-2 text-xl">
-            <span className="bg-[#262626] text-[#D98C21] px-2 py-1 rounded text-sm">
+            <span className="bg-[#262626] text-[#D98C21] px-2 py-1 rounded text-xl">
               Período: {traducirPeriodo(analisisDetalle.periodo)}
             </span>
           </div>
