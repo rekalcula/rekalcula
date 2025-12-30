@@ -515,8 +515,8 @@ export default function AdvisorPage() {
                           <h4 className="font-semibold text-[#262626] mb-2">{rec.titulo}</h4>
                           <p className="text-sm text-gray-800 mb-3">{rec.mensaje}</p>
                           <div className="flex flex-wrap gap-4 text-xs text-[#ACACAC] mb-3">
-                            <span>Ventas: {rec.datosReales?.ventas || 0}</span>
-                            <span>Ingresos: €{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
+                            <span className="text-[#262626]">Ventas: <span className="text-gray-900">{rec.datosReales?.ventas || 0}</span></span>
+                            <span className="text-[#262626]">Ingresos: <span className="text-green-600">€{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span></span>
                           </div>
                           <button
                             onClick={() => aplicarConsejo(rec, { sector: analisisDetalle?.sector, periodo: analisisDetalle?.periodo })}
@@ -618,8 +618,8 @@ export default function AdvisorPage() {
                         <div className="flex flex-wrap gap-4 text-xs text-[#ACACAC]">
                           <span>Sector: {traducirSector(consejo.sector)}</span>
                           <span>Período: {traducirPeriodo(consejo.periodoAnalisis)}</span>
-                          <span>Ventas: {consejo.datosReales?.ventas || 0}</span>
-                          <span>Ingresos: €{consejo.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
+                          <span className="text-[#262626]">Ventas: <span className="text-gray-900">{consejo.datosReales?.ventas || 0}</span></span>
+                          <span className="text-[#262626]">Ingresos: <span className="text-green-600">€{consejo.datosReales?.ingresos?.toFixed(2) || '0.00'}</span></span>
                         </div>
                       </div>
                     </div>
@@ -733,7 +733,7 @@ export default function AdvisorPage() {
             Análisis del {formatearFecha(analisisDetalle.created_at)}
           </h2>
           <div className="flex flex-wrap gap-2 mt-2 text-xl">
-            <span className="bg-[#262626] text-[#D98C21] px-2 py-1 rounded">
+            <span className="bg-[#262626] text-[#D98C21] px-2 py-1 rounded text-sm">
               Período: {traducirPeriodo(analisisDetalle.periodo)}
             </span>
           </div>
@@ -772,8 +772,8 @@ export default function AdvisorPage() {
                   <h4 className="font-semibold text-[#262626] mb-2">{rec.titulo}</h4>
                   <p className="text-sm text-gray-800 mb-3">{rec.mensaje}</p>
                   <div className="flex flex-wrap gap-4 text-xs text-[#ACACAC]">
-                    <span>Ventas: {rec.datosReales?.ventas || 0}</span>
-                    <span>Ingresos: €{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
+                    <span className="text-[#262626]">Ventas: <span className="text-gray-900">{rec.datosReales?.ventas || 0}</span></span>
+                    <span className="text-[#262626]">Ingresos: <span className="text-green-600">€{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span></span>
                   </div>
                   <button
                     onClick={() => aplicarConsejo(rec, { sector: analisisDetalle?.sector, periodo: analisisDetalle?.periodo })}
