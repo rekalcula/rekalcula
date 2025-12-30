@@ -11,7 +11,7 @@ export default async function CostsPage() {
     redirect('/sign-in')
   }
 
-  // Obtener categorías de costos fijos
+  // Obtener categorías de costes fijos
   const { data: categoriesRaw } = await supabase
     .from('fixed_cost_categories')
     .select('*')
@@ -37,7 +37,7 @@ export default async function CostsPage() {
     ...(otrosGastosFijos ? [otrosGastosFijos] : [])
   ]
 
-  // Obtener costos fijos del usuario
+  // Obtener costes fijos del usuario
   const { data: costs } = await supabase
     .from('fixed_costs')
     .select('*, fixed_cost_categories(*)')
@@ -60,7 +60,7 @@ export default async function CostsPage() {
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="flex justify-between items-start mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-[#d98c21]">Costos Fijos
+              <h1 className="text-3xl font-bold text-[#d98c21]">Costes Fijos
               </h1>
               <p className="mt-2 text-[#FFFCFF] text-[20px]">Gestiona tus gastos fijos mensuales
               </p>
