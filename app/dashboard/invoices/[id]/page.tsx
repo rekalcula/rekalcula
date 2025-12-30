@@ -45,7 +45,7 @@ export default async function InvoiceDetailPage({
           <div className="mb-8">
             <Link
               href="/dashboard/invoices"
-              className="text-[#ACACAC] hover:text-white font-medium mb-4 inline-block"
+              className="text-[#ACACAC] hover:text-white font-medium mb-4 inline-block text-xl"
             >
               ← Volver a la lista
             </Link>
