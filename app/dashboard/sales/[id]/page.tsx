@@ -57,7 +57,7 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
           {/* Botón volver */}
           <Link
             href="/dashboard/sales"
-            className="text-[#ACACAC] hover:text-white font-medium mb-4 inline-block text-xl"
+            className="text-[#ACACAC] hover:text-white font-medium text-xl mb-4 inline-block"
           >
             ← Volver a ventas
           </Link>
