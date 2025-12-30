@@ -32,7 +32,7 @@ export default function DashboardNav() {
   }, [pathname, isMobile])
 
   const navItems = [
-    { href: '/dashboard', label: 'Dashboard' },
+    { href: '/dashboard', label: 'Panel' },
     { href: '/dashboard/invoices', label: 'Facturas' },
     { href: '/dashboard/fiscal', label: 'Configuracion Fiscal' },
     { href: '/dashboard/sales', label: 'Ventas' },
