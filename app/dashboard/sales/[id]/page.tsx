@@ -1,3 +1,4 @@
+// Updated: 2025-12-30 11:53:17
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
