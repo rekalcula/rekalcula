@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
         success: true,
         sector: 'desconocido',
         confianzaSector: 0,
-        periodo: fechaInicio && fechaFin ? ``` - ````` : traducirPeriodo(periodo)
+        periodo: fechaInicio && fechaFin ? `${fechaInicio} - ${fechaFin}` : traducirPeriodo(periodo)
           ? `${fechaInicio} - ${fechaFin}`
           : traducirPeriodo(periodo),
         recomendaciones: [],
@@ -155,7 +155,7 @@ export async function GET(request: NextRequest) {
         success: true,
         sector: metricas.sector,
         confianzaSector: metricas.confianzaSector,
-        periodo: fechaInicio && fechaFin ? ``` - ````` : traducirPeriodo(periodo)
+        periodo: fechaInicio && fechaFin ? `${fechaInicio} - ${fechaFin}` : traducirPeriodo(periodo)
           ? `${fechaInicio} - ${fechaFin}`
           : traducirPeriodo(periodo),
         recomendaciones: [],
@@ -174,7 +174,7 @@ export async function GET(request: NextRequest) {
         success: true,
         sector: metricas.sector,
         confianzaSector: metricas.confianzaSector,
-        periodo: fechaInicio && fechaFin ? ``` - ````` : traducirPeriodo(periodo)
+        periodo: fechaInicio && fechaFin ? `${fechaInicio} - ${fechaFin}` : traducirPeriodo(periodo)
           ? `${fechaInicio} - ${fechaFin}`
           : traducirPeriodo(periodo),
         recomendaciones: [],
@@ -207,7 +207,7 @@ export async function GET(request: NextRequest) {
       success: true,
       sector: metricas.sector,
       confianzaSector: metricas.confianzaSector,
-      periodo: fechaInicio && fechaFin ? ``` - ````` : traducirPeriodo(periodo)
+      periodo: fechaInicio && fechaFin ? `${fechaInicio} - ${fechaFin}` : traducirPeriodo(periodo)
         ? `${fechaInicio} - ${fechaFin}`
         : traducirPeriodo(periodo),
       recomendaciones,
