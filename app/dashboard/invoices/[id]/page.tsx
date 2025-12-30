@@ -24,7 +24,7 @@ export default async function InvoiceDetailPage({
   // Await params - IMPORTANTE para Next.js 15+
   const { id } = await params
 
-  // Obtener la factura especÃ­fica
+  // Obtener la factura especí­fica
   const { data: invoice, error } = await supabase
     .from('invoices')
     .select('*')
@@ -47,7 +47,7 @@ export default async function InvoiceDetailPage({
               href="/dashboard/invoices"
               className="text-[#ACACAC] hover:text-white font-medium mb-4 inline-block"
             >
-              â† Volver a Mis Facturas
+              ← Volver a la lista
             </Link>
             <h1 className="text-3xl font-bold text-[#D98C21]">
               Detalle de Factura
@@ -58,7 +58,7 @@ export default async function InvoiceDetailPage({
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Columna izquierda - InformaciÃ³n bÃ¡sica */}
+            {/* Columna izquierda - Información básica */}
             <div className="space-y-6">
               {/* Datos principales */}
               <div className="bg-white rounded-lg shadow p-6">
@@ -133,7 +133,7 @@ export default async function InvoiceDetailPage({
                               {item.description}
                             </div>
                             <div className="text-sm text-gray-500">
-                              Cantidad: {item.quantity} Ã— {item.unit_price?.toFixed(2)}€
+                              Cantidad: {item.quantity} X — {item.unit_price?.toFixed(2)}€
 
                             </div>
                           </div>
@@ -148,7 +148,7 @@ export default async function InvoiceDetailPage({
                 </div>
               )}
 
-              {/* AnÃ¡lisis */}
+              {/* Análisis */}
               {invoice.analysis && (
                 <div className="bg-white rounded-lg shadow p-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">
@@ -211,7 +211,7 @@ export default async function InvoiceDetailPage({
                     rel="noopener noreferrer"
                     className="block w-full text-center bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
                   >
-                    Abrir en nueva pestaÃ±a
+                    Abrir en nueva pestaña
                   </a>
                   
                   <DeleteInvoiceButton invoiceId={Number(id)} />
