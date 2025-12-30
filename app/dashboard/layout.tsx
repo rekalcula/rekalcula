@@ -1,4 +1,6 @@
 import DashboardNav from '@/components/DashboardNav'
+import SubscriptionGuard from '@/components/SubscriptionGuard'
+import TrialBanner from '@/components/TrialBanner'
 
 export default function DashboardLayout({
   children,
@@ -6,11 +8,16 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <DashboardNav />
-      <main className="flex-1 pt-14 md:pt-0 overflow-x-hidden">
-        {children}
-      </main>
-    </div>
+    <SubscriptionGuard>
+      <div className="min-h-screen bg-gray-50 flex">
+        <DashboardNav />
+        <main className="flex-1 pt-14 md:pt-0 overflow-x-hidden">
+          <div className="p-4">
+            <TrialBanner />
+          </div>
+          {children}
+        </main>
+      </div>
+    </SubscriptionGuard>
   )
 }
