@@ -1,58 +1,146 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { UserButton } from '@clerk/nextjs'
 
 export default function DashboardNav() {
   const pathname = usePathname()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Detectar si es móvil
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true)
+      } else {
+        setSidebarOpen(false)
+      }
+    }
+
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Cerrar sidebar en móvil al cambiar de ruta
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarOpen(false)
+    }
+  }, [pathname, isMobile])
 
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: '📊' },
-    { href: '/dashboard/upload', label: 'Subir Factura', icon: '📤' },
     { href: '/dashboard/invoices', label: 'Facturas', icon: '📄' },
+    { href: '/dashboard/sales', label: 'Ventas', icon: '🛒' },
+    { href: '/dashboard/costs', label: 'Costos Fijos', icon: '💸' },
+    { href: '/dashboard/analytics', label: 'Análisis', icon: '📈' },
+    { href: '/dashboard/analytics/sales', label: 'Análisis Ventas', icon: '📉' },
+    { href: '/dashboard/advisor', label: 'Asesor IA', icon: '💡' },
   ]
 
   return (
-    <nav className="bg-white shadow-sm border-b">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <Link href="/dashboard" className="flex items-center">
-              <span className="text-2xl font-bold text-gray-800">re</span>
-              <span className="text-2xl font-bold" style={{ color: '#D98C21' }}>K</span>
-              <span className="text-2xl font-bold text-gray-800">alcula</span>
-            </Link>
+    <>
+      {/* Overlay para móvil */}
+      {sidebarOpen && isMobile && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-            <div className="hidden md:flex ml-10 space-x-4">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    pathname === item.href
-                      ? 'text-white'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                  style={pathname === item.href ? { backgroundColor: '#D98C21' } : {}}
-                >
-                  {item.icon} {item.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <Link
-              href="/pricing"
-              className="hidden md:inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              💎 Mejorar plan
-            </Link>
-            <UserButton afterSignOutUrl="/" />
-          </div>
+      {/* Header móvil */}
+      <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b z-30 md:hidden">
+        <div className="flex items-center justify-between h-full px-4">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 rounded-lg hover:bg-gray-100"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <Link href="/dashboard" className="font-bold text-xl text-[#0d0d0d]">
+            reKalcula
+          </Link>
+          <UserButton afterSignOutUrl="/" />
         </div>
-      </div>
-    </nav>
+      </header>
+
+      {/* Sidebar */}
+      <aside
+        className={`
+          fixed top-0 left-0 h-full bg-white border-r z-50
+          transition-transform duration-300 ease-in-out
+          w-64 flex flex-col
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          md:translate-x-0 md:z-30
+        `}
+      >
+        {/* Logo */}
+        <div className="h-14 flex items-center justify-between px-4 border-b">
+          <Link href="/dashboard" className="font-bold text-xl text-[#0d0d0d]">
+            re<span style={{ color: '#D98C21' }}>K</span>alcula
+          </Link>
+          {isMobile && (
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="p-1 rounded hover:bg-gray-100 md:hidden"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+
+        {/* Navigation */}
+        <nav className="p-3 space-y-1 flex-1 overflow-y-auto">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`
+                  flex items-center space-x-3 px-3 py-2.5 rounded-lg font-medium transition-colors
+                  ${isActive
+                    ? 'bg-[#0d0d0d] text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
+                  }
+                `}
+              >
+                <span className="text-lg">{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
+            )
+          })}
+        </nav>
+
+        {/* User section y Mejorar plan en desktop */}
+        <div className="hidden md:block border-t">
+          <div className="flex items-center space-x-3 p-4">
+            <UserButton afterSignOutUrl="/" />
+            <span className="text-sm text-gray-600">Mi cuenta</span>
+          </div>
+          <Link
+            href="/pricing"
+            className="flex items-center space-x-3 px-4 py-3 text-sm font-medium transition-colors hover:bg-amber-50"
+            style={{ color: '#D98C21' }}
+          >
+            <span className="text-lg">💎</span>
+            <span>Mejorar plan</span>
+          </Link>
+        </div>
+      </aside>
+
+      {/* Spacer para el contenido */}
+      <div className="h-14 md:hidden" />
+      <div className="hidden md:block w-64 flex-shrink-0" />
+    </>
   )
 }

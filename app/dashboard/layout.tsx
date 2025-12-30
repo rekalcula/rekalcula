@@ -12,7 +12,7 @@ export default function DashboardLayout({
       <div className="min-h-screen bg-gray-50 flex">
         <DashboardNav />
         <main className="flex-1 pt-14 md:pt-0 overflow-x-hidden">
-          <div className="p-4">
+          <div className="px-4 pt-4">
             <TrialBanner />
           </div>
           {children}
