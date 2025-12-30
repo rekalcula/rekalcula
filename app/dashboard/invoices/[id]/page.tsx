@@ -24,7 +24,7 @@ export default async function InvoiceDetailPage({
   // Await params - IMPORTANTE para Next.js 15+
   const { id } = await params
 
-  // Obtener la factura específica
+  // Obtener la factura especÃ­fica
   const { data: invoice, error } = await supabase
     .from('invoices')
     .select('*')
@@ -39,17 +39,17 @@ export default async function InvoiceDetailPage({
   return (
     <>
       <DashboardNav />
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#262626]">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Header */}
           <div className="mb-8">
             <Link
               href="/dashboard/invoices"
-              className="text-blue-600 hover:text-blue-700 font-medium mb-4 inline-block"
+              className="text-[#ACACAC] hover:text-white font-medium mb-4 inline-block"
             >
-              ← Volver a Mis Facturas
+              â† Volver a Mis Facturas
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-[#D98C21]">
               Detalle de Factura
             </h1>
             <p className="mt-2 text-gray-600">
@@ -58,12 +58,12 @@ export default async function InvoiceDetailPage({
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Columna izquierda - Información básica */}
+            {/* Columna izquierda - InformaciÃ³n bÃ¡sica */}
             <div className="space-y-6">
               {/* Datos principales */}
               <div className="bg-white rounded-lg shadow p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  Información General
+                  InformaciÃ³n General
                 </h2>
                 <div className="space-y-4">
                   <div>
@@ -76,7 +76,7 @@ export default async function InvoiceDetailPage({
                   <div>
                     <div className="text-sm text-gray-500">Total</div>
                     <div className="text-2xl font-bold text-gray-900">
-                      {invoice.total_amount ? `${invoice.total_amount.toFixed(2)}€` : '-'}
+                      {invoice.total_amount ? `${invoice.total_amount.toFixed(2)}â‚¬` : '-'}
                     </div>
                   </div>
                   
@@ -94,10 +94,10 @@ export default async function InvoiceDetailPage({
                   </div>
                   
                   <div>
-                    <div className="text-sm text-gray-500">Categoría</div>
+                    <div className="text-sm text-gray-500">CategorÃ­a</div>
                     <div>
                       <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                        {invoice.category || 'Sin categoría'}
+                        {invoice.category || 'Sin categorÃ­a'}
                       </span>
                     </div>
                   </div>
@@ -121,7 +121,7 @@ export default async function InvoiceDetailPage({
               {invoice.items && invoice.items.length > 0 && (
                 <div className="bg-white rounded-lg shadow p-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                    Artículos / Servicios
+                    ArtÃ­culos / Servicios
                   </h2>
                   <div className="space-y-3">
                     {invoice.items.map((item: any, index: number) => (
@@ -132,11 +132,11 @@ export default async function InvoiceDetailPage({
                               {item.description}
                             </div>
                             <div className="text-sm text-gray-500">
-                              Cantidad: {item.quantity} × {item.unit_price?.toFixed(2)}€
+                              Cantidad: {item.quantity} Ã— {item.unit_price?.toFixed(2)}â‚¬
                             </div>
                           </div>
                           <div className="font-semibold text-gray-900">
-                            {item.total?.toFixed(2)}€
+                            {item.total?.toFixed(2)}â‚¬
                           </div>
                         </div>
                       </div>
@@ -145,11 +145,11 @@ export default async function InvoiceDetailPage({
                 </div>
               )}
 
-              {/* Análisis */}
+              {/* AnÃ¡lisis */}
               {invoice.analysis && (
                 <div className="bg-white rounded-lg shadow p-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                    Análisis IA
+                    AnÃ¡lisis IA
                   </h2>
                   
                   {invoice.analysis.insights && invoice.analysis.insights.length > 0 && (
@@ -208,7 +208,7 @@ export default async function InvoiceDetailPage({
                     rel="noopener noreferrer"
                     className="block w-full text-center bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
                   >
-                    Abrir en nueva pestaña
+                    Abrir en nueva pestaÃ±a
                   </a>
                   
                   <DeleteInvoiceButton invoiceId={Number(id)} />
