@@ -52,7 +52,7 @@ export default async function InvoiceDetailPage({
             <h1 className="text-3xl font-bold text-[#D98C21]">
               Detalle de Factura
             </h1>
-            <p className="mt-2 text-gray-600">
+            <p className="mt-2 text-white">
               {invoice.file_name}
             </p>
           </div>
