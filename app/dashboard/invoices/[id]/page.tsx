@@ -63,7 +63,7 @@ export default async function InvoiceDetailPage({
               {/* Datos principales */}
               <div className="bg-white rounded-lg shadow p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  InformaciÃ³n General
+                  Información General
                 </h2>
                 <div className="space-y-4">
                   <div>
@@ -76,7 +76,8 @@ export default async function InvoiceDetailPage({
                   <div>
                     <div className="text-sm text-gray-500">Total</div>
                     <div className="text-2xl font-bold text-gray-900">
-                      {invoice.total_amount ? `${invoice.total_amount.toFixed(2)}â‚¬` : '-'}
+                      {invoice.total_amount ? `${invoice.total_amount.toFixed(2)}€
+` : '-'}
                     </div>
                   </div>
                   
@@ -94,10 +95,10 @@ export default async function InvoiceDetailPage({
                   </div>
                   
                   <div>
-                    <div className="text-sm text-gray-500">CategorÃ­a</div>
+                    <div className="text-sm text-gray-500">Categoría</div>
                     <div>
                       <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                        {invoice.category || 'Sin categorÃ­a'}
+                        {invoice.category || 'Sin Categoría'}
                       </span>
                     </div>
                   </div>
@@ -121,7 +122,7 @@ export default async function InvoiceDetailPage({
               {invoice.items && invoice.items.length > 0 && (
                 <div className="bg-white rounded-lg shadow p-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                    ArtÃ­culos / Servicios
+                    Artículos/ Servicios
                   </h2>
                   <div className="space-y-3">
                     {invoice.items.map((item: any, index: number) => (
@@ -132,11 +133,13 @@ export default async function InvoiceDetailPage({
                               {item.description}
                             </div>
                             <div className="text-sm text-gray-500">
-                              Cantidad: {item.quantity} Ã— {item.unit_price?.toFixed(2)}â‚¬
+                              Cantidad: {item.quantity} Ã— {item.unit_price?.toFixed(2)}€
+
                             </div>
                           </div>
                           <div className="font-semibold text-gray-900">
-                            {item.total?.toFixed(2)}â‚¬
+                            {item.total?.toFixed(2)}€
+
                           </div>
                         </div>
                       </div>
@@ -149,7 +152,7 @@ export default async function InvoiceDetailPage({
               {invoice.analysis && (
                 <div className="bg-white rounded-lg shadow p-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                    AnÃ¡lisis IA
+                    Análisis IA
                   </h2>
                   
                   {invoice.analysis.insights && invoice.analysis.insights.length > 0 && (
