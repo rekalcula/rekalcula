@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { UserButton } from '@clerk/nextjs'
+import CreditsDisplay from './CreditsDisplay'
 
 export default function DashboardNav() {
   const pathname = usePathname()
@@ -115,6 +116,13 @@ export default function DashboardNav() {
             )
           })}
         </nav>
+
+        {/* ========================================
+            COMPONENTE DE CRÉDITOS
+        ======================================== */}
+        <div className="px-3 pb-3">
+          <CreditsDisplay compact />
+        </div>
 
         <div className="hidden md:block border-t border-gray-700">
           <div className="flex items-center space-x-3 p-4">
