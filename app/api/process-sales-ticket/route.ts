@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabase } from '@/lib/supabase'
 import Anthropic from '@anthropic-ai/sdk'
+import { hasCredits, useCredits } from '@/lib/credits'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!
@@ -12,6 +13,17 @@ export async function POST(request: NextRequest) {
     const { userId } = await auth()
     if (!userId) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+
+    // ========================================
+    // VERIFICAR CRÉDITOS DISPONIBLES
+    // ========================================
+    const hasAvailableCredits = await hasCredits(userId, 'tickets')
+    if (!hasAvailableCredits) {
+      return NextResponse.json({ 
+        error: 'No tienes créditos de tickets disponibles. Actualiza tu plan o compra créditos adicionales.',
+        code: 'NO_CREDITS'
+      }, { status: 403 })
     }
 
     const formData = await request.formData()
@@ -157,10 +169,19 @@ Responde SOLO con el JSON, sin explicaciones.`
       }
     }
 
+    // ========================================
+    // DESCONTAR CRÉDITO DESPUÉS DE ÉXITO
+    // ========================================
+    const creditResult = await useCredits(userId, 'tickets')
+    if (!creditResult.success) {
+      console.warn('Error descontando crédito:', creditResult.error)
+    }
+
     return NextResponse.json({ 
       success: true, 
       sale,
-      extracted: ticketData
+      extracted: ticketData,
+      creditsRemaining: creditResult.remaining
     })
 
   } catch (error) {

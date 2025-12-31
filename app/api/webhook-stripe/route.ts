@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { supabase } from '@/lib/supabase'
 import Stripe from 'stripe'
-import { initializeUserCredits, monthlyRefill } from '@/lib/credits'
+import { initializeUserCredits, monthlyRefill, addCredits } from '@/lib/credits'
 
 export async function POST(request: NextRequest) {
   const body = await request.text()
@@ -22,6 +22,25 @@ export async function POST(request: NextRequest) {
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session
+      
+      // ========================================
+      // COMPRA DE PAQUETES EXTRA (pago único)
+      // ========================================
+      if (session.mode === 'payment' && session.metadata?.packageId) {
+        const userId = session.metadata.userId
+        const creditType = session.metadata.creditType as 'invoices' | 'tickets' | 'analyses'
+        const creditAmount = parseInt(session.metadata.creditAmount || '0')
+
+        if (userId && creditType && creditAmount > 0) {
+          await addCredits(userId, creditType, creditAmount, `Compra de paquete extra`)
+          console.log(`Créditos añadidos: ${creditAmount} ${creditType} para usuario ${userId}`)
+        }
+        break
+      }
+
+      // ========================================
+      // NUEVA SUSCRIPCIÓN
+      // ========================================
       const userId = session.metadata?.userId
       const billingCycle = session.metadata?.billingCycle
       const planSlug = session.metadata?.planSlug || 'basico'
@@ -44,9 +63,7 @@ export async function POST(request: NextRequest) {
           updated_at: new Date().toISOString()
         })
 
-        // ========================================
-        // INICIALIZAR CRÉDITOS DEL USUARIO
-        // ========================================
+        // Inicializar créditos del usuario
         await initializeUserCredits(userId, planSlug)
         console.log(`Créditos inicializados para usuario ${userId} con plan ${planSlug}`)
       }
@@ -82,7 +99,6 @@ export async function POST(request: NextRequest) {
     case 'customer.subscription.updated': {
       const subscription = event.data.object as Stripe.Subscription
       
-      // Obtener el plan desde los metadatos o el precio
       const { data: sub } = await supabase
         .from('subscriptions')
         .select('user_id')
