@@ -387,44 +387,40 @@ export default function AdvisorPage() {
         </div>
       </div>
 
-      <div className="bg-[#262626] rounded-xl mb-6 overflow-hidden flex justify-center">
-        <div className="flex flex-col sm:flex-row gap-3 bg-gray-100 rounded-lg p-1 mx-4 sm:mx-0">
+<div className="bg-[#262626] rounded-xl mb-6 overflow-hidden flex justify-center">
+        <div className="inline-flex flex-col sm:flex-row bg-[#1a1a1a] rounded-lg p-1 mx-4 sm:mx-0">
           <button
             onClick={() => { setTabActiva('guardados'); setAnalisisDetalle(null) }}
-            className={`flex items-center gap-2 px-4 sm:px-6 py-3 font-medium text-xl transition-colors ${
-              tabActiva === 'guardados' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#0D0D0D] hover:bg-[#2d2d2d]'
+            className={`flex items-center gap-2 px-4 sm:px-6 py-2 rounded-lg font-medium transition ${
+              tabActiva === 'guardados' 
+                ? 'bg-[#D98C21] text-black' 
+                : 'text-gray-400 hover:text-white'
             }`}
           >
             <IconFolder />
-            Análisis Guardados
-            {analisisGuardados.length > 0 && (
-              <span className="bg-gray-100 text-[#ACACAC] px-2 py-0.5 rounded-full text-xs">
-                {analisisGuardados.length}
-              </span>
-            )}
+            Analisis Guardados
           </button>
           <button
             onClick={() => { setTabActiva('nuevo'); setAnalisisDetalle(null) }}
-            className={`flex items-center gap-2 px-4 sm:px-6 py-3 font-medium text-xl transition-colors ${
-              tabActiva === 'nuevo' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#0D0D0D] hover:bg-[#2d2d2d]'
+            className={`flex items-center gap-2 px-4 sm:px-6 py-2 rounded-lg font-medium transition ${
+              tabActiva === 'nuevo' 
+                ? 'bg-[#D98C21] text-black' 
+                : 'text-gray-400 hover:text-white'
             }`}
           >
             <IconLightbulb />
-            Nuevo Análisis
+            Nuevo Analisis
           </button>
           <button
             onClick={() => setTabActiva('aplicados')}
-            className={`flex items-center gap-2 px-4 sm:px-6 py-3 font-medium text-xl transition-colors ${
-              tabActiva === 'aplicados' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#0D0D0D] hover:bg-[#2d2d2d]'
+            className={`flex items-center gap-2 px-4 sm:px-6 py-2 rounded-lg font-medium transition ${
+              tabActiva === 'aplicados' 
+                ? 'bg-[#D98C21] text-black' 
+                : 'text-gray-400 hover:text-white'
             }`}
           >
             <IconCheck />
             Consejos Aplicados
-            {consejosAplicados.length > 0 && (
-              <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs">
-                {consejosAplicados.length}
-              </span>
-            )}
           </button>
         </div>
       </div>
