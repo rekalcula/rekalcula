@@ -52,7 +52,7 @@ export default function DashboardNav() {
         />
       )}
 
-      <header className="fixed top-0 left-0 right-0 h-14 z-30 md:hidden" style={{ backgroundColor: '#1a1a1a' }}>
+      <header className="fixed top-0 left-0 right-0 h-14 z-30 md:hidden" style={{ backgroundColor: '#0D0D0D' }}>
         <div className="flex items-center justify-between h-full px-4">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -77,7 +77,7 @@ export default function DashboardNav() {
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           md:translate-x-0 md:z-30
         `}
-        style={{ backgroundColor: '#1a1a1a', boxShadow: '2px 0 8px rgba(200, 200, 200, 0.3)' }}
+        style={{ backgroundColor: '#0D0D0D', boxShadow: '2px 0 8px rgba(200, 200, 200, 0.3)' }}
       >
         <div className="h-14 flex items-center justify-between px-4 border-b border-gray-700">
           <Link href="/dashboard" className="font-bold text-white" style={{ fontSize: '35px' }}>
