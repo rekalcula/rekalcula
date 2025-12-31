@@ -68,11 +68,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Obtener URL pública del archivo
-    const { data: { publicUrl } } = supabase
-      .storage
-      .from('invoices')
-      .getPublicUrl(fileName)
+    // Guardar solo el path del archivo (no URL publica)
+    const filePath = fileName
 
     // Convertir archivo a base64
     const base64Data = buffer.toString('base64')
@@ -210,7 +207,7 @@ Responde SOLO con el JSON, sin texto adicional.`
       .from('invoices')
       .insert({
         user_id: userId,
-        file_url: publicUrl,
+        file_url: filePath,
         file_name: file.name,
         supplier: analysisData.supplier,
         total_amount: analysisData.total_amount,
