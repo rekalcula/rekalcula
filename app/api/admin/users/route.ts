@@ -20,7 +20,6 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     const offset = (page - 1) * limit
 
-    // Obtener suscripciones con créditos
     const { data: subscriptions, error, count } = await supabase
       .from('subscriptions')
       .select(`
@@ -39,7 +38,6 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error
 
-    // Obtener conteo de facturas y tickets por usuario
     const userIds = subscriptions?.map(s => s.user_id) || []
 
     const { data: invoiceCounts } = await supabase
@@ -52,7 +50,6 @@ export async function GET(request: NextRequest) {
       .select('user_id')
       .in('user_id', userIds)
 
-    // Agregar conteos
     const usersWithCounts = subscriptions?.map(sub => {
       const invoices = invoiceCounts?.filter(i => i.user_id === sub.user_id).length || 0
       const tickets = ticketCounts?.filter(t => t.user_id === sub.user_id).length || 0
