@@ -144,14 +144,14 @@ export default function AlertsPanel({ invoices }: AlertsPanelProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+        <h3 className="text-lg font-semibold text-[#ffffff] flex items-center space-x-2">
           <span>🔔</span>
           <span>Alertas ({alerts.length})</span>
         </h3>
         {alerts.length > 0 && (
           <button
             onClick={() => setShowAlerts(false)}
-            className="text-lg text-gray-600 hover:text-gray-800"
+            className="text-lg text-[#ffffff] hover:text-gray-300"
           >
             Ocultar todo
           </button>
