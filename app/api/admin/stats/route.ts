@@ -15,28 +15,23 @@ export async function GET() {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    // Total usuarios
     const { count: totalUsers } = await supabase
       .from('subscriptions')
       .select('*', { count: 'exact', head: true })
 
-    // Usuarios activos (con suscripción activa o en trial)
     const { count: activeUsers } = await supabase
       .from('subscriptions')
       .select('*', { count: 'exact', head: true })
       .in('status', ['active', 'trialing'])
 
-    // Total facturas procesadas
     const { count: totalInvoices } = await supabase
       .from('invoices')
       .select('*', { count: 'exact', head: true })
 
-    // Total tickets procesados
     const { count: totalTickets } = await supabase
       .from('sales')
       .select('*', { count: 'exact', head: true })
 
-    // Usuarios por plan
     const { data: usersByPlan } = await supabase
       .from('subscriptions')
       .select('plan')
@@ -47,13 +42,6 @@ export async function GET() {
       return acc
     }, {}) || {}
 
-    // Ingresos estimados (basado en planes)
-    const { data: activeSubs } = await supabase
-      .from('subscriptions')
-      .select('plan, billing_cycle')
-      .eq('status', 'active')
-
-    // Actividad reciente (últimos 7 días)
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
