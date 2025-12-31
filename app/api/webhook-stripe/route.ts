@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
     }
 
     case 'customer.subscription.updated': {
-      const subscription = event.data.object as Stripe.Subscription
+      const subscription = event.data.object as any
       
       const { data: sub } = await supabase
         .from('subscriptions')
