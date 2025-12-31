@@ -57,7 +57,7 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-6 text-xs sm:text-sm text-[#FFFCFF]">
             <div className="flex items-center justify-center gap-2">
               <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
-              <span>14 dias gratis</span>
+              <span>7 días gratis</span>
             </div>
             <div className="flex items-center justify-center gap-2">
               <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
