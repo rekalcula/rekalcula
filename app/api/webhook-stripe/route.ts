@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { supabase } from '@/lib/supabase'
 import Stripe from 'stripe'
+import { initializeUserCredits, monthlyRefill } from '@/lib/credits'
 
 export async function POST(request: NextRequest) {
   const body = await request.text()
@@ -23,6 +24,7 @@ export async function POST(request: NextRequest) {
       const session = event.data.object as Stripe.Checkout.Session
       const userId = session.metadata?.userId
       const billingCycle = session.metadata?.billingCycle
+      const planSlug = session.metadata?.planSlug || 'basico'
 
       if (userId && session.subscription) {
         const subscriptionData: any = await stripe.subscriptions.retrieve(
@@ -32,7 +34,7 @@ export async function POST(request: NextRequest) {
         await supabase.from('subscriptions').upsert({
           user_id: userId,
           status: 'active',
-          plan: 'pro',
+          plan: planSlug,
           billing_cycle: billingCycle,
           stripe_customer_id: session.customer as string,
           stripe_subscription_id: subscriptionData.id,
@@ -41,12 +43,69 @@ export async function POST(request: NextRequest) {
           trial_end: null,
           updated_at: new Date().toISOString()
         })
+
+        // ========================================
+        // INICIALIZAR CRÉDITOS DEL USUARIO
+        // ========================================
+        await initializeUserCredits(userId, planSlug)
+        console.log(`Créditos inicializados para usuario ${userId} con plan ${planSlug}`)
+      }
+      break
+    }
+
+    // ========================================
+    // RENOVACIÓN MENSUAL - RECARGAR CRÉDITOS
+    // ========================================
+    case 'invoice.paid': {
+      const invoice = event.data.object as Stripe.Invoice
+
+      // Solo procesar renovaciones (no el primer pago)
+      if (invoice.billing_reason === 'subscription_cycle') {
+        const customerId = invoice.customer as string
+
+        // Obtener userId del customer
+        const { data: sub } = await supabase
+          .from('subscriptions')
+          .select('user_id, plan')
+          .eq('stripe_customer_id', customerId)
+          .single()
+
+        if (sub) {
+          // Recargar créditos con acumulación
+          await monthlyRefill(sub.user_id)
+          console.log(`Créditos recargados para usuario ${sub.user_id}`)
+        }
+      }
+      break
+    }
+
+    case 'customer.subscription.updated': {
+      const subscription = event.data.object as Stripe.Subscription
+      
+      // Obtener el plan desde los metadatos o el precio
+      const { data: sub } = await supabase
+        .from('subscriptions')
+        .select('user_id')
+        .eq('stripe_subscription_id', subscription.id)
+        .single()
+
+      if (sub) {
+        await supabase
+          .from('subscriptions')
+          .update({
+            status: subscription.status,
+            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('stripe_subscription_id', subscription.id)
       }
       break
     }
 
     case 'customer.subscription.deleted': {
       const subscription: any = event.data.object
+
       await supabase
         .from('subscriptions')
         .update({ status: 'canceled', updated_at: new Date().toISOString() })
@@ -56,6 +115,7 @@ export async function POST(request: NextRequest) {
 
     case 'invoice.payment_failed': {
       const invoice: any = event.data.object
+
       if (invoice.subscription) {
         await supabase
           .from('subscriptions')

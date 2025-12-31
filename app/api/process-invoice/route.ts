@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { createClient } from '@supabase/supabase-js'
 import Anthropic from '@anthropic-ai/sdk'
+import { hasCredits, useCredits } from '@/lib/credits'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,6 +23,17 @@ export async function POST(request: NextRequest) {
         { error: 'No autorizado' },
         { status: 401 }
       )
+    }
+
+    // ========================================
+    // VERIFICAR CRÉDITOS DISPONIBLES
+    // ========================================
+    const hasAvailableCredits = await hasCredits(userId, 'invoices')
+    if (!hasAvailableCredits) {
+      return NextResponse.json({ 
+        error: 'No tienes créditos de facturas disponibles. Actualiza tu plan o compra créditos adicionales.',
+        code: 'NO_CREDITS'
+      }, { status: 403 })
     }
 
     // Obtener el archivo del FormData
@@ -227,13 +239,22 @@ Responde SOLO con el JSON, sin texto adicional.`
       )
     }
 
+    // ========================================
+    // DESCONTAR CRÉDITO DESPUÉS DE ÉXITO
+    // ========================================
+    const creditResult = await useCredits(userId, 'invoices')
+    if (!creditResult.success) {
+      console.warn('Error descontando crédito:', creditResult.error)
+    }
+
     // Retornar resultado exitoso
     return NextResponse.json({
       success: true,
       data: {
         invoice: invoiceData,
         analysis: analysisData
-      }
+      },
+      creditsRemaining: creditResult.remaining
     })
 
   } catch (error) {

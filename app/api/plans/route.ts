@@ -8,16 +8,13 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+// GET: Público - cualquiera puede ver planes activos
 export async function GET() {
   try {
-    const { userId } = await auth()
-    if (!userId || !(await isAdmin(userId))) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-    }
-
     const { data, error } = await supabase
       .from('plans')
       .select('*')
+      .eq('is_active', true)
       .order('display_order', { ascending: true })
 
     if (error) throw error
@@ -28,6 +25,7 @@ export async function GET() {
   }
 }
 
+// POST: Solo admin
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth()
@@ -66,6 +64,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// PUT: Solo admin
 export async function PUT(request: NextRequest) {
   try {
     const { userId } = await auth()
@@ -98,6 +97,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
+// DELETE: Solo admin
 export async function DELETE(request: NextRequest) {
   try {
     const { userId } = await auth()
