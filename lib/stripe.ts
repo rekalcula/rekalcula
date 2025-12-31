@@ -10,5 +10,6 @@ export const stripe = stripeSecretKey
 
 export const PRICES = {
   monthly: process.env.STRIPE_PRICE_MONTHLY!,
+  semiannual: process.env.STRIPE_PRICE_SEMIANNUAL!,
   yearly: process.env.STRIPE_PRICE_YEARLY!
 }

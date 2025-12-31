@@ -12,7 +12,22 @@ export async function POST(request: NextRequest) {
     }
 
     const { billingCycle } = await request.json()
-    const priceId = billingCycle === 'yearly' ? PRICES.yearly : PRICES.monthly
+    
+    // Seleccionar precio según el ciclo
+    let priceId: string
+    switch (billingCycle) {
+      case 'monthly':
+        priceId = PRICES.monthly
+        break
+      case 'semiannual':
+        priceId = PRICES.semiannual
+        break
+      case 'yearly':
+        priceId = PRICES.yearly
+        break
+      default:
+        priceId = PRICES.yearly
+    }
 
     let { data: sub } = await supabase
       .from('subscriptions')
@@ -45,11 +60,13 @@ export async function POST(request: NextRequest) {
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
       metadata: { userId, billingCycle },
-      allow_promotion_codes: true
+      allow_promotion_codes: true,
+      subscription_data: {
+        trial_period_days: 7
+      }
     })
 
     return NextResponse.json({ url: session.url })
-
   } catch (error) {
     console.error('Error:', error)
     return NextResponse.json({ error: 'Error al crear sesión' }, { status: 500 })
