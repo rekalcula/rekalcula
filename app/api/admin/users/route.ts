@@ -1,0 +1,80 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
+import { createClient } from '@supabase/supabase-js'
+import { isAdmin } from '@/lib/admin'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
+export async function GET(request: NextRequest) {
+  try {
+    const { userId } = await auth()
+    if (!userId || !(await isAdmin(userId))) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '20')
+    const offset = (page - 1) * limit
+
+    // Obtener suscripciones con créditos
+    const { data: subscriptions, error, count } = await supabase
+      .from('subscriptions')
+      .select(`
+        *,
+        user_credits (
+          invoices_available,
+          tickets_available,
+          analyses_available,
+          invoices_used_this_month,
+          tickets_used_this_month,
+          analyses_used_this_month
+        )
+      `, { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1)
+
+    if (error) throw error
+
+    // Obtener conteo de facturas y tickets por usuario
+    const userIds = subscriptions?.map(s => s.user_id) || []
+
+    const { data: invoiceCounts } = await supabase
+      .from('invoices')
+      .select('user_id')
+      .in('user_id', userIds)
+
+    const { data: ticketCounts } = await supabase
+      .from('sales')
+      .select('user_id')
+      .in('user_id', userIds)
+
+    // Agregar conteos
+    const usersWithCounts = subscriptions?.map(sub => {
+      const invoices = invoiceCounts?.filter(i => i.user_id === sub.user_id).length || 0
+      const tickets = ticketCounts?.filter(t => t.user_id === sub.user_id).length || 0
+
+      return {
+        ...sub,
+        total_invoices: invoices,
+        total_tickets: tickets
+      }
+    })
+
+    return NextResponse.json({
+      success: true,
+      users: usersWithCounts,
+      pagination: {
+        page,
+        limit,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / limit)
+      }
+    })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
