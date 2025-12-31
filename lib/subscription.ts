@@ -39,7 +39,7 @@ export async function hasActiveSubscription(userId: string): Promise<boolean> {
 
 export async function createTrialSubscription(userId: string) {
   const trialEnd = new Date()
-  trialEnd.setDate(trialEnd.getDate() + 28)
+  trialEnd.setDate(trialEnd.getDate() + 7)
   
   const { data } = await supabase
     .from('subscriptions')
