@@ -17,61 +17,62 @@ export default function HomePage() {
             >
               Iniciar sesion
             </Link>
-            
           </div>
         </nav>
       </header>
 
-      {/* Hero Section */}
-      <main className="container mx-auto px-4 py-12 sm:py-20">
-        <div className="max-w-4xl mx-auto text-center">
+      {/* Hero Section - Ocupa pantalla completa en movil */}
+      <main className="container mx-auto px-4">
+        <div className="min-h-[calc(100vh-80px)] sm:min-h-0 flex flex-col justify-center sm:py-20">
+          <div className="max-w-4xl mx-auto text-center">
 
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-[#FFFCFF] mb-4 sm:mb-6 leading-tight">
-            Deja de perder dinero
-            <br />
-            <span className="text-[#d98c21]">sin saberlo</span>
-          </h1>
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-[#FFFCFF] mb-6 sm:mb-6 leading-tight">
+              Deja de perder dinero
+              <br />
+              <span className="text-[#d98c21]">sin saberlo</span>
+            </h1>
 
-          <p className="text-base sm:text-xl text-[#FFFCFF] mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed px-2">
-            Fotografia tus facturas, recibe un analisis con IA en 3 minutos,
-            y descubre exactamente como aumentar tus beneficios.
-          </p>
+            <p className="text-base sm:text-xl text-[#FFFCFF] mb-8 sm:mb-8 max-w-2xl mx-auto leading-relaxed px-4">
+              Fotografia tus facturas, recibe un analisis con IA en 3 minutos,
+              y descubre exactamente como aumentar tus beneficios.
+            </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-8 sm:mb-12 px-4 sm:px-0">
-            <Link
-              href="/sign-up"
-              className="bg-[#d98c21] text-white px-6 py-3 sm:px-8 sm:py-4 rounded-lg hover:bg-[#8A3C00] transition flex items-center justify-center gap-2 text-base sm:text-lg font-semibold shadow-lg hover:shadow-xl"
-            >
-              Empezar gratis
-              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
-            </Link>
-            <Link
-              href="#como-funciona"
-              className="border-2 border-[#FFFCFF] text-[#FFFCFF] px-6 py-3 sm:px-8 sm:py-4 rounded-lg hover:border-[#FFFCFF] hover:bg-[#FFFCFF] hover:text-[#262626] transition text-base sm:text-lg font-semibold"
-            >
-              Ver como funciona
-            </Link>
-          </div>
-
-          {/* Trust badges */}
-          <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-6 text-xs sm:text-sm text-[#FFFCFF]">
-            <div className="flex items-center justify-center gap-2">
-              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
-              <span>7 días gratis</span>
+            <div className="flex flex-col gap-4 sm:flex-row sm:gap-4 justify-center mb-10 sm:mb-12 px-8 sm:px-0">
+              <Link
+                href="/sign-up"
+                className="bg-[#d98c21] text-white px-6 py-4 sm:px-8 sm:py-4 rounded-lg hover:bg-[#8A3C00] transition flex items-center justify-center gap-2 text-base sm:text-lg font-semibold shadow-lg hover:shadow-xl"
+              >
+                Empezar gratis
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+              </Link>
+              <Link
+                href="#como-funciona"
+                className="border-2 border-[#FFFCFF] text-[#FFFCFF] px-6 py-4 sm:px-8 sm:py-4 rounded-lg hover:border-[#FFFCFF] hover:bg-[#FFFCFF] hover:text-[#262626] transition text-base sm:text-lg font-semibold"
+              >
+                Ver como funciona
+              </Link>
             </div>
-            <div className="flex items-center justify-center gap-2">
-              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
-              <span>Sin tarjeta de credito</span>
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
-              <span>Cancela cuando quieras</span>
+
+            {/* Trust badges - Vertical en movil */}
+            <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-6 text-sm text-[#FFFCFF] px-4">
+              <div className="flex items-center justify-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                <span>7 dias gratis</span>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                <span>Sin tarjeta de credito</span>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                <span>Cancela cuando quieras</span>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Beneficios */}
-        <div className="mt-16 sm:mt-32 max-w-6xl mx-auto">
+        <div className="py-16 sm:py-32 max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             <div className="bg-gray-200 p-6 sm:p-8 rounded-xl shadow-sm border border-gray-100">
               <div className="bg-[#FFF5ED] w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-4">
@@ -106,7 +107,7 @@ export default function HomePage() {
         </div>
 
         {/* Como funciona */}
-        <div id="como-funciona" className="mt-16 sm:mt-32">
+        <div id="como-funciona" className="py-16 sm:py-32">
           <h2 className="text-2xl sm:text-4xl font-bold text-[#FFFCFF] text-center mb-3 sm:mb-4">
             Como funciona
           </h2>
@@ -148,25 +149,27 @@ export default function HomePage() {
         </div>
 
         {/* CTA Final */}
-        <div className="mt-16 sm:mt-32 bg-gradient-to-r from-[#d98c21] to-[#8A3C00] rounded-2xl p-8 sm:p-12 text-center text-white shadow-xl mx-2 sm:mx-0">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#FFFCFF] mb-3 sm:mb-4">
-            Listo para optimizar tu negocio?
-          </h2>
-          <p className="text-base sm:text-xl mb-6 sm:mb-8 opacity-90">
-            Unete a cientos de comercios que ya aumentaron sus beneficios
-          </p>
-          <Link
-            href="/sign-up"
-            className="inline-flex items-center gap-2 bg-gray-200 text-[#d98c21] px-6 py-3 sm:px-8 sm:py-4 rounded-lg hover:bg-gray-100 transition text-base sm:text-lg font-semibold shadow-lg"
-          >
-            Empezar ahora gratis
-            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
-          </Link>
+        <div className="py-16 sm:py-32">
+          <div className="bg-gradient-to-r from-[#d98c21] to-[#8A3C00] rounded-2xl p-8 sm:p-12 text-center text-white shadow-xl">     
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#FFFCFF] mb-3 sm:mb-4">
+              Listo para optimizar tu negocio?
+            </h2>
+            <p className="text-base sm:text-xl mb-6 sm:mb-8 opacity-90">
+              Unete a cientos de comercios que ya aumentaron sus beneficios
+            </p>
+            <Link
+              href="/sign-up"
+              className="inline-flex items-center gap-2 bg-gray-200 text-[#d98c21] px-6 py-3 sm:px-8 sm:py-4 rounded-lg hover:bg-gray-100 transition text-base sm:text-lg font-semibold shadow-lg"
+            >
+              Empezar ahora gratis
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+            </Link>
+          </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-gray-200 mt-16 sm:mt-32 py-6 sm:py-8">
+      <footer className="border-t border-gray-200 py-6 sm:py-8">
         <div className="container mx-auto px-4 text-center text-[#FFFCFF] text-sm sm:text-base">
           <p>2024 ReKalcula. Todos los derechos reservados.</p>
         </div>
