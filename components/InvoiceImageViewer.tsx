@@ -11,16 +11,24 @@ export default function InvoiceImageViewer({
   filePath,
   fileName
 }: InvoiceImageViewerProps) {
-  const [imageUrl, setImageUrl] = useState<string | null>(null)
+  const [fileUrl, setFileUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+
+  const isPDF = fileName?.toLowerCase().endsWith('.pdf')
 
   useEffect(() => {
     const fetchSignedUrl = async () => {
       try {
         // Si es una URL completa antigua, usarla directamente
-        if (filePath.startsWith('http')) {
-          setImageUrl(filePath)
+        if (filePath?.startsWith('http')) {
+          setFileUrl(filePath)
+          setLoading(false)
+          return
+        }
+
+        if (!filePath) {
+          setError(true)
           setLoading(false)
           return
         }
@@ -38,7 +46,7 @@ export default function InvoiceImageViewer({
         }
 
         const data = await response.json()
-        setImageUrl(data.signedUrl)
+        setFileUrl(data.signedUrl)
       } catch (err) {
         console.error('Error:', err)
         setError(true)
@@ -47,23 +55,21 @@ export default function InvoiceImageViewer({
       }
     }
 
-    if (filePath) {
-      fetchSignedUrl()
-    }
+    fetchSignedUrl()
   }, [filePath])
 
   if (loading) {
     return (
       <div className="w-full h-64 bg-gray-200 animate-pulse flex items-center justify-center rounded-lg">
-        <span className="text-gray-500">Cargando imagen...</span>
+        <span className="text-gray-500">Cargando archivo...</span>
       </div>
     )
   }
 
-  if (error || !imageUrl) {
+  if (error || !fileUrl) {
     return (
       <div className="w-full h-64 bg-gray-200 flex items-center justify-center rounded-lg">
-        <span className="text-gray-500">Error al cargar imagen</span>
+        <span className="text-gray-500">Error al cargar archivo</span>
       </div>
     )
   }
@@ -71,15 +77,23 @@ export default function InvoiceImageViewer({
   return (
     <div className="space-y-3">
       <div className="relative">
-        <img
-          src={imageUrl}
-          alt={fileName}
-          className="w-full rounded-lg border border-gray-200"
-        />
+        {isPDF ? (
+          <iframe
+            src={fileUrl}
+            className="w-full h-96 rounded-lg border border-gray-200"
+            title={fileName}
+          />
+        ) : (
+          <img
+            src={fileUrl}
+            alt={fileName}
+            className="w-full rounded-lg border border-gray-200"
+          />
+        )}
       </div>
 
       <a
-        href={imageUrl}
+        href={fileUrl}
         target="_blank"
         rel="noopener noreferrer"
         className="block w-full text-center bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
