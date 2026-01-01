@@ -1,9 +1,10 @@
-// Updated: 2025-12-30 11:53:17
+// Updated: 2025-01-01
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import DashboardNav from '@/components/DashboardNav'
 import DeleteSaleButton from '@/components/DeleteSaleButton'
+import InvoiceImageViewer from '@/components/InvoiceImageViewer'
 import Link from 'next/link'
 
 const supabase = createClient(
@@ -49,12 +50,19 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
     minute: '2-digit'
   })
 
+  // Extraer nombre de archivo de la URL
+  const getFileName = (url: string) => {
+    if (!url) return 'ticket'
+    const parts = url.split('/')
+    return parts[parts.length - 1] || 'ticket'
+  }
+
   return (
     <>
       <DashboardNav />
       <div className="min-h-screen bg-[#262626]">
         <div className="max-w-6xl mx-auto px-4 py-8">
-          {/* Botón volver */}
+          {/* Boton volver */}
           <Link
             href="/dashboard/sales"
             className="text-[#ACACAC] hover:text-white font-medium text-xl mb-4 inline-block"
@@ -69,7 +77,7 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <div className="flex items-center space-x-2 mb-4">
                   <span className={`text-xs px-2 py-1 rounded-full ${
-                    sale.source === 'ticket' 
+                    sale.source === 'ticket'
                       ? 'bg-blue-100 text-blue-700'
                       : 'bg-gray-100 text-gray-600'
                   }`}>
@@ -119,7 +127,7 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
               {sale.sale_items && sale.sale_items.length > 0 && (
                 <div className="bg-white rounded-xl shadow-sm p-6">
                   <h2 className="text-lg font-bold text-gray-900 mb-4">
-                    Artículos / Servicios
+                    Articulos / Servicios
                   </h2>
                   <div className="space-y-4">
                     {sale.sale_items.map((item: any, index: number) => (
@@ -127,7 +135,7 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
                         <div>
                           <p className="font-medium text-gray-900">{item.product_name}</p>
                           <p className="text-sm text-gray-500">
-                            Cantidad: {item.quantity} × €{item.unit_price?.toFixed(2) || '0.00'}
+                            Cantidad: {item.quantity} x €{item.unit_price?.toFixed(2) || '0.00'}
                           </p>
                         </div>
                         <p className="font-semibold text-gray-900">
@@ -166,32 +174,17 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
               {sale.file_url && (
                 <div className="bg-white rounded-xl shadow-sm p-6">
                   <h2 className="text-lg font-bold text-gray-900 mb-4">Ticket</h2>
-                  <div className="rounded-lg overflow-hidden border">
-                    <img 
-                      src={sale.file_url} 
-                      alt="Ticket de venta"
-                      className="w-full h-auto"
-                    />
-                  </div>
+                  <InvoiceImageViewer
+                    filePath={sale.file_url}
+                    fileName={getFileName(sale.file_url)}
+                  />
                 </div>
               )}
 
               {/* Acciones */}
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h2 className="text-lg font-bold text-gray-900 mb-4">Acciones</h2>
-                <div className="space-y-3">
-                  {sale.file_url && (
-                    <a
-                      href={sale.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block w-full text-center bg-blue-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                    >
-                      Abrir en nueva pestaña
-                    </a>
-                  )}
-                  <DeleteSaleButton saleId={id} />
-                </div>
+                <DeleteSaleButton saleId={id} />
               </div>
             </div>
           </div>
