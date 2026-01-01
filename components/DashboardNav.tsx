@@ -62,7 +62,7 @@ export default function DashboardNav() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <Link href="/dashboard" className="font-bold text-white" style={{ fontSize: '24px' }}>
+          <Link href="/dashboard" className="font-bold text-white" style={{ fontSize: '35px' }}>
             re<span style={{ color: '#D98C21' }}>K</span>alcula
           </Link>
           <UserButton afterSignOutUrl="/" />
