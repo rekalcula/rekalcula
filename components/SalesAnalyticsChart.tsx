@@ -1,7 +1,9 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { IconBarChart } from './Icons'
+import ExportPDFButton from './ExportPDFButton'
+import { generateSalesPDF } from '@/lib/pdf-generator'
 
 interface Product {
   name: string
@@ -57,6 +59,24 @@ export default function SalesAnalyticsChart() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleExportPDF = () => {
+    if (!data) return
+    generateSalesPDF({
+      period: data.period,
+      totalQuantity: data.totalQuantity,
+      totalRevenue: data.totalRevenue,
+      totalSales: data.totalSales,
+      topProduct: data.topProduct,
+      products: data.products.map(p => ({
+        name: p.name,
+        quantity: p.quantity,
+        revenue: p.revenue,
+        percentage: p.percentage,
+        revenuePercentage: p.revenuePercentage
+      }))
+    })
   }
 
   const getPeriodLabel = () => {
@@ -174,6 +194,13 @@ export default function SalesAnalyticsChart() {
               </button>
             </div>
           </div>
+
+          {/* Botón Exportar PDF */}
+          {data && data.products.length > 0 && (
+            <div className="ml-auto">
+              <ExportPDFButton onClick={handleExportPDF} label="Exportar PDF" />
+            </div>
+          )}
         </div>
       </div>
 

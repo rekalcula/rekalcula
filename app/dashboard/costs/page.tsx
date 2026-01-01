@@ -1,8 +1,9 @@
-import { auth } from '@clerk/nextjs/server'
+﻿import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import DashboardNav from '@/components/DashboardNav'
 import FixedCostsManager from '@/components/FixedCostsManager'
+import CostsExportButton from './CostsExportButton'
 
 export default async function CostsPage() {
   const { userId } = await auth()
@@ -60,16 +61,21 @@ export default async function CostsPage() {
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="flex justify-between items-start mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-[#d98c21]">Costes Fijos
-              </h1>
-              <p className="mt-2 text-[#FFFCFF] text-[20px]">Gestiona tus gastos fijos mensuales
-              </p>
+              <h1 className="text-3xl font-bold text-[#d98c21]">Costes Fijos</h1>
+              <p className="mt-2 text-[#FFFCFF] text-[20px]">Gestiona tus gastos fijos mensuales</p>
             </div>
-            <div className="bg-gray-200 rounded-xl shadow-sm p-6 border-2 border-[#979797] text-right">
-              <p className="text-xl text-gray-500">Total Mensual</p>
-              <p className="text-3xl font-bold text-red-600">
-                €{monthlyTotal.toFixed(2)}
-              </p>
+            <div className="flex items-start gap-4">
+              <CostsExportButton 
+                costs={costs || []} 
+                categories={categories} 
+                monthlyTotal={monthlyTotal} 
+              />
+              <div className="bg-gray-200 rounded-xl shadow-sm p-6 border-2 border-[#979797] text-right">
+                <p className="text-xl text-gray-500">Total Mensual</p>
+                <p className="text-3xl font-bold text-red-600">
+                  €{monthlyTotal.toFixed(2)}
+                </p>
+              </div>
             </div>
           </div>
 

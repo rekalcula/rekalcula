@@ -1,4 +1,4 @@
-import { auth } from '@clerk/nextjs/server'
+﻿import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import DashboardNav from '@/components/DashboardNav'
@@ -6,6 +6,7 @@ import BreakEvenChart from '@/components/BreakEvenChart'
 import FinancialSummary from '@/components/FinancialSummary'
 import ProfitabilityAnalysis from '@/components/ProfitabilityAnalysis'
 import FinancialAlertsPanel from '@/components/FinancialAlertsPanel'
+import FinancialExportButton from './FinancialExportButton'
 
 export default async function AnalyticsPage() {
   const { userId } = await auth()
@@ -89,16 +90,19 @@ export default async function AnalyticsPage() {
     netProfit: totalSales - totalVariableCosts - totalFixedCosts
   }
 
+  const periodo = now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+
   return (
     <>
       <DashboardNav />
       <div className="min-h-screen bg-[#262626]">
         <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-[#d98c21]">Analisis Financiero
-            </h1>
-            <p className="mt-2 text-[#FFFCFF] text-[20px]">Punto de equilibrio y rentabilidad - {now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
-            </p>
+          <div className="flex justify-between items-start mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-[#d98c21]">Analisis Financiero</h1>
+              <p className="mt-2 text-[#FFFCFF] text-[20px]">Punto de equilibrio y rentabilidad - {periodo}</p>
+            </div>
+            <FinancialExportButton data={financialData} periodo={periodo} />
           </div>
 
           <FinancialSummary data={financialData} />
