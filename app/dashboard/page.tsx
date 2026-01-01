@@ -6,6 +6,7 @@ import ExpenseChart from '@/components/ExpenseChart'
 import TemporalComparison from '@/components/TemporalComparison'
 import AlertsPanel from '@/components/AlertsPanel'
 import Link from 'next/link'
+import { IconUpload, IconClipboard } from '@/components/Icons'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -52,14 +53,14 @@ export default async function DashboardPage() {
             <div className="bg-gray-200 rounded-lg shadow p-6">
               <div className="text-xl text-gray-500">Gasto Total</div>
               <div className="text-3xl font-bold text-gray-900 mt-2">
-                {totalAmount.toFixed(2)} EUR
+                {totalAmount.toFixed(2)}€
               </div>
             </div>
 
             <div className="bg-gray-200 rounded-lg shadow p-6">
               <div className="text-xl text-gray-500">Promedio por Factura</div>
               <div className="text-3xl font-bold text-gray-900 mt-2">
-                {avgAmount.toFixed(2)} EUR
+                {avgAmount.toFixed(2)}€
               </div>
             </div>
           </div>
@@ -87,7 +88,9 @@ export default async function DashboardPage() {
               href="/dashboard/upload"
               className="bg-gray-200 rounded-lg shadow p-8 hover:shadow-lg transition-shadow cursor-pointer group"
             >
-              <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">📤</div>
+              <div className="mb-4 group-hover:scale-110 transition-transform inline-block">
+                <IconUpload size={48} color="#3B82F6" />
+              </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 Subir Factura
               </h3>
@@ -100,7 +103,9 @@ export default async function DashboardPage() {
               href="/dashboard/invoices"
               className="bg-gray-200 rounded-lg shadow p-8 hover:shadow-lg transition-shadow cursor-pointer group"
             >
-              <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">📋</div>
+              <div className="mb-4 group-hover:scale-110 transition-transform inline-block">
+                <IconClipboard size={48} color="#8B5CF6" />
+              </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 Mis Facturas
               </h3>

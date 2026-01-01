@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { IconBarChart, IconTrendingUp, IconTrendingDown, IconAlertTriangle, IconCheckCircle } from './Icons'
 
 interface Invoice {
   invoice_date: string | null
@@ -22,15 +23,15 @@ export default function TemporalComparison({ invoices }: TemporalComparisonProps
     invoices.forEach(invoice => {
       const date = invoice.invoice_date ? new Date(invoice.invoice_date) : new Date(invoice.created_at)
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-      
+
       if (!grouped[monthKey]) {
         grouped[monthKey] = { total: 0, count: 0, categories: {} }
       }
-      
+
       grouped[monthKey].total += invoice.total_amount || 0
       grouped[monthKey].count += 1
 
-      const category = invoice.category || 'Sin categoría'
+      const category = invoice.category || 'Sin categoria'
       grouped[monthKey].categories[category] = (grouped[monthKey].categories[category] || 0) + (invoice.total_amount || 0)
     })
 
@@ -47,7 +48,7 @@ export default function TemporalComparison({ invoices }: TemporalComparisonProps
       .sort((a, b) => a.month.localeCompare(b.month))
   }, [invoices])
 
-  // Calcular comparación mes actual vs anterior
+  // Calcular comparacion mes actual vs anterior
   const comparison = useMemo(() => {
     if (monthlyData.length < 2) return null
 
@@ -71,7 +72,7 @@ export default function TemporalComparison({ invoices }: TemporalComparisonProps
 
   return (
     <div className="space-y-6">
-      {/* Comparación Mes Actual vs Anterior */}
+      {/* Comparacion Mes Actual vs Anterior */}
       {comparison && (
         <div className="bg-gray-200 rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -102,7 +103,7 @@ export default function TemporalComparison({ invoices }: TemporalComparisonProps
 
             {/* Cambio */}
             <div className={`rounded-lg p-4 ${comparison.totalChange > 0 ? 'bg-red-50' : 'bg-green-50'}`}>
-              <div className="text-sm text-gray-600">Variación</div>
+              <div className="text-sm text-gray-600">Variacion</div>
               <div className={`text-2xl font-bold mt-1 ${comparison.totalChange > 0 ? 'text-red-600' : 'text-green-600'}`}>
                 {comparison.totalChange > 0 ? '+' : ''}{comparison.totalChange}%
               </div>
@@ -114,10 +115,10 @@ export default function TemporalComparison({ invoices }: TemporalComparisonProps
         </div>
       )}
 
-      {/* Gráfica de Evolución Temporal */}
+      {/* Grafica de Evolucion Temporal */}
       <div className="bg-gray-200 rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Evolución de Gastos
+          Evolucion de Gastos
         </h3>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={monthlyData}>
@@ -132,7 +133,7 @@ export default function TemporalComparison({ invoices }: TemporalComparisonProps
         </ResponsiveContainer>
       </div>
 
-      {/* Gráfica de Cantidad de Facturas */}
+      {/* Grafica de Cantidad de Facturas */}
       <div className="bg-gray-200 rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Cantidad de Facturas por Mes
@@ -151,8 +152,9 @@ export default function TemporalComparison({ invoices }: TemporalComparisonProps
       {/* Tendencias y Predicciones */}
       {monthlyData.length >= 3 && (
         <div className="bg-gray-200 rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            📊 Análisis de Tendencias
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <IconBarChart size={24} color="#3B82F6" />
+            Analisis de Tendencias
           </h3>
           <div className="space-y-3">
             {(() => {
@@ -163,11 +165,15 @@ export default function TemporalComparison({ invoices }: TemporalComparisonProps
 
               return (
                 <>
-                  <div className="flex items-start space-x-2">
-                    <span className="text-xl">📈</span>
+                  <div className="flex items-start space-x-3">
+                    {trend === 'ascendente' ? (
+                      <IconTrendingUp size={24} color="#DC2626" />
+                    ) : (
+                      <IconTrendingDown size={24} color="#10B981" />
+                    )}
                     <div>
                       <p className="text-sm font-medium text-gray-900">
-                        Tendencia <span className={trendColor}>{trend}</span> en los últimos 3 meses
+                        Tendencia <span className={trendColor}>{trend}</span> en los ultimos 3 meses
                       </p>
                       <p className="text-xs text-gray-600 mt-1">
                         Promedio: {avgRecent.toFixed(2)}€/mes
@@ -176,8 +182,8 @@ export default function TemporalComparison({ invoices }: TemporalComparisonProps
                   </div>
 
                   {trend === 'ascendente' && (
-                    <div className="flex items-start space-x-2">
-                      <span className="text-xl">⚠️</span>
+                    <div className="flex items-start space-x-3">
+                      <IconAlertTriangle size={24} color="#F59E0B" />
                       <div>
                         <p className="text-sm font-medium text-gray-900">
                           Alerta: Gastos en aumento
@@ -190,14 +196,14 @@ export default function TemporalComparison({ invoices }: TemporalComparisonProps
                   )}
 
                   {trend === 'descendente' && (
-                    <div className="flex items-start space-x-2">
-                      <span className="text-xl">✅</span>
+                    <div className="flex items-start space-x-3">
+                      <IconCheckCircle size={24} color="#10B981" />
                       <div>
                         <p className="text-sm font-medium text-gray-900">
-                          ¡Bien hecho! Gastos en reducción
+                          Bien hecho! Gastos en reduccion
                         </p>
                         <p className="text-xs text-gray-600 mt-1">
-                          Mantén el control de tus gastos
+                          Manten el control de tus gastos
                         </p>
                       </div>
                     </div>

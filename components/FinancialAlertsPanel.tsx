@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { IconX } from './Icons'
 
 interface FinancialData {
   totalSales: number
@@ -308,9 +309,9 @@ export default function FinancialAlertsPanel({ data }: Props) {
               </div>
               <button
                 onClick={() => dismissAlert(alert.id)}
-                className="text-gray-500 hover:text-gray-700 ml-4 text-xl"
+                className="text-gray-500 hover:text-gray-700 ml-4"
               >
-                X
+                <IconX size={20} />
               </button>
             </div>
           </div>

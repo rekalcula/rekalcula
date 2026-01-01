@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { IconBell, IconMoney, IconBarChart, IconAlertTriangle, IconTrendingUp, IconSearch, IconX } from './Icons'
 
 interface Invoice {
   id: number
@@ -17,7 +18,7 @@ interface Alert {
   severity: 'info' | 'warning' | 'critical'
   title: string
   message: string
-  icon: string
+  iconType: 'money' | 'chart' | 'search' | 'trending'
 }
 
 interface AlertsPanelProps {
@@ -35,7 +36,7 @@ export default function AlertsPanel({ invoices }: AlertsPanelProps) {
   const generateAlerts = () => {
     const newAlerts: Alert[] = []
 
-    // 1. Alerta de límite mensual
+    // 1. Alerta de limite mensual
     const currentMonth = new Date().getMonth()
     const currentYear = new Date().getFullYear()
     const monthlyTotal = invoices
@@ -45,21 +46,21 @@ export default function AlertsPanel({ invoices }: AlertsPanelProps) {
       })
       .reduce((sum, inv) => sum + (inv.total_amount || 0), 0)
 
-    const monthlyLimit = 5000 // Límite configurable
+    const monthlyLimit = 5000
     if (monthlyTotal > monthlyLimit * 0.9) {
       newAlerts.push({
         id: 'monthly-limit',
         type: 'monthly_limit',
         severity: monthlyTotal > monthlyLimit ? 'critical' : 'warning',
-        title: monthlyTotal > monthlyLimit ? '🚨 Límite Mensual Superado' : '⚠️ Cerca del Límite Mensual',
-        message: `Has gastado ${monthlyTotal.toFixed(2)}€ este mes. ${monthlyTotal > monthlyLimit ? `Superaste el límite de ${monthlyLimit}€` : `Te quedan ${(monthlyLimit - monthlyTotal).toFixed(2)}€`}`,
-        icon: '💰'
+        title: monthlyTotal > monthlyLimit ? 'Limite Mensual Superado' : 'Cerca del Limite Mensual',
+        message: `Has gastado ${monthlyTotal.toFixed(2)}€ este mes. ${monthlyTotal > monthlyLimit ? `Superaste el limite de ${monthlyLimit}€` : `Te quedan ${(monthlyLimit - monthlyTotal).toFixed(2)}€`}`,
+        iconType: 'money'
       })
     }
 
-    // 2. Alerta de pico en categoría
+    // 2. Alerta de pico en categoria
     const categoryTotals = invoices.reduce((acc, inv) => {
-      const category = inv.category || 'Sin categoría'
+      const category = inv.category || 'Sin categoria'
       acc[category] = (acc[category] || 0) + (inv.total_amount || 0)
       return acc
     }, {} as { [key: string]: number })
@@ -70,14 +71,14 @@ export default function AlertsPanel({ invoices }: AlertsPanelProps) {
           id: `category-${category}`,
           type: 'category_spike',
           severity: 'warning',
-          title: `📊 Alto Gasto en ${category}`,
-          message: `Has gastado ${total.toFixed(2)}€ en ${category}. Considera revisar esta categoría.`,
-          icon: '📈'
+          title: `Alto Gasto en ${category}`,
+          message: `Has gastado ${total.toFixed(2)}€ en ${category}. Considera revisar esta categoria.`,
+          iconType: 'chart'
         })
       }
     })
 
-    // 3. Detección de posibles duplicados
+    // 3. Deteccion de posibles duplicados
     const recentInvoices = invoices.slice(0, 20)
     const possibleDuplicates = new Set<string>()
 
@@ -93,9 +94,9 @@ export default function AlertsPanel({ invoices }: AlertsPanelProps) {
             id: `duplicate-${inv1.id}-${inv2.id}`,
             type: 'duplicate',
             severity: 'info',
-            title: '🔍 Posible Factura Duplicada',
+            title: 'Posible Factura Duplicada',
             message: `Detectamos dos facturas similares de ${inv1.supplier} por ${inv1.total_amount?.toFixed(2)}€`,
-            icon: '⚠️'
+            iconType: 'search'
           })
         }
       })
@@ -114,9 +115,9 @@ export default function AlertsPanel({ invoices }: AlertsPanelProps) {
           id: 'trend-increase',
           type: 'trend',
           severity: 'warning',
-          title: '📈 Tendencia Creciente de Gastos',
-          message: `Tus gastos promedio han aumentado un ${(((recentAvg - prevAvg) / prevAvg) * 100).toFixed(0)}% en comparación con meses anteriores.`,
-          icon: '📊'
+          title: 'Tendencia Creciente de Gastos',
+          message: `Tus gastos promedio han aumentado un ${(((recentAvg - prevAvg) / prevAvg) * 100).toFixed(0)}% en comparacion con meses anteriores.`,
+          iconType: 'trending'
         })
       }
     }
@@ -126,6 +127,23 @@ export default function AlertsPanel({ invoices }: AlertsPanelProps) {
 
   const dismissAlert = (id: string) => {
     setAlerts(alerts.filter(alert => alert.id !== id))
+  }
+
+  const getIcon = (iconType: string, severity: string) => {
+    const color = severity === 'critical' ? '#DC2626' : severity === 'warning' ? '#D97706' : '#2563EB'
+    
+    switch (iconType) {
+      case 'money':
+        return <IconMoney size={24} color={color} />
+      case 'chart':
+        return <IconBarChart size={24} color={color} />
+      case 'search':
+        return <IconSearch size={24} color={color} />
+      case 'trending':
+        return <IconTrendingUp size={24} color={color} />
+      default:
+        return <IconAlertTriangle size={24} color={color} />
+    }
   }
 
   if (!showAlerts || alerts.length === 0) {
@@ -145,7 +163,7 @@ export default function AlertsPanel({ invoices }: AlertsPanelProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-[#ffffff] flex items-center space-x-2">
-          <span>🔔</span>
+          <IconBell size={20} color="#F59E0B" />
           <span>Alertas ({alerts.length})</span>
         </h3>
         {alerts.length > 0 && (
@@ -167,16 +185,16 @@ export default function AlertsPanel({ invoices }: AlertsPanelProps) {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-1">
-                  <span className="text-xl">{alert.icon}</span>
+                  {getIcon(alert.iconType, alert.severity)}
                   <h4 className="font-semibold text-lg">{alert.title}</h4>
                 </div>
-                <p className="text-lg">{alert.message}</p>
+                <p className="text-lg ml-8">{alert.message}</p>
               </div>
               <button
                 onClick={() => dismissAlert(alert.id)}
                 className="text-gray-500 hover:text-gray-700 ml-4"
               >
-                ✕
+                <IconX size={20} />
               </button>
             </div>
           </div>

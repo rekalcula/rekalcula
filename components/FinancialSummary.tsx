@@ -1,5 +1,7 @@
 'use client'
 
+import { IconMoney, IconBarChart, IconWallet, IconTrendingUp, IconTrendingDown, IconLineChart, IconCheckCircle } from './Icons'
+
 interface FinancialData {
   totalSales: number
   totalVariableCosts: number
@@ -18,7 +20,7 @@ interface Props {
 export default function FinancialSummary({ data }: Props) {
   const isProfit = data.netProfit >= 0
   
-  const progressToBreakEven = data.breakEvenPoint > 0 
+  const progressToBreakEven = data.breakEvenPoint > 0
     ? Math.min((data.totalSales / data.breakEvenPoint) * 100, 100)
     : 100
 
@@ -27,7 +29,7 @@ export default function FinancialSummary({ data }: Props) {
       {/* Ventas */}
       <div className="bg-gray-200 rounded-xl shadow-sm p-6">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-2xl">💰</span>
+          <IconMoney size={28} color="#D98C21" />
           <span className="text-xs text-gray-500">Este mes</span>
         </div>
         <p className="text-sm text-gray-500">Ventas Totales</p>
@@ -39,7 +41,7 @@ export default function FinancialSummary({ data }: Props) {
       {/* Costos */}
       <div className="bg-gray-200 rounded-xl shadow-sm p-6">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-2xl">📊</span>
+          <IconBarChart size={28} color="#3B82F6" />
         </div>
         <p className="text-sm text-gray-500">Costos Totales</p>
         <p className="text-2xl font-bold text-gray-900">
@@ -53,7 +55,11 @@ export default function FinancialSummary({ data }: Props) {
       {/* Beneficio */}
       <div className={`rounded-xl shadow-sm p-6 ${isProfit ? 'bg-green-50' : 'bg-red-50'}`}>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-2xl">{isProfit ? '📈' : '📉'}</span>
+          {isProfit ? (
+            <IconTrendingUp size={28} color="#10B981" />
+          ) : (
+            <IconTrendingDown size={28} color="#EF4444" />
+          )}
         </div>
         <p className={`text-sm ${isProfit ? 'text-green-600' : 'text-red-600'}`}>
           Beneficio Bruto
@@ -69,14 +75,14 @@ export default function FinancialSummary({ data }: Props) {
       {/* Punto de Equilibrio */}
       <div className="bg-gray-200 rounded-xl shadow-sm p-6">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-2xl">🎯</span>
+          <IconLineChart size={28} color="#10B981" />
         </div>
         <p className="text-sm text-gray-500">Punto de Equilibrio</p>
         <p className="text-2xl font-bold text-gray-900">
           €{data.breakEvenPoint.toFixed(2)}
         </p>
         <div className="mt-2">
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-gray-300 rounded-full h-2">
             <div
               className={`h-2 rounded-full transition-all ${
                 progressToBreakEven >= 100 ? 'bg-green-500' : 'bg-blue-500'
@@ -84,11 +90,15 @@ export default function FinancialSummary({ data }: Props) {
               style={{ width: `${progressToBreakEven}%` }}
             />
           </div>
-          <p className="text-xs text-gray-500 mt-1">
-            {progressToBreakEven >= 100
-              ? `✅ Superado por €${data.salesAboveBreakEven.toFixed(0)}`
-              : `${progressToBreakEven.toFixed(0)}% alcanzado`
-            }
+          <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+            {progressToBreakEven >= 100 ? (
+              <>
+                <IconCheckCircle size={14} color="#10B981" />
+                Superado por €{data.salesAboveBreakEven.toFixed(0)}
+              </>
+            ) : (
+              `${progressToBreakEven.toFixed(0)}% alcanzado`
+            )}
           </p>
         </div>
       </div>
