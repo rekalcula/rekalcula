@@ -10,7 +10,7 @@ const supabase = createClient(
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth()
-    
+
     if (!userId) {
       return NextResponse.json(
         { error: 'No autorizado' },
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { filePath } = await request.json()
+    const { filePath, bucket } = await request.json()
 
     if (!filePath) {
       return NextResponse.json(
@@ -28,7 +28,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar que el archivo pertenece al usuario
-    // El filePath debe empezar con el userId
     if (!filePath.startsWith(userId + '/')) {
       return NextResponse.json(
         { error: 'No autorizado para acceder a este archivo' },
@@ -36,10 +35,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Determinar el bucket (por defecto 'invoices')
+    const bucketName = bucket || 'invoices'
+    
+    // Validar que el bucket sea uno de los permitidos
+    if (!['invoices', 'sales-tickets'].includes(bucketName)) {
+      return NextResponse.json(
+        { error: 'Bucket no valido' },
+        { status: 400 }
+      )
+    }
+
     // Generar URL firmada (valida por 1 hora)
     const { data, error } = await supabase
       .storage
-      .from('invoices')
+      .from(bucketName)
       .createSignedUrl(filePath, 3600)
 
     if (error) {
