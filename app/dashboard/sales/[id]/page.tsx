@@ -177,6 +177,7 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
                   <InvoiceImageViewer
                     filePath={sale.file_url}
                     fileName={getFileName(sale.file_url)}
+                    bucket="sales-tickets"
                   />
                 </div>
               )}

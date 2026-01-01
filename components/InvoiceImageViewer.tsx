@@ -5,11 +5,13 @@ import { useState, useEffect } from 'react'
 interface InvoiceImageViewerProps {
   filePath: string
   fileName: string
+  bucket?: 'invoices' | 'sales-tickets'
 }
 
 export default function InvoiceImageViewer({
   filePath,
-  fileName
+  fileName,
+  bucket = 'invoices'
 }: InvoiceImageViewerProps) {
   const [fileUrl, setFileUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -38,7 +40,7 @@ export default function InvoiceImageViewer({
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ filePath })
+          body: JSON.stringify({ filePath, bucket })
         })
 
         if (!response.ok) {
@@ -56,7 +58,7 @@ export default function InvoiceImageViewer({
     }
 
     fetchSignedUrl()
-  }, [filePath])
+  }, [filePath, bucket])
 
   if (loading) {
     return (

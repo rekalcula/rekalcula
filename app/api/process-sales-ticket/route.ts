@@ -15,20 +15,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    // ========================================
-    // VERIFICAR CRÉDITOS DISPONIBLES
-    // ========================================
+    // Verificar creditos disponibles
     const hasAvailableCredits = await hasCredits(userId, 'tickets')
     if (!hasAvailableCredits) {
       return NextResponse.json({ 
-        error: 'No tienes créditos de tickets disponibles. Actualiza tu plan o compra créditos adicionales.',
+        error: 'No tienes creditos de tickets disponibles. Actualiza tu plan o compra creditos adicionales.',
         code: 'NO_CREDITS'
       }, { status: 403 })
     }
 
     const formData = await request.formData()
     const file = formData.get('file') as File
-    
+
     if (!file) {
       return NextResponse.json({ error: 'No se ha proporcionado archivo' }, { status: 400 })
     }
@@ -36,10 +34,29 @@ export async function POST(request: NextRequest) {
     // Convertir archivo a base64
     const bytes = await file.arrayBuffer()
     const base64 = Buffer.from(bytes).toString('base64')
-    
+    const buffer = Buffer.from(bytes)
+
     const isPDF = file.type === 'application/pdf'
 
-    // Construir el contenido según el tipo de archivo
+    // ========================================
+    // SUBIR ARCHIVO A SUPABASE STORAGE
+    // ========================================
+    const fileExt = file.name.split('.').pop() || (isPDF ? 'pdf' : 'jpg')
+    const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('sales-tickets')
+      .upload(fileName, buffer, {
+        contentType: file.type,
+        upsert: false
+      })
+
+    if (uploadError) {
+      console.error('Error subiendo archivo:', uploadError)
+      // Continuar sin archivo si falla la subida
+    }
+
+    // Construir el contenido segun el tipo de archivo
     let fileContent: any
 
     if (isPDF) {
@@ -78,9 +95,9 @@ export async function POST(request: NextRequest) {
             fileContent,
             {
               type: 'text',
-              text: `Analiza este ticket o factura de VENTA y extrae la información en formato JSON.
-              
-Devuelve ÚNICAMENTE un objeto JSON con esta estructura exacta:
+              text: `Analiza este ticket o factura de VENTA y extrae la informacion en formato JSON.
+
+Devuelve UNICAMENTE un objeto JSON con esta estructura exacta:
 {
   "fecha": "YYYY-MM-DD",
   "hora": "HH:MM",
@@ -99,8 +116,8 @@ Devuelve ÚNICAMENTE un objeto JSON con esta estructura exacta:
   "negocio": "nombre del negocio si aparece"
 }
 
-Si no puedes identificar algún campo, usa null.
-Si hay varios productos, inclúyelos todos en el array.
+Si no puedes identificar algun campo, usa null.
+Si hay varios productos, incluyelos todos en el array.
 Responde SOLO con el JSON, sin explicaciones.`
             }
           ]
@@ -110,7 +127,7 @@ Responde SOLO con el JSON, sin explicaciones.`
 
     // Extraer respuesta
     const responseText = message.content[0].type === 'text' ? message.content[0].text : ''
-    
+
     // Limpiar y parsear JSON
     let ticketData
     try {
@@ -118,12 +135,12 @@ Responde SOLO con el JSON, sin explicaciones.`
       if (jsonMatch) {
         ticketData = JSON.parse(jsonMatch[0])
       } else {
-        throw new Error('No se encontró JSON válido')
+        throw new Error('No se encontro JSON valido')
       }
     } catch (e) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: 'No se pudo procesar el ticket',
-        raw: responseText 
+        raw: responseText
       }, { status: 400 })
     }
 
@@ -139,7 +156,8 @@ Responde SOLO con el JSON, sin explicaciones.`
         total: ticketData.total,
         payment_method: ticketData.metodo_pago,
         notes: ticketData.negocio ? `Negocio: ${ticketData.negocio}` : null,
-        source: 'ticket'
+        source: 'ticket',
+        file_url: uploadError ? null : fileName  // Guardar la ruta del archivo
       })
       .select()
       .single()
@@ -169,16 +187,14 @@ Responde SOLO con el JSON, sin explicaciones.`
       }
     }
 
-    // ========================================
-    // DESCONTAR CRÉDITO DESPUÉS DE ÉXITO
-    // ========================================
+    // Descontar credito despues de exito
     const creditResult = await useCredits(userId, 'tickets')
     if (!creditResult.success) {
-      console.warn('Error descontando crédito:', creditResult.error)
+      console.warn('Error descontando credito:', creditResult.error)
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       sale,
       extracted: ticketData,
       creditsRemaining: creditResult.remaining
