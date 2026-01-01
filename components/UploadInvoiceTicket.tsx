@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { IconCamera, IconFolder, IconFolderOpen, IconCheckCircle, IconDocument, IconTarget, IconTrash, IconInfoCircle, IconLoader, IconRocket, IconZap, IconMoney, IconCalendar, IconXCircle, IconBarChart } from './Icons'
 
 // Extender tipos de input para soportar webkitdirectory
 declare module 'react' {
@@ -40,14 +41,14 @@ export default function UploadSalesfactura() {
 
   const loadFiles = async (fileList: FileList | File[], autoSelect: boolean = false) => {
     const newFiles: FileWithPreview[] = []
-    
+
     for (let i = 0; i < fileList.length; i++) {
       const file = fileList[i]
       
       if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
         continue
       }
-      
+
       let preview = ''
       if (file.type.startsWith('image/')) {
         preview = URL.createObjectURL(file)
@@ -62,7 +63,7 @@ export default function UploadSalesfactura() {
         id: `${file.name}-${Date.now()}-${i}`
       })
     }
-    
+
     setFiles(newFiles)
     setError(null)
   }
@@ -81,7 +82,7 @@ export default function UploadSalesfactura() {
       setMode('select')
       loadFiles(e.target.files, true)
     }
-    }
+  }
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -90,7 +91,7 @@ export default function UploadSalesfactura() {
 
     if (e.dataTransfer.files) {
       setMode('select')
-      loadFiles(e.dataTransfer.files, true) // TRUE = auto-seleccionar todos
+      loadFiles(e.dataTransfer.files, true)
     }
   }, [])
 
@@ -129,10 +130,10 @@ export default function UploadSalesfactura() {
   }
 
   const processFiles = async () => {
-    const filesToProcess = mode === 'folder' 
+    const filesToProcess = mode === 'folder'
       ? files
       : files.filter(f => f.selected)
-    
+
     if (filesToProcess.length === 0) {
       setError('No hay archivos para procesar')
       return
@@ -180,22 +181,22 @@ export default function UploadSalesfactura() {
         })
         errorCount++
       }
-      
+
       setResults([...newResults])
     }
 
     setProcessing(false)
 
     if (successCount > 0) {
-      setSuccess(`✅ ${successCount} factura(s) procesado(s) correctamente`)
-      
+      setSuccess(`${successCount} factura(s) procesado(s) correctamente`)
+
       setTimeout(() => {
         router.refresh()
       }, 3000)
     }
 
     if (errorCount > 0) {
-      setError(`❌ ${errorCount} factura(s) con errores`)
+      setError(`${errorCount} factura(s) con errores`)
     }
   }
 
@@ -203,24 +204,26 @@ export default function UploadSalesfactura() {
 
   return (
     <div className="bg-[#1a1a1a] rounded-xl shadow-sm p-6">
-      <h3 className="text-lg font-semibold text-[#FFFCFF] mb-4">
-        📷 Subir Facturas de Compra
+      <h3 className="text-lg font-semibold text-[#FFFCFF] mb-4 flex items-center gap-2">
+        <IconCamera size={24} color="#FFFCFF" />
+        Subir Facturas de Compra
       </h3>
 
       {files.length === 0 && (
         <div className="space-y-4">
           <div className="border-2 border-blue-500 rounded-xl p-6 bg-blue-50">
             <div className="flex items-start gap-4">
-              <div className="text-4xl">📁</div>
+              <IconFolder size={40} color="#2563EB" />
               <div className="flex-1">
                 <h4 className="text-lg font-semibold text-blue-900 mb-2">
-                  Opción 1: Cargar carpeta completa
+                  Opcion 1: Cargar carpeta completa
                 </h4>
                 <p className="text-sm text-blue-700 mb-4">
-                  Sube una carpeta con todos tus facturas. Se analizarán automáticamente TODOS los archivos.
+                  Sube una carpeta con todos tus facturas. Se analizaran automaticamente TODOS los archivos.
                 </p>
-                <label className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold cursor-pointer transition-colors">
-                  📂 Seleccionar Carpeta Completa
+                <label className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold cursor-pointer transition-colors">   
+                  <IconFolderOpen size={20} color="#FFFFFF" />
+                  Seleccionar Carpeta Completa
                   <input
                     type="file"
                     webkitdirectory="true"
@@ -237,16 +240,17 @@ export default function UploadSalesfactura() {
 
           <div className="border-2 border-green-500 rounded-xl p-6 bg-green-50">
             <div className="flex items-start gap-4">
-              <div className="text-4xl">✅</div>
+              <IconCheckCircle size={40} color="#16A34A" />
               <div className="flex-1">
                 <h4 className="text-lg font-semibold text-green-900 mb-2">
-                  Opción 2: Seleccionar archivos manualmente
+                  Opcion 2: Seleccionar archivos manualmente
                 </h4>
                 <p className="text-sm text-green-700 mb-4">
-                  Elige específicamente qué facturas quieres analizar. Puedes seleccionar múltiples archivos.
+                  Elige especificamente que facturas quieres analizar. Puedes seleccionar multiples archivos.
                 </p>
-                <label className="inline-block px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold cursor-pointer transition-colors">
-                  📄 Seleccionar Archivos
+                <label className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold cursor-pointer transition-colors"> 
+                  <IconDocument size={20} color="#FFFFFF" />
+                  Seleccionar Archivos
                   <input
                     type="file"
                     multiple
@@ -270,9 +274,9 @@ export default function UploadSalesfactura() {
             onDragOver={handleDrag}
             onDrop={handleDrop}
           >
-            <span className="text-4xl block mb-3">🎯</span>
+            <IconTarget size={40} color="#9CA3AF" className="mx-auto mb-3" />
             <p className="text-[#ACACAC] mb-2">
-              O arrastra archivos aquí
+              O arrastra archivos aqui
             </p>
             <p className="text-sm text-gray-400">
               JPG, PNG, PDF
@@ -286,8 +290,18 @@ export default function UploadSalesfactura() {
           <div className="bg-[#2d2d2d] rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
               <div>
-                <h4 className="text-lg font-semibold text-[#FFFCFF]">
-                  {mode === 'folder' ? '📁 Carpeta cargada' : '✅ Archivos seleccionados'}
+                <h4 className="text-lg font-semibold text-[#FFFCFF] flex items-center gap-2">
+                  {mode === 'folder' ? (
+                    <>
+                      <IconFolder size={20} color="#3B82F6" />
+                      Carpeta cargada
+                    </>
+                  ) : (
+                    <>
+                      <IconCheckCircle size={20} color="#10B981" />
+                      Archivos seleccionados
+                    </>
+                  )}
                 </h4>
                 <p className="text-sm text-[#ACACAC]">
                   {files.length} archivo(s) encontrado(s)
@@ -296,16 +310,18 @@ export default function UploadSalesfactura() {
               </div>
               <button
                 onClick={clearAll}
-                className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors"
+                className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors flex items-center gap-2"
               >
-                🗑️ Cancelar
+                <IconTrash size={18} />
+                Cancelar
               </button>
             </div>
 
             {mode === 'folder' && (
-              <div className="bg-blue-100 border border-blue-300 rounded-lg p-3 mt-3">
+              <div className="bg-blue-100 border border-blue-300 rounded-lg p-3 mt-3 flex items-center gap-2">
+                <IconInfoCircle size={18} color="#1D4ED8" />
                 <p className="text-sm text-blue-800">
-                  ℹ️ Modo carpeta completa: Se procesarán automáticamente TODOS los {files.length} archivos
+                  Modo carpeta completa: Se procesaran automaticamente TODOS los {files.length} archivos
                 </p>
               </div>
             )}
@@ -314,7 +330,7 @@ export default function UploadSalesfactura() {
               <div className="flex gap-2 mt-3">
                 <button
                   onClick={toggleAll}
-                  className="px-3 py-1 text-sm bg-[#3d3d3d] hover:bg-[#4d4d4d] rounded-lg transition-colors"
+                  className="px-3 py-1 text-sm bg-[#3d3d3d] hover:bg-[#4d4d4d] text-[#FFFCFF] rounded-lg transition-colors"
                 >
                   {files.every(f => f.selected) ? 'Deseleccionar todos' : 'Seleccionar todos'}
                 </button>
@@ -343,11 +359,10 @@ export default function UploadSalesfactura() {
                   </button>
                 )}
 
-                <div
-                >
+                <div>
                   {fileItem.preview === 'pdf' ? (
                     <div className="aspect-square bg-red-100 rounded flex items-center justify-center">
-                      <span className="text-3xl">📄</span>
+                      <IconDocument size={32} color="#EF4444" />
                     </div>
                   ) : (
                     <img
@@ -379,13 +394,21 @@ export default function UploadSalesfactura() {
             <button
               onClick={processFiles}
               disabled={processing || (mode === 'select' && selectedCount === 0)}
-              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 disabled:from-gray-400 disabled:to-gray-400 text-white rounded-xl font-bold text-lg transition-all transform hover:scale-105 disabled:hover:scale-100"
+              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 disabled:from-gray-400 disabled:to-gray-400 text-white rounded-xl font-bold text-lg transition-all transform hover:scale-105 disabled:hover:scale-100 inline-flex items-center gap-2"
             >
-              {processing
-                ? '⏳ Procesando...'
-                : mode === 'folder'
-                ? `🚀 Procesar TODOS los ${files.length} archivos`
-                : `🚀 Procesar ${selectedCount} archivo(s) seleccionado(s)`}
+              {processing ? (
+                <>
+                  <IconLoader size={24} className="animate-spin" />
+                  Procesando...
+                </>
+              ) : (
+                <>
+                  <IconRocket size={24} />
+                  {mode === 'folder'
+                    ? `Procesar TODOS los ${files.length} archivos`
+                    : `Procesar ${selectedCount} archivo(s) seleccionado(s)`}
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -401,15 +424,19 @@ export default function UploadSalesfactura() {
               }}
             ></div>
           </div>
-          <p className="text-sm text-[#ACACAC] text-center mt-2 font-semibold">
-            ⚡ Procesando {results.length} de {mode === 'folder' ? files.length : selectedCount}...
+          <p className="text-sm text-[#ACACAC] text-center mt-2 font-semibold flex items-center justify-center gap-2">
+            <IconZap size={16} color="#FBBF24" />
+            Procesando {results.length} de {mode === 'folder' ? files.length : selectedCount}...
           </p>
         </div>
       )}
 
       {results.length > 0 && (
         <div className="mt-6 space-y-2 max-h-96 overflow-y-auto">
-          <h4 className="text-md font-semibold text-[#FFFCFF] mb-3">📊 Resultados:</h4>
+          <h4 className="text-md font-semibold text-[#FFFCFF] mb-3 flex items-center gap-2">
+            <IconBarChart size={20} color="#FFFCFF" />
+            Resultados:
+          </h4>
           {results.map((result, idx) => (
             <div
               key={idx}
@@ -421,14 +448,16 @@ export default function UploadSalesfactura() {
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className={`text-sm font-semibold ${
+                  <p className={`text-sm font-semibold flex items-center gap-1 ${
                     result.success ? 'text-green-800' : 'text-red-800'
                   }`}>
-                    {result.success ? '✅' : '❌'} {result.fileName}
+                    {result.success ? <IconCheckCircle size={16} color="#16A34A" /> : <IconXCircle size={16} color="#DC2626" />}
+                    {result.fileName}
                   </p>
                   {result.success && result.data && (
-                    <p className="text-xs text-green-600 mt-1">
-                      💰 Total: €{result.data.total?.toFixed(2) || '0.00'} | 📅 {result.data.date || 'N/A'}
+                    <p className="text-xs text-green-600 mt-1 flex items-center gap-2">
+                      <IconMoney size={14} /> Total: €{result.data.total?.toFixed(2) || '0.00'}
+                      <IconCalendar size={14} className="ml-2" /> {result.data.date || 'N/A'}
                     </p>
                   )}
                   {!result.success && (
@@ -443,13 +472,19 @@ export default function UploadSalesfactura() {
 
       {error && !processing && (
         <div className="mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
-          <p className="text-red-700 font-semibold">{error}</p>
+          <p className="text-red-700 font-semibold flex items-center gap-2">
+            <IconXCircle size={20} color="#DC2626" />
+            {error}
+          </p>
         </div>
       )}
 
       {success && !processing && (
         <div className="mt-4 p-4 bg-green-50 border-l-4 border-green-500 rounded-lg">
-          <p className="text-green-700 font-semibold">{success}</p>
+          <p className="text-green-700 font-semibold flex items-center gap-2">
+            <IconCheckCircle size={20} color="#16A34A" />
+            {success}
+          </p>
           <p className="text-sm text-green-600 mt-1">
             Redirigiendo al listado de ventas...
           </p>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { IconBarChart } from './Icons'
 
 interface Product {
   name: string
@@ -107,9 +108,9 @@ export default function SalesAnalyticsChart() {
       {/* Filtros */}
       <div className="bg-[#0D0D0D] rounded-xl shadow-sm p-4 text-[#FFFFFF]">
         <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-4">
-          {/* Período */}
+          {/* Periodo */}
           <div className="flex items-center space-x-2">
-            <span className="text-[20px] font-medium text-[#FFFFFF]">Período:</span>
+            <span className="text-[20px] font-medium text-[#FFFFFF]">Periodo:</span>
             <div className="flex bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setPeriod('day')}
@@ -117,7 +118,7 @@ export default function SalesAnalyticsChart() {
                   period === 'day' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#0D0D0D] hover:text-[#2D2D2D]'
                 }`}
               >
-                Día
+                Dia
               </button>
               <button
                 onClick={() => setPeriod('week')}
@@ -199,7 +200,7 @@ export default function SalesAnalyticsChart() {
         </div>
 
         <div className="bg-gray-200 rounded-xl shadow-sm p-6">
-          <p className="text-[20px] text-gray-700">Número de Ventas</p>
+          <p className="text-[20px] text-gray-700">Numero de Ventas</p>
           <p className="text-2xl font-bold text-gray-900">{data?.totalSales || 0}</p>
           {compare && data?.comparison && (
             <p className="text-[20px] mt-1 text-gray-700">
@@ -209,7 +210,7 @@ export default function SalesAnalyticsChart() {
         </div>
 
         <div className="bg-gray-200 rounded-xl shadow-sm p-6">
-          <p className="text-[20px] text-gray-700">Producto Más Vendido</p>
+          <p className="text-[20px] text-gray-700">Producto Mas Vendido</p>
           <p className="text-2xl font-bold text-[#c15f3c]">{data?.topProduct?.name || '-'}</p>
           {data?.topProduct && (
             <p className="text-[20px] mt-1 text-[#10B981]">
@@ -219,7 +220,7 @@ export default function SalesAnalyticsChart() {
         </div>
       </div>
 
-      {/* Gráfico de barras */}
+      {/* Grafico de barras */}
       <div className="bg-gray-200 rounded-xl shadow-sm p-6">
         <h3 className="text-lg font-bold text-gray-900 mb-6">
           {viewMode === 'quantity' ? 'Productos por Cantidad Vendida' : 'Productos por Ingresos'} - {getPeriodLabel()}
@@ -227,8 +228,8 @@ export default function SalesAnalyticsChart() {
 
         {!data || data.products.length === 0 ? (
           <div className="text-center py-12">
-            <span className="text-4xl block mb-2">📊</span>
-            <p className="text-gray-700">No hay datos para el período seleccionado</p>
+            <IconBarChart size={48} color="#9CA3AF" className="mx-auto mb-2" />
+            <p className="text-gray-700">No hay datos para el periodo seleccionado</p>
           </div>
         ) : (
           <div className="space-y-4">

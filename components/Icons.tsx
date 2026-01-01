@@ -108,6 +108,12 @@ export const IconFolder = ({ className = '', size = 24, color = 'currentColor' }
   </svg>
 )
 
+export const IconFolderOpen = ({ className = '', size = 24, color = 'currentColor' }: IconProps) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"></path>
+  </svg>
+)
+
 export const IconUpload = ({ className = '', size = 24, color = 'currentColor' }: IconProps) => (
   <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -132,6 +138,14 @@ export const IconClipboard = ({ className = '', size = 24, color = 'currentColor
     <path d="M12 16h4"></path>
     <path d="M8 11h.01"></path>
     <path d="M8 16h.01"></path>
+  </svg>
+)
+
+export const IconImage = ({ className = '', size = 24, color = 'currentColor' }: IconProps) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect>
+    <circle cx="9" cy="9" r="2"></circle>
+    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
   </svg>
 )
 
@@ -174,6 +188,54 @@ export const IconBell = ({ className = '', size = 24, color = 'currentColor' }: 
   <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
     <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+  </svg>
+)
+
+// ============================================================
+// ACCIONES Y PROCESAMIENTO
+// ============================================================
+
+export const IconCamera = ({ className = '', size = 24, color = 'currentColor' }: IconProps) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+    <circle cx="12" cy="13" r="3"></circle>
+  </svg>
+)
+
+export const IconRocket = ({ className = '', size = 24, color = 'currentColor' }: IconProps) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path>
+    <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path>
+    <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path>
+    <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path>
+  </svg>
+)
+
+export const IconZap = ({ className = '', size = 24, color = 'currentColor' }: IconProps) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+  </svg>
+)
+
+export const IconPackage = ({ className = '', size = 24, color = 'currentColor' }: IconProps) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m7.5 4.27 9 5.15"></path>
+    <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
+    <path d="m3.3 7 8.7 5 8.7-5"></path>
+    <path d="M12 22V12"></path>
+  </svg>
+)
+
+export const IconLoader = ({ className = '', size = 24, color = 'currentColor' }: IconProps) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="2" x2="12" y2="6"></line>
+    <line x1="12" y1="18" x2="12" y2="22"></line>
+    <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+    <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+    <line x1="2" y1="12" x2="6" y2="12"></line>
+    <line x1="18" y1="12" x2="22" y2="12"></line>
+    <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+    <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
   </svg>
 )
 

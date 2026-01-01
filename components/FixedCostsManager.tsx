@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { IconMoney, IconTrash } from './Icons'
 
 interface Category {
   id: string
@@ -93,7 +94,7 @@ export default function FixedCostsManager({ initialCategories, initialCosts }: P
     yearly: 'Anual'
   }
 
-  // Agrupar costos por categoría
+  // Agrupar costos por categoria
   const costsByCategory = costs.reduce((acc, cost) => {
     const catId = cost.category_id || 'other'
     if (!acc[catId]) acc[catId] = []
@@ -103,13 +104,13 @@ export default function FixedCostsManager({ initialCategories, initialCosts }: P
 
   return (
     <div className="space-y-6">
-      {/* Botón añadir */}
+      {/* Boton anadir */}
       <div className="flex justify-end">
         <button
           onClick={() => setShowAddCost(true)}
           className="bg-[#0d0d0d] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2d2d2d]"
         >
-          + Añadir Costo Fijo
+          + Anadir Costo Fijo
         </button>
       </div>
 
@@ -120,7 +121,7 @@ export default function FixedCostsManager({ initialCategories, initialCosts }: P
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Categoría *
+                Categoria *
               </label>
               <select
                 value={newCost.category_id}
@@ -177,7 +178,7 @@ export default function FixedCostsManager({ initialCategories, initialCosts }: P
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Descripción (opcional)
+                Descripcion (opcional)
               </label>
               <input
                 type="text"
@@ -206,7 +207,7 @@ export default function FixedCostsManager({ initialCategories, initialCosts }: P
         </div>
       )}
 
-      {/* Lista de costos por categoría */}
+      {/* Lista de costos por categoria */}
       {Object.entries(costsByCategory).map(([catId, categoryCosts]) => {
         const category = initialCategories.find(c => c.id === catId)
         const categoryTotal = categoryCosts.reduce((sum, c) => sum + getMonthlyAmount(c), 0)
@@ -246,9 +247,9 @@ export default function FixedCostsManager({ initialCategories, initialCosts }: P
                     </div>
                     <button
                       onClick={() => handleDeleteCost(cost.id)}
-                      className="text-red-600 hover:text-red-700 text-[20px]"
+                      className="text-red-600 hover:text-red-700"
                     >
-                      🗑️
+                      <IconTrash size={20} />
                     </button>
                   </div>
                 </div>
@@ -260,10 +261,10 @@ export default function FixedCostsManager({ initialCategories, initialCosts }: P
 
       {costs.length === 0 && (
         <div className="bg-gray-200 rounded-xl shadow-sm p-12 text-center">
-          <span className="text-4xl block mb-2">💰</span>
+          <IconMoney size={48} color="#9CA3AF" className="mx-auto mb-2" />
           <p className="text-gray-500">No hay costos fijos registrados</p>
           <p className="text-sm text-gray-400 mt-1">
-            Añade tus gastos fijos como alquiler, luz, agua, etc.
+            Anade tus gastos fijos como alquiler, luz, agua, etc.
           </p>
         </div>
       )}
