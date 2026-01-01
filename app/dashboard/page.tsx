@@ -30,7 +30,7 @@ export default async function DashboardPage() {
   const avgAmount = totalInvoices > 0 ? totalAmount / totalInvoices : 0
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 bg-[#262626] min-h-screen">
+    <div className="max-w-6xl mx-auto px-4 py-8 bg-[#262626] min-h-screen">
       <div className="mb-8">
           <h1 className="text-3xl font-bold text-[#d98c21]">Panel
         </h1>
