@@ -63,7 +63,7 @@ export default function FiscalPage() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-6 bg-[#262626] min-h-screen">
+      <div className="max-w-6xl mx-auto px-4 py-6 bg-[#262626] min-h-screen">
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d98c21] mx-auto"></div>
           <p className="text-[#ACACAC] mt-4">Cargando...</p>
@@ -73,7 +73,7 @@ export default function FiscalPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 bg-[#262626] min-h-screen">
+    <div className="max-w-6xl mx-auto px-4 py-6 bg-[#262626] min-h-screen">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-[#d98c21]">Configuracion Fiscal</h1>
         <p className="text-xl text-[#FFFCFF] mt-1">Optimiza tus impuestos</p>
