@@ -1,4 +1,4 @@
-import { auth } from '@clerk/nextjs/server'
+﻿import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import DashboardNav from '@/components/DashboardNav'
 import SalesAnalyticsChart from '@/components/SalesAnalyticsChart'
