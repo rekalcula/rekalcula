@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { IconCamera, IconFolder, IconFolderOpen, IconCheckCircle, IconDocument, IconTarget, IconTrash, IconInfoCircle, IconLoader, IconRocket, IconZap, IconMoney, IconCalendar, IconXCircle, IconBarChart, IconPackage, IconLightbulb } from './Icons'
 
 // Extender tipos de input para soportar webkitdirectory
 declare module 'react' {
@@ -18,7 +19,7 @@ interface FileWithPreview {
   id: string
 }
 
-const BATCH_SIZE = 5 // Procesar 5 archivos simultáneamente
+const BATCH_SIZE = 5 // Procesar 5 archivos simultaneamente
 const MAX_RETRIES = 2 // Reintentar hasta 2 veces
 const TIMEOUT_MS = 30000 // Timeout de 30 segundos por archivo
 
@@ -53,7 +54,7 @@ export default function UploadSalesTicket() {
       if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
         continue
       }
-      
+
       let preview = ''
       if (file.type.startsWith('image/')) {
         preview = URL.createObjectURL(file)
@@ -136,7 +137,7 @@ export default function UploadSalesTicket() {
     setTotalBatches(0)
   }
 
-  // Función para procesar un archivo con timeout y reintentos
+  // Funcion para procesar un archivo con timeout y reintentos
   const processFileWithRetry = async (fileItem: FileWithPreview, retries = MAX_RETRIES): Promise<any> => {
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
@@ -172,7 +173,7 @@ export default function UploadSalesTicket() {
           await new Promise(resolve => setTimeout(resolve, 1000))
           continue
         }
-        
+
         return {
           fileName: fileItem.file.name,
           success: false,
@@ -182,7 +183,7 @@ export default function UploadSalesTicket() {
     }
   }
 
-  // Función para procesar archivos en lotes
+  // Funcion para procesar archivos en lotes
   const processFiles = async () => {
     const filesToProcess = mode === 'folder'
       ? files
@@ -209,12 +210,12 @@ export default function UploadSalesTicket() {
     // Procesar en lotes
     for (let batchIndex = 0; batchIndex < batches; batchIndex++) {
       setCurrentBatch(batchIndex + 1)
-      
+
       const startIdx = batchIndex * BATCH_SIZE
       const endIdx = Math.min(startIdx + BATCH_SIZE, totalFiles)
       const batch = filesToProcess.slice(startIdx, endIdx)
 
-      // Procesar archivos del lote simultáneamente
+      // Procesar archivos del lote simultaneamente
       const batchPromises = batch.map(fileItem => processFileWithRetry(fileItem))
       const batchResults = await Promise.all(batchPromises)
 
@@ -230,7 +231,7 @@ export default function UploadSalesTicket() {
 
       setResults([...allResults])
 
-      // Pequeña pausa entre lotes para evitar rate limiting
+      // Pequena pausa entre lotes para evitar rate limiting
       if (batchIndex < batches - 1) {
         await new Promise(resolve => setTimeout(resolve, 500))
       }
@@ -241,7 +242,7 @@ export default function UploadSalesTicket() {
     setTotalBatches(0)
 
     if (successCount > 0) {
-      setSuccess(`✅ ${successCount} ticket(s) procesado(s) correctamente`)
+      setSuccess(`${successCount} ticket(s) procesado(s) correctamente`)
 
       setTimeout(() => {
         router.refresh()
@@ -249,7 +250,7 @@ export default function UploadSalesTicket() {
     }
 
     if (errorCount > 0) {
-      setError(`❌ ${errorCount} ticket(s) con errores`)
+      setError(`${errorCount} ticket(s) con errores`)
     }
   }
 
@@ -257,24 +258,26 @@ export default function UploadSalesTicket() {
 
   return (
     <div className="bg-[#1a1a1a] rounded-xl shadow-sm p-6">
-      <h3 className="text-lg font-semibold text-[#FFFCFF] mb-4">
-        📷 Subir Tickets de Venta
+      <h3 className="text-lg font-semibold text-[#FFFCFF] mb-4 flex items-center gap-2">
+        <IconCamera size={24} color="#FFFCFF" />
+        Subir Tickets de Venta
       </h3>
 
       {files.length === 0 && (
         <div className="space-y-4">
           <div className="border-2 border-blue-500 rounded-xl p-6 bg-blue-50">
             <div className="flex items-start gap-4">
-              <div className="text-4xl">📁</div>
+              <IconFolder size={40} color="#2563EB" />
               <div className="flex-1">
                 <h4 className="text-lg font-semibold text-blue-900 mb-2">
-                  Opción 1: Cargar carpeta completa
+                  Opcion 1: Cargar carpeta completa
                 </h4>
                 <p className="text-sm text-blue-700 mb-4">
-                  Sube una carpeta con todos tus tickets. Se analizarán automáticamente TODOS los archivos.
+                  Sube una carpeta con todos tus tickets. Se analizaran automaticamente TODOS los archivos.
                 </p>
-                <label className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold cursor-pointer transition-colors">   
-                  📂 Seleccionar Carpeta Completa
+                <label className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold cursor-pointer transition-colors">   
+                  <IconFolderOpen size={20} color="#FFFFFF" />
+                  Seleccionar Carpeta Completa
                   <input
                     type="file"
                     webkitdirectory="true"
@@ -291,16 +294,17 @@ export default function UploadSalesTicket() {
 
           <div className="border-2 border-green-500 rounded-xl p-6 bg-green-50">
             <div className="flex items-start gap-4">
-              <div className="text-4xl">✅</div>
+              <IconCheckCircle size={40} color="#16A34A" />
               <div className="flex-1">
                 <h4 className="text-lg font-semibold text-green-900 mb-2">
-                  Opción 2: Seleccionar archivos manualmente
+                  Opcion 2: Seleccionar archivos manualmente
                 </h4>
                 <p className="text-sm text-green-700 mb-4">
-                  Elige específicamente qué tickets quieres analizar. Puedes seleccionar múltiples archivos.
+                  Elige especificamente que tickets quieres analizar. Puedes seleccionar multiples archivos.
                 </p>
-                <label className="inline-block px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold cursor-pointer transition-colors"> 
-                  📄 Seleccionar Archivos
+                <label className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold cursor-pointer transition-colors"> 
+                  <IconDocument size={20} color="#FFFFFF" />
+                  Seleccionar Archivos
                   <input
                     type="file"
                     multiple
@@ -324,9 +328,9 @@ export default function UploadSalesTicket() {
             onDragOver={handleDrag}
             onDrop={handleDrop}
           >
-            <span className="text-4xl block mb-3">🎯</span>
+            <IconTarget size={40} color="#9CA3AF" className="mx-auto mb-3" />
             <p className="text-[#ACACAC] mb-2">
-              O arrastra archivos aquí
+              O arrastra archivos aqui
             </p>
             <p className="text-sm text-gray-400">
               JPG, PNG, PDF
@@ -340,8 +344,18 @@ export default function UploadSalesTicket() {
           <div className="bg-[#2d2d2d] rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
               <div>
-                <h4 className="text-lg font-semibold text-[#FFFCFF]">
-                  {mode === 'folder' ? '📁 Carpeta cargada' : '✅ Archivos seleccionados'}
+                <h4 className="text-lg font-semibold text-[#FFFCFF] flex items-center gap-2">
+                  {mode === 'folder' ? (
+                    <>
+                      <IconFolder size={20} color="#3B82F6" />
+                      Carpeta cargada
+                    </>
+                  ) : (
+                    <>
+                      <IconCheckCircle size={20} color="#10B981" />
+                      Archivos seleccionados
+                    </>
+                  )}
                 </h4>
                 <p className="text-sm text-[#ACACAC]">
                   {files.length} archivo(s) encontrado(s)
@@ -350,16 +364,18 @@ export default function UploadSalesTicket() {
               </div>
               <button
                 onClick={clearAll}
-                className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors"
+                className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors flex items-center gap-2"
               >
-                🗑️ Cancelar
+                <IconTrash size={18} />
+                Cancelar
               </button>
             </div>
 
             {mode === 'folder' && (
-              <div className="bg-blue-100 border border-blue-300 rounded-lg p-3 mt-3">
+              <div className="bg-blue-100 border border-blue-300 rounded-lg p-3 mt-3 flex items-center gap-2">
+                <IconInfoCircle size={18} color="#1D4ED8" />
                 <p className="text-sm text-blue-800">
-                  ℹ️ Modo carpeta completa: Se procesarán automáticamente TODOS los {files.length} archivos
+                  Modo carpeta completa: Se procesaran automaticamente TODOS los {files.length} archivos
                 </p>
               </div>
             )}
@@ -400,7 +416,7 @@ export default function UploadSalesTicket() {
                 <div>
                   {fileItem.preview === 'pdf' ? (
                     <div className="aspect-square bg-red-100 rounded flex items-center justify-center">
-                      <span className="text-3xl">📄</span>
+                      <IconDocument size={32} color="#EF4444" />
                     </div>
                   ) : (
                     <img
@@ -432,13 +448,21 @@ export default function UploadSalesTicket() {
             <button
               onClick={processFiles}
               disabled={processing || (mode === 'select' && selectedCount === 0)}
-              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 disabled:from-gray-400 disabled:to-gray-400 text-white rounded-xl font-bold text-lg transition-all transform hover:scale-105 disabled:hover:scale-100"
+              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 disabled:from-gray-400 disabled:to-gray-400 text-white rounded-xl font-bold text-lg transition-all transform hover:scale-105 disabled:hover:scale-100 inline-flex items-center gap-2"
             >
-              {processing
-                ? '⏳ Procesando...'
-                : mode === 'folder'
-                ? `🚀 Procesar TODOS los ${files.length} archivos`
-                : `🚀 Procesar ${selectedCount} archivo(s) seleccionado(s)`}
+              {processing ? (
+                <>
+                  <IconLoader size={24} className="animate-spin" />
+                  Procesando...
+                </>
+              ) : (
+                <>
+                  <IconRocket size={24} />
+                  {mode === 'folder'
+                    ? `Procesar TODOS los ${files.length} archivos`
+                    : `Procesar ${selectedCount} archivo(s) seleccionado(s)`}
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -455,16 +479,19 @@ export default function UploadSalesTicket() {
             ></div>
           </div>
           <div className="flex justify-between text-sm text-[#ACACAC]">
-            <span className="font-semibold">
-              ⚡ Procesando {results.length} de {mode === 'folder' ? files.length : selectedCount}
+            <span className="font-semibold flex items-center gap-1">
+              <IconZap size={16} color="#FBBF24" />
+              Procesando {results.length} de {mode === 'folder' ? files.length : selectedCount}
             </span>
-            <span className="font-semibold">
-              📦 Lote {currentBatch} de {totalBatches}
+            <span className="font-semibold flex items-center gap-1">
+              <IconPackage size={16} color="#60A5FA" />
+              Lote {currentBatch} de {totalBatches}
             </span>
           </div>
-          <div className="bg-blue-100 border border-blue-300 rounded-lg p-3">
+          <div className="bg-blue-100 border border-blue-300 rounded-lg p-3 flex items-center gap-2">
+            <IconLightbulb size={18} color="#1D4ED8" />
             <p className="text-sm text-blue-800">
-              💡 Procesando {BATCH_SIZE} archivos simultáneamente con reintentos automáticos
+              Procesando {BATCH_SIZE} archivos simultaneamente con reintentos automaticos
             </p>
           </div>
         </div>
@@ -472,7 +499,10 @@ export default function UploadSalesTicket() {
 
       {results.length > 0 && (
         <div className="mt-6 space-y-2 max-h-96 overflow-y-auto">
-          <h4 className="text-md font-semibold text-[#FFFCFF] mb-3">📊 Resultados:</h4>
+          <h4 className="text-md font-semibold text-[#FFFCFF] mb-3 flex items-center gap-2">
+            <IconBarChart size={20} color="#FFFCFF" />
+            Resultados:
+          </h4>
           {results.map((result, idx) => (
             <div
               key={idx}
@@ -484,14 +514,16 @@ export default function UploadSalesTicket() {
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className={`text-sm font-semibold ${
+                  <p className={`text-sm font-semibold flex items-center gap-1 ${
                     result.success ? 'text-green-800' : 'text-red-800'
                   }`}>
-                    {result.success ? '✅' : '❌'} {result.fileName}
+                    {result.success ? <IconCheckCircle size={16} color="#16A34A" /> : <IconXCircle size={16} color="#DC2626" />}
+                    {result.fileName}
                   </p>
                   {result.success && result.data && (
-                    <p className="text-xs text-green-600 mt-1">
-                      💰 Total: €{result.data.total?.toFixed(2) || '0.00'} | 📅 {result.data.sale_date || 'N/A'}
+                    <p className="text-xs text-green-600 mt-1 flex items-center gap-2">
+                      <IconMoney size={14} /> Total: €{result.data.total?.toFixed(2) || '0.00'}
+                      <IconCalendar size={14} className="ml-2" /> {result.data.sale_date || 'N/A'}
                     </p>
                   )}
                   {!result.success && (
@@ -506,13 +538,19 @@ export default function UploadSalesTicket() {
 
       {error && !processing && (
         <div className="mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
-          <p className="text-red-700 font-semibold">{error}</p>
+          <p className="text-red-700 font-semibold flex items-center gap-2">
+            <IconXCircle size={20} color="#DC2626" />
+            {error}
+          </p>
         </div>
       )}
 
       {success && !processing && (
         <div className="mt-4 p-4 bg-green-50 border-l-4 border-green-500 rounded-lg">
-          <p className="text-green-700 font-semibold">{success}</p>
+          <p className="text-green-700 font-semibold flex items-center gap-2">
+            <IconCheckCircle size={20} color="#16A34A" />
+            {success}
+          </p>
           <p className="text-sm text-green-600 mt-1">
             Redirigiendo al listado de ventas...
           </p>

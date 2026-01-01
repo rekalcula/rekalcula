@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { IconUpload, IconDocument, IconTrash } from './Icons'
 
 export default function UploadForm() {
   const router = useRouter()
@@ -34,7 +35,7 @@ export default function UploadForm() {
     if (validFiles.length > 0) {
       setFiles(prev => [...prev, ...validFiles])
     } else {
-      alert('Solo se permiten archivos PDF o imágenes (PNG, JPG, JPEG)')
+      alert('Solo se permiten archivos PDF o imagenes (PNG, JPG, JPEG)')
     }
   }
 
@@ -95,9 +96,13 @@ export default function UploadForm() {
   }
 
   const getFileIcon = (file: File) => {
-    if (file.type === 'application/pdf') return '📄'
-    if (file.type.startsWith('image/')) return '🖼️'
-    return '📎'
+    if (file.type === 'application/pdf') {
+      return <IconDocument size={24} color="#EF4444" />
+    }
+    if (file.type.startsWith('image/')) {
+      return <IconDocument size={24} color="#3B82F6" />
+    }
+    return <IconDocument size={24} color="#6B7280" />
   }
 
   const formatFileSize = (bytes: number) => {
@@ -124,9 +129,11 @@ export default function UploadForm() {
           }
         `}
       >
-        <div className="text-6xl mb-4">📤</div>
+        <div className="flex justify-center mb-4">
+          <IconUpload size={64} color="#6B7280" />
+        </div>
         <p className="text-lg font-semibold text-gray-900 mb-2">
-          Arrastra archivos aquí o haz clic para seleccionar
+          Arrastra archivos aqui o haz clic para seleccionar
         </p>
         <p className="text-sm text-gray-600 mb-4">
           Soporta: PDF, PNG, JPG, JPEG
@@ -161,7 +168,7 @@ export default function UploadForm() {
                 className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
               >
                 <div className="flex items-center space-x-3 flex-1">
-                  <span className="text-2xl">{getFileIcon(file)}</span>
+                  {getFileIcon(file)}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">
                       {file.name}
@@ -175,8 +182,9 @@ export default function UploadForm() {
                   <button
                     type="button"
                     onClick={() => removeFile(index)}
-                    className="text-red-600 hover:text-red-700 font-medium text-sm"
+                    className="text-red-600 hover:text-red-700 font-medium text-sm flex items-center gap-1"
                   >
+                    <IconTrash size={16} />
                     Eliminar
                   </button>
                 )}
@@ -209,7 +217,7 @@ export default function UploadForm() {
         </div>
       )}
 
-      {/* Botón de enviar */}
+      {/* Boton de enviar */}
       <button
         type="submit"
         disabled={files.length === 0 || uploading}

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { IconCalendar, IconDocument, IconTrash } from './Icons'
 
 interface Invoice {
   id: string
@@ -28,8 +29,8 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
   const allIds = sortedDates.flatMap(date => invoicesByDate[date].map(inv => inv.id))
 
   const toggleSelect = (id: string) => {
-    setSelectedIds(prev => 
-      prev.includes(id) 
+    setSelectedIds(prev =>
+      prev.includes(id)
         ? prev.filter(i => i !== id)
         : [...prev, id]
     )
@@ -45,8 +46,8 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
 
   const handleDeleteSelected = async () => {
     if (selectedIds.length === 0) return
-    
-    if (!confirm(`¿Estás seguro de que quieres eliminar ${selectedIds.length} factura(s)?`)) {
+
+    if (!confirm(`¿Estas seguro de que quieres eliminar ${selectedIds.length} factura(s)?`)) {
       return
     }
 
@@ -72,7 +73,7 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
 
   return (
     <>
-      {/* Barra de selección */}
+      {/* Barra de seleccion */}
       {allIds.length > 0 && (
         <div className="bg-gray-200 rounded-xl shadow-sm p-4 mb-6 flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -93,14 +94,15 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
               </span>
             )}
           </div>
-          
+
           {selectedIds.length > 0 && (
             <button
               onClick={handleDeleteSelected}
               disabled={deleting}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
+              className="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center gap-2"
             >
-              {deleting ? 'Eliminando...' : `🗑 Eliminar (${selectedIds.length})`}
+              <IconTrash size={18} />
+              {deleting ? 'Eliminando...' : `Eliminar (${selectedIds.length})`}
             </button>
           )}
         </div>
@@ -110,7 +112,7 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
       <div className="space-y-6">
         {sortedDates.length === 0 ? (
           <div className="bg-gray-200 rounded-xl shadow-sm p-12 text-center">
-            <span className="text-4xl block mb-2">📄</span>
+            <IconDocument size={48} color="#9CA3AF" className="mx-auto mb-2" />
             <p className="text-gray-500">No hay facturas registradas</p>
             <Link
               href="/dashboard/upload"
@@ -136,15 +138,16 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
               <div key={date} className="bg-gray-200 rounded-xl shadow-sm overflow-hidden">
                 {/* Cabecera de fecha */}
                 <div className="px-6 py-4 bg-gray-50 border-b flex justify-between items-center">
-                  <h3 className="font-semibold text-gray-900 capitalize">
-                    📅 {formattedDate}
+                  <h3 className="font-semibold text-gray-900 capitalize flex items-center gap-2">
+                    <IconCalendar size={20} color="#6B7280" />
+                    {formattedDate}
                   </h3>
                   <span className="text-red-600 font-semibold">
                     €{dateTotal.toFixed(2)}
                   </span>
                 </div>
 
-                {/* Facturas del día */}
+                {/* Facturas del dia */}
                 <div className="divide-y">
                   {dateInvoices.map((invoice: any) => (
                     <div key={invoice.id} className="flex items-center">
@@ -157,9 +160,9 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
                           className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
                       </div>
-                      
+
                       {/* Contenido */}
-                      <Link 
+                      <Link
                         href={`/dashboard/invoices/${invoice.id}`}
                         className="flex-1 px-6 py-4 hover:bg-gray-50 transition-colors"
                       >
@@ -167,27 +170,27 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
                           <div className="flex-1">
                             <div className="flex items-center space-x-2">
                               <span className={`text-xs px-2 py-1 rounded-full ${
-                                invoice.category === 'Productos' 
+                                invoice.category === 'Productos'
                                   ? 'bg-blue-100 text-blue-700'
                                   : invoice.category === 'Servicios'
                                   ? 'bg-green-100 text-green-700'
                                   : 'bg-gray-100 text-gray-600'
                               }`}>
-                                {invoice.category || 'Sin categoría'}
+                                {invoice.category || 'Sin categoria'}
                               </span>
                             </div>
-                            
+
                             <p className="font-medium text-gray-900 mt-2">
                               {invoice.supplier || 'Proveedor desconocido'}
                             </p>
-                            
+
                             {invoice.items && invoice.items.length > 0 && (
                               <p className="text-sm text-gray-500 mt-1">
                                 {invoice.items.length} item{invoice.items.length > 1 ? 's' : ''}
                               </p>
                             )}
                           </div>
-                          
+
                           <div className="text-right ml-4">
                             <p className="text-lg font-bold text-gray-900">
                               €{invoice.total_amount?.toFixed(2) || '0.00'}

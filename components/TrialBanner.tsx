@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { IconAlertTriangle, IconXCircle } from './Icons'
 
 interface SubscriptionData {
   subscription: {
@@ -30,43 +31,45 @@ export default function TrialBanner() {
 
   if (!data?.subscription) return null
 
-  // Si ya es usuario activo (pagó), no mostrar banner
+  // Si ya es usuario activo (pago), no mostrar banner
   if (data.subscription.status === 'active') return null
 
-  // Si está en trial
+  // Si esta en trial
   if (data.subscription.status === 'trialing') {
     const days = data.trialDaysRemaining
 
-    // Colores según urgencia
+    // Colores segun urgencia
     let bgColor = 'bg-blue-50 border-blue-200'
     let textColor = 'text-blue-800'
-    let icon = 'ℹ️'
+    let iconColor = '#1D4ED8'
 
     if (days <= 3) {
       bgColor = 'bg-red-50 border-red-200'
       textColor = 'text-red-800'
-      icon = '⚠️'
+      iconColor = '#DC2626'
     } else if (days <= 7) {
       bgColor = 'bg-yellow-50 border-yellow-200'
       textColor = 'text-yellow-800'
-      icon = '⏰'
+      iconColor = '#D97706'
     }
 
     return (
       <div className={`${bgColor} border rounded-lg p-4 mb-6 flex items-center justify-between`}>
         <div className="flex items-center">
-          <span className="text-2xl mr-3">{icon}</span>
+          <span className="mr-3">
+            <IconAlertTriangle size={28} color={iconColor} />
+          </span>
           <div>
             <p className={`font-semibold ${textColor}`}>
-              {days > 0 
-                ? `Te quedan ${days} día${days !== 1 ? 's' : ''} de prueba gratis`
-                : 'Tu período de prueba ha expirado'
+              {days > 0
+                ? `Te quedan ${days} dia${days !== 1 ? 's' : ''} de prueba gratis`
+                : 'Tu periodo de prueba ha expirado'
               }
             </p>
             <p className={`text-sm ${textColor} opacity-75`}>
-              {days > 0 
-                ? 'Suscríbete para no perder acceso a tus datos'
-                : 'Suscríbete ahora para continuar usando reKalcula'
+              {days > 0
+                ? 'Suscribete para no perder acceso a tus datos'
+                : 'Suscribete ahora para continuar usando reKalcula'
               }
             </p>
           </div>
@@ -82,14 +85,16 @@ export default function TrialBanner() {
     )
   }
 
-  // Si expiró o está cancelado
+  // Si expiro o esta cancelado
   if (data.subscription.status === 'expired' || data.subscription.status === 'canceled') {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center justify-between">
         <div className="flex items-center">
-          <span className="text-2xl mr-3">🚫</span>
+          <span className="mr-3">
+            <IconXCircle size={28} color="#DC2626" />
+          </span>
           <div>
-            <p className="font-semibold text-red-800">Tu suscripción ha expirado</p>
+            <p className="font-semibold text-red-800">Tu suscripcion ha expirado</p>
             <p className="text-sm text-red-700">Renueva para continuar usando reKalcula</p>
           </div>
         </div>
@@ -98,7 +103,7 @@ export default function TrialBanner() {
           className="text-white px-4 py-2 rounded-lg font-semibold"
           style={{ backgroundColor: '#D98C21' }}
         >
-          Renovar suscripción
+          Renovar suscripcion
         </Link>
       </div>
     )

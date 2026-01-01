@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
+import { IconAlertTriangle } from './Icons'
 
 interface DateRangePickerProps {
   onDateChange: (fechaInicio: string, fechaFin: string, diasSeleccionados: number) => void
@@ -20,14 +21,14 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
       try {
         const response = await fetch('/api/sales/available-dates')
         const data = await response.json()
-        
+
         if (data.success && data.dates && data.dates.length > 0) {
           const dates = data.dates.map((d: string) => new Date(d + 'T00:00:00'))
           setFechasConVentas(dates)
-          
+
           const lastDate = dates[dates.length - 1]
           const firstDate = dates[Math.max(0, dates.length - 30)]
-          
+
           setFechaInicio(firstDate)
           setFechaFin(lastDate)
         }
@@ -35,7 +36,7 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
         console.error('Error fetching dates:', error)
       }
     }
-    
+
     fetchAvailableDates()
   }, [])
 
@@ -43,22 +44,22 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
     if (fechaInicio && fechaFin) {
       const diffTime = Math.abs(fechaFin.getTime() - fechaInicio.getTime())
       const dias = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
-      
+
       setDiasSeleccionados(dias)
-      
+
       const formatDate = (date: Date) => {
         const year = date.getFullYear()
         const month = String(date.getMonth() + 1).padStart(2, '0')
         const day = String(date.getDate()).padStart(2, '0')
         return `${year}-${month}-${day}`
       }
-      
+
       onDateChange(formatDate(fechaInicio), formatDate(fechaFin), dias)
     }
   }, [fechaInicio, fechaFin, onDateChange])
 
   const dayClassName = (date: Date) => {
-    const hasData = fechasConVentas.some(d => 
+    const hasData = fechasConVentas.some(d =>
       d.getDate() === date.getDate() &&
       d.getMonth() === date.getMonth() &&
       d.getFullYear() === date.getFullYear()
@@ -121,7 +122,7 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
             className="w-full px-3 py-2 border-2 border-[#d98c21] bg-[#0d0d0d] text-[#FFFCFF] rounded-lg focus:ring-2 focus:ring-[#d98c21] focus:border-[#d98c21] disabled:opacity-50"
           />
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium text-[#ACACAC] mb-1">
             Fecha fin
@@ -153,14 +154,14 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
       {fechaInicio && fechaFin && diasSeleccionados < 15 && (
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
           <div className="flex items-start">
-            <span className="text-2xl mr-3">⚠️</span>
+            <IconAlertTriangle size={24} color="#D97706" className="mr-3 flex-shrink-0" />
             <div>
               <h3 className="text-sm font-semibold text-yellow-800">
                 Periodo menor a 15 dias
               </h3>
               <p className="text-sm text-yellow-700 mt-1">
-                Se recomienda al menos 15 dias de datos de ventas para realizar un análisis 
-                cientificamente válido y detectar tendencias significativas.
+                Se recomienda al menos 15 dias de datos de ventas para realizar un analisis
+                cientificamente valido y detectar tendencias significativas.
               </p>
             </div>
           </div>
