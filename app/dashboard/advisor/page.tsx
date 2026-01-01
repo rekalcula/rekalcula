@@ -577,7 +577,7 @@ export default function AdvisorPage() {
             <div className="bg-[#262626] rounded-xl p-8 text-center">
               <div className="text-6xl mb-4"><IconCheck /></div>
               <h3 className="text-lg font-medium text-[#FFFCFF] mt-4 mb-2">Sin consejos aplicados</h3>
-              <p className="text-[#ACACAC] text-[20px] mb-4">Los consejos que apliques apareceran aqui</p>
+              <p className="text-[#ACACAC] text-[16PX] mb-4">Los consejos que apliques apareceran aqui</p>
               <button
                 onClick={() => setTabActiva('nuevo')}
                 className="px-6 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors font-medium"
@@ -668,7 +668,7 @@ export default function AdvisorPage() {
             <div className="bg-[#262626] rounded-xl p-8 text-center">
               <div className="text-6xl mb-4"><IconFolder /></div>
               <h3 className="text-lg font-medium text-[#FFFCFF] mt-4 mb-2">Sin analisis guardados</h3>
-              <p className="text-[#ACACAC] text-[20px] mb-4">Genera tu primer analisis para empezar</p>
+              <p className="text-[#ACACAC] text-[16PX] mb-4">Genera tu primer analisis para empezar</p>
               <button
                 onClick={() => setTabActiva('nuevo')}
                 className="px-6 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors font-medium"
