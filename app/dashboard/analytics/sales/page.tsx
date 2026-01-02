@@ -25,7 +25,7 @@ export default async function SalesAnalyticsPage() {
               href="/dashboard/sales/upload"
               className="bg-[#0d0d0d] text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-medium hover:bg-[#2d2d2d] text-center text-xl sm:text-base"
             >
-              📤 Subir Ticket
+              Subir Ticket
             </Link>
           </div>
 
@@ -35,3 +35,4 @@ export default async function SalesAnalyticsPage() {
     </>
   )
 }
+
