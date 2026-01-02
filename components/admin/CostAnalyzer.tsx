@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { 
@@ -41,7 +41,7 @@ interface CreditPackage {
   id: string
   name: string
   credit_type: 'invoices' | 'tickets' | 'analyses'
-  credits_amount: number
+  amount: number
   price: number
   is_active: boolean
 }
@@ -124,7 +124,7 @@ export default function CostAnalyzer() {
     setMessage(null)
     try {
       const res = await fetch('/api/admin/costs-config', {
-        method: 'PUT',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           invoice_cost: customCosts.invoice,
@@ -137,13 +137,13 @@ export default function CostAnalyzer() {
       
       if (data.success) {
         setLastUpdated(data.config.updated_at)
-        setMessage({ type: 'success', text: 'Configuración de costos guardada' })
+        setMessage({ type: 'success', text: 'ConfiguraciÃ³n de costos guardada' })
       } else {
         setMessage({ type: 'error', text: data.error || 'Error al guardar' })
       }
     } catch (error) {
       console.error('Error saving costs config:', error)
-      setMessage({ type: 'error', text: 'Error al guardar la configuración' })
+      setMessage({ type: 'error', text: 'Error al guardar la configuraciÃ³n' })
     } finally {
       setSavingCosts(false)
     }
@@ -173,7 +173,7 @@ export default function CostAnalyzer() {
   const analyzePackage = (pkg: CreditPackage): CostAnalysis => {
     const costPerCredit = customCosts[pkg.credit_type === 'invoices' ? 'invoice' : 
                                        pkg.credit_type === 'tickets' ? 'ticket' : 'analysis']
-    const aiCost = pkg.credits_amount * costPerCredit
+    const aiCost = pkg.amount * costPerCredit
     const price = pkg.price
     const profit = price - aiCost
     const margin = price > 0 ? (profit / price) * 100 : 0
@@ -232,7 +232,7 @@ export default function CostAnalyzer() {
       <div className="bg-[#262626] rounded-xl p-6 border border-gray-700">
         <div className="flex items-center gap-3 mb-2">
           <Calculator className="w-6 h-6 text-[#D98C21]" />
-          <h2 className="text-xl font-bold text-white">Análisis de Costos y Rentabilidad</h2>
+          <h2 className="text-xl font-bold text-white">AnÃ¡lisis de Costos y Rentabilidad</h2>
         </div>
         <p className="text-gray-400">
           Calcula el costo real de IA y la rentabilidad de cada plan y paquete.
@@ -290,7 +290,7 @@ export default function CostAnalyzer() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-white flex items-center gap-2">
             <Euro className="w-5 h-5 text-[#D98C21]" />
-            Costos de IA por Operación
+            Costos de IA por OperaciÃ³n
           </h3>
           <button
             onClick={saveCostsConfig}
@@ -315,7 +315,7 @@ export default function CostAnalyzer() {
           <div>
             <label className="flex items-center gap-2 text-gray-300 mb-2 text-sm">
               <FileText className="w-4 h-4 text-purple-400" />
-              Costo Factura (€)
+              Costo Factura (â‚¬)
             </label>
             <input
               type="number"
@@ -330,7 +330,7 @@ export default function CostAnalyzer() {
           <div>
             <label className="flex items-center gap-2 text-gray-300 mb-2 text-sm">
               <Receipt className="w-4 h-4 text-orange-400" />
-              Costo Ticket (€)
+              Costo Ticket (â‚¬)
             </label>
             <input
               type="number"
@@ -345,7 +345,7 @@ export default function CostAnalyzer() {
           <div>
             <label className="flex items-center gap-2 text-gray-300 mb-2 text-sm">
               <Lightbulb className="w-4 h-4 text-yellow-400" />
-              Costo Análisis (€)
+              Costo AnÃ¡lisis (â‚¬)
             </label>
             <input
               type="number"
@@ -360,7 +360,7 @@ export default function CostAnalyzer() {
         </div>
 
         <div>
-          <label className="text-gray-300 mb-2 block text-sm">Notas/Descripción</label>
+          <label className="text-gray-300 mb-2 block text-sm">Notas/DescripciÃ³n</label>
           <input
             type="text"
             value={costsDescription}
@@ -372,7 +372,7 @@ export default function CostAnalyzer() {
 
         {lastUpdated && (
           <p className="text-gray-500 text-xs mt-3">
-            Última actualización: {new Date(lastUpdated).toLocaleString('es-ES')}
+            Ãšltima actualizaciÃ³n: {new Date(lastUpdated).toLocaleString('es-ES')}
           </p>
         )}
       </div>
@@ -512,7 +512,7 @@ function PlanCostCard({
             <span className="text-xs">Facturas</span>
           </div>
           <p className="text-white font-semibold">{plan.invoices_limit}</p>
-          <p className="text-gray-500 text-xs">€{(plan.invoices_limit * costs.invoice).toFixed(3)}</p>
+          <p className="text-gray-500 text-xs">â‚¬{(plan.invoices_limit * costs.invoice).toFixed(3)}</p>
         </div>
         <div className="bg-[#333] rounded-lg p-3">
           <div className="flex items-center gap-2 text-orange-400 mb-1">
@@ -520,15 +520,15 @@ function PlanCostCard({
             <span className="text-xs">Tickets</span>
           </div>
           <p className="text-white font-semibold">{plan.tickets_limit}</p>
-          <p className="text-gray-500 text-xs">€{(plan.tickets_limit * costs.ticket).toFixed(3)}</p>
+          <p className="text-gray-500 text-xs">â‚¬{(plan.tickets_limit * costs.ticket).toFixed(3)}</p>
         </div>
         <div className="bg-[#333] rounded-lg p-3">
           <div className="flex items-center gap-2 text-yellow-400 mb-1">
             <Lightbulb className="w-4 h-4" />
-            <span className="text-xs">Análisis</span>
+            <span className="text-xs">AnÃ¡lisis</span>
           </div>
           <p className="text-white font-semibold">{plan.analyses_limit}</p>
-          <p className="text-gray-500 text-xs">€{(plan.analyses_limit * costs.analysis).toFixed(3)}</p>
+          <p className="text-gray-500 text-xs">â‚¬{(plan.analyses_limit * costs.analysis).toFixed(3)}</p>
         </div>
       </div>
 
@@ -537,16 +537,16 @@ function PlanCostCard({
         <div className="grid grid-cols-4 gap-4 text-center">
           <div>
             <p className="text-gray-500 text-xs mb-1">Precio/mes</p>
-            <p className="text-white font-bold">€{plan.price_monthly}</p>
+            <p className="text-white font-bold">â‚¬{plan.price_monthly}</p>
           </div>
           <div>
             <p className="text-gray-500 text-xs mb-1">Costo IA</p>
-            <p className="text-red-400 font-bold">€{analysis.aiCost.toFixed(2)}</p>
+            <p className="text-red-400 font-bold">â‚¬{analysis.aiCost.toFixed(2)}</p>
           </div>
           <div>
             <p className="text-gray-500 text-xs mb-1">Beneficio</p>
             <p className={`font-bold ${analysis.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-              €{analysis.profit.toFixed(2)}
+              â‚¬{analysis.profit.toFixed(2)}
             </p>
           </div>
           <div>
@@ -561,8 +561,8 @@ function PlanCostCard({
       {/* Yearly info */}
       {plan.price_yearly > 0 && (
         <div className="mt-3 text-sm text-gray-400 flex justify-between">
-          <span>Precio anual: €{plan.price_yearly}</span>
-          <span>Ahorro anual: €{((plan.price_monthly * 12) - plan.price_yearly).toFixed(2)}</span>
+          <span>Precio anual: â‚¬{plan.price_yearly}</span>
+          <span>Ahorro anual: â‚¬{((plan.price_monthly * 12) - plan.price_yearly).toFixed(2)}</span>
         </div>
       )}
     </div>
@@ -582,7 +582,7 @@ function PackageCostCard({
   const typeConfig = {
     invoices: { icon: FileText, color: 'purple', label: 'Facturas' },
     tickets: { icon: Receipt, color: 'orange', label: 'Tickets' },
-    analyses: { icon: Lightbulb, color: 'yellow', label: 'Análisis' },
+    analyses: { icon: Lightbulb, color: 'yellow', label: 'AnÃ¡lisis' },
   }
 
   const config = typeConfig[pkg.credit_type]
@@ -607,7 +607,7 @@ function PackageCostCard({
                 <span className="text-xs bg-gray-700 text-gray-400 px-2 py-0.5 rounded">Inactivo</span>
               )}
             </div>
-            <p className="text-gray-500 text-sm">{config.label} • {pkg.credits_amount} créditos</p>
+            <p className="text-gray-500 text-sm">{config.label} â€¢ {pkg.amount} crÃ©ditos</p>
           </div>
         </div>
         <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
@@ -625,28 +625,30 @@ function PackageCostCard({
         <div className="grid grid-cols-5 gap-4 text-center">
           <div>
             <p className="text-gray-500 text-xs mb-1">Precio</p>
-            <p className="text-white font-bold">€{pkg.price}</p>
+            <p className="text-white font-bold">â‚¬{pkg.price}</p>
           </div>
           <div>
             <p className="text-gray-500 text-xs mb-1">Costo IA</p>
-            <p className="text-red-400 font-bold">€{analysis.aiCost.toFixed(2)}</p>
+            <p className="text-red-400 font-bold">â‚¬{analysis.aiCost.toFixed(2)}</p>
           </div>
           <div>
             <p className="text-gray-500 text-xs mb-1">Beneficio</p>
             <p className={`font-bold ${analysis.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-              €{analysis.profit.toFixed(2)}
+              â‚¬{analysis.profit.toFixed(2)}
             </p>
           </div>
           <div>
-            <p className="text-gray-500 text-xs mb-1">€/crédito</p>
-            <p className="text-blue-400 font-bold">€{(pkg.price / pkg.credits_amount).toFixed(3)}</p>
+            <p className="text-gray-500 text-xs mb-1">â‚¬/crÃ©dito</p>
+            <p className="text-blue-400 font-bold">â‚¬{(pkg.price / pkg.amount).toFixed(3)}</p>
           </div>
           <div>
-            <p className="text-gray-500 text-xs mb-1">Costo/crédito</p>
-            <p className="text-gray-400 font-bold">€{costPerCredit.toFixed(3)}</p>
+            <p className="text-gray-500 text-xs mb-1">Costo/crÃ©dito</p>
+            <p className="text-gray-400 font-bold">â‚¬{costPerCredit.toFixed(3)}</p>
           </div>
         </div>
       </div>
     </div>
   )
 }
+
+
