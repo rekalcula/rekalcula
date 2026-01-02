@@ -1,7 +1,7 @@
-﻿import jsPDF from 'jspdf'
+﻿
+import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
-// Colores del tema reKalcula
 const COLORS = {
   primary: '#d98c21',
   dark: '#262626',
@@ -12,7 +12,6 @@ const COLORS = {
   blue: '#3B82F6'
 }
 
-// Función auxiliar para convertir hex a RGB
 const hexToRgb = (hex: string): [number, number, number] => {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
   return result 
@@ -20,26 +19,21 @@ const hexToRgb = (hex: string): [number, number, number] => {
     : [0, 0, 0]
 }
 
-// Header común para todos los PDFs
 const addHeader = (doc: jsPDF, title: string, subtitle?: string) => {
   const pageWidth = doc.internal.pageSize.getWidth()
   
-  // Fondo del header
   doc.setFillColor(...hexToRgb(COLORS.dark))
   doc.rect(0, 0, pageWidth, 45, 'F')
   
-  // Logo/Título
   doc.setTextColor(...hexToRgb(COLORS.primary))
   doc.setFontSize(24)
   doc.setFont('helvetica', 'bold')
   doc.text('reKalcula', 20, 25)
   
-  // Título del reporte
   doc.setTextColor(...hexToRgb(COLORS.white))
   doc.setFontSize(14)
   doc.text(title, 20, 38)
   
-  // Fecha
   doc.setFontSize(10)
   doc.setTextColor(...hexToRgb(COLORS.gray))
   const fecha = new Date().toLocaleDateString('es-ES', { 
@@ -57,10 +51,9 @@ const addHeader = (doc: jsPDF, title: string, subtitle?: string) => {
     doc.text(subtitle, pageWidth - 20, 38, { align: 'right' })
   }
   
-  return 55 // Posición Y después del header
+  return 55
 }
 
-// Footer común
 const addFooter = (doc: jsPDF) => {
   const pageCount = doc.internal.pages.length - 1
   const pageHeight = doc.internal.pageSize.getHeight()
@@ -71,7 +64,7 @@ const addFooter = (doc: jsPDF) => {
     doc.setFontSize(8)
     doc.setTextColor(...hexToRgb(COLORS.gray))
     doc.text(
-      `Página ${i} de ${pageCount} | Generado por reKalcula`,
+      `Pagina ${i} de ${pageCount} | Generado por reKalcula`,
       pageWidth / 2,
       pageHeight - 10,
       { align: 'center' }
@@ -111,7 +104,6 @@ export const generateCostsPDF = (
   const doc = new jsPDF()
   let yPos = addHeader(doc, 'Resumen de Costes Fijos', 'Gastos Empresariales')
   
-  // Resumen total
   doc.setFillColor(...hexToRgb('#FEF3C7'))
   doc.roundedRect(20, yPos, 170, 25, 3, 3, 'F')
   doc.setFontSize(12)
@@ -120,7 +112,7 @@ export const generateCostsPDF = (
   doc.setFontSize(18)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(...hexToRgb(COLORS.red))
-  doc.text(`€${monthlyTotal.toFixed(2)}`, 30, yPos + 20)
+  doc.text(`${monthlyTotal.toFixed(2)} EUR`, 30, yPos + 20)
   
   doc.setFontSize(10)
   doc.setFont('helvetica', 'normal')
@@ -129,7 +121,6 @@ export const generateCostsPDF = (
   
   yPos += 35
   
-  // Agrupar por categoría
   const costsByCategory = costs.reduce((acc, cost) => {
     const catId = cost.category_id || 'other'
     if (!acc[catId]) acc[catId] = []
@@ -149,34 +140,36 @@ export const generateCostsPDF = (
     return cost.amount
   }
   
-  // Tabla por cada categoría
   Object.entries(costsByCategory).forEach(([catId, categoryCosts]) => {
     const category = categories.find(c => c.id === catId)
     const categoryTotal = categoryCosts.reduce((sum, c) => sum + getMonthlyAmount(c), 0)
     
-    // Título de categoría
+    if (yPos > 250) {
+      doc.addPage()
+      yPos = 20
+    }
+    
     doc.setFillColor(...hexToRgb(COLORS.dark))
     doc.roundedRect(20, yPos, 170, 10, 2, 2, 'F')
     doc.setFontSize(11)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(...hexToRgb(COLORS.white))
-    doc.text(`${category?.icon || '📁'} ${category?.name || 'Otros'}`, 25, yPos + 7)
-    doc.text(`€${categoryTotal.toFixed(2)}/mes`, 180, yPos + 7, { align: 'right' })
+    doc.text(`${category?.name || 'Otros'}`, 25, yPos + 7)
+    doc.text(`${categoryTotal.toFixed(2)} EUR/mes`, 180, yPos + 7, { align: 'right' })
     
     yPos += 12
     
-    // Tabla de costes
     const tableData = categoryCosts.map(cost => [
       cost.name,
       cost.description || '-',
       frequencyLabels[cost.frequency],
-      `€${cost.amount.toFixed(2)}`,
-      `€${getMonthlyAmount(cost).toFixed(2)}`
+      `${cost.amount.toFixed(2)} EUR`,
+      `${getMonthlyAmount(cost).toFixed(2)} EUR`
     ])
     
     autoTable(doc, {
       startY: yPos,
-      head: [['Concepto', 'Descripción', 'Frecuencia', 'Importe', 'Mensual']],
+      head: [['Concepto', 'Descripcion', 'Frecuencia', 'Importe', 'Mensual']],
       body: tableData,
       theme: 'striped',
       headStyles: {
@@ -200,12 +193,6 @@ export const generateCostsPDF = (
     })
     
     yPos = (doc as any).lastAutoTable.finalY + 10
-    
-    // Nueva página si es necesario
-    if (yPos > 250) {
-      doc.addPage()
-      yPos = 20
-    }
   })
   
   addFooter(doc)
@@ -213,7 +200,7 @@ export const generateCostsPDF = (
 }
 
 // ============================================================
-// 2. PDF DE ANÁLISIS FINANCIERO
+// 2. PDF DE ANALISIS FINANCIERO
 // ============================================================
 interface FinancialData {
   totalSales: number
@@ -228,20 +215,17 @@ interface FinancialData {
 
 export const generateFinancialPDF = (data: FinancialData, periodo: string) => {
   const doc = new jsPDF()
-  let yPos = addHeader(doc, 'Análisis Financiero', periodo)
+  let yPos = addHeader(doc, 'Analisis Financiero', periodo)
   
   const isProfit = data.netProfit >= 0
   const progressToBreakEven = data.breakEvenPoint > 0
     ? Math.min((data.totalSales / data.breakEvenPoint) * 100, 100)
     : 100
   
-  // Tarjetas de resumen
   const cardWidth = 80
   const cardHeight = 35
   const gap = 10
   
-  // Fila 1: Ventas y Costos
-  // Ventas
   doc.setFillColor(...hexToRgb('#FEF3C7'))
   doc.roundedRect(20, yPos, cardWidth, cardHeight, 3, 3, 'F')
   doc.setFontSize(10)
@@ -250,9 +234,8 @@ export const generateFinancialPDF = (data: FinancialData, periodo: string) => {
   doc.setFontSize(16)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(...hexToRgb(COLORS.dark))
-  doc.text(`€${data.totalSales.toFixed(2)}`, 25, yPos + 26)
+  doc.text(`${data.totalSales.toFixed(2)} EUR`, 25, yPos + 26)
   
-  // Costos
   doc.setFillColor(...hexToRgb('#DBEAFE'))
   doc.roundedRect(20 + cardWidth + gap, yPos, cardWidth, cardHeight, 3, 3, 'F')
   doc.setFontSize(10)
@@ -262,16 +245,14 @@ export const generateFinancialPDF = (data: FinancialData, periodo: string) => {
   doc.setFontSize(16)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(...hexToRgb(COLORS.dark))
-  doc.text(`€${(data.totalVariableCosts + data.totalFixedCosts).toFixed(2)}`, 25 + cardWidth + gap, yPos + 26)
+  doc.text(`${(data.totalVariableCosts + data.totalFixedCosts).toFixed(2)} EUR`, 25 + cardWidth + gap, yPos + 26)
   doc.setFontSize(8)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(...hexToRgb(COLORS.gray))
-  doc.text(`Fijos: €${data.totalFixedCosts.toFixed(0)} | Variables: €${data.totalVariableCosts.toFixed(0)}`, 25 + cardWidth + gap, yPos + 32)
+  doc.text(`Fijos: ${data.totalFixedCosts.toFixed(0)} | Variables: ${data.totalVariableCosts.toFixed(0)}`, 25 + cardWidth + gap, yPos + 32)
   
   yPos += cardHeight + gap
   
-  // Fila 2: Beneficio y Punto de Equilibrio
-  // Beneficio
   doc.setFillColor(...hexToRgb(isProfit ? '#D1FAE5' : '#FEE2E2'))
   doc.roundedRect(20, yPos, cardWidth, cardHeight, 3, 3, 'F')
   doc.setFontSize(10)
@@ -280,11 +261,10 @@ export const generateFinancialPDF = (data: FinancialData, periodo: string) => {
   doc.text('Beneficio Neto', 25, yPos + 12)
   doc.setFontSize(16)
   doc.setFont('helvetica', 'bold')
-  doc.text(`€${data.netProfit.toFixed(2)}`, 25, yPos + 26)
+  doc.text(`${data.netProfit.toFixed(2)} EUR`, 25, yPos + 26)
   doc.setFontSize(8)
   doc.text(`Margen: ${data.contributionMargin.toFixed(1)}%`, 25, yPos + 32)
   
-  // Punto de Equilibrio
   doc.setFillColor(...hexToRgb('#F3F4F6'))
   doc.roundedRect(20 + cardWidth + gap, yPos, cardWidth, cardHeight, 3, 3, 'F')
   doc.setFontSize(10)
@@ -294,32 +274,35 @@ export const generateFinancialPDF = (data: FinancialData, periodo: string) => {
   doc.setFontSize(16)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(...hexToRgb(COLORS.dark))
-  doc.text(`€${data.breakEvenPoint.toFixed(2)}`, 25 + cardWidth + gap, yPos + 26)
+  doc.text(`${data.breakEvenPoint.toFixed(2)} EUR`, 25 + cardWidth + gap, yPos + 26)
   doc.setFontSize(8)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(...hexToRgb(progressToBreakEven >= 100 ? COLORS.green : COLORS.blue))
   doc.text(
     progressToBreakEven >= 100 
-      ? `✓ Superado por €${data.salesAboveBreakEven.toFixed(0)}`
+      ? `Superado por ${data.salesAboveBreakEven.toFixed(0)} EUR`
       : `${progressToBreakEven.toFixed(0)}% alcanzado`,
     25 + cardWidth + gap, yPos + 32
   )
   
   yPos += cardHeight + 20
   
-  // Tabla de desglose
   doc.setFontSize(14)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(...hexToRgb(COLORS.dark))
   doc.text('Desglose Financiero', 20, yPos)
   yPos += 8
   
+  const netProfitPercent = data.totalSales > 0 ? ((data.netProfit / data.totalSales) * 100).toFixed(1) : '0.0'
+  const variableCostPercent = data.totalSales > 0 ? ((data.totalVariableCosts / data.totalSales) * 100).toFixed(1) : '0.0'
+  const grossProfitPercent = data.totalSales > 0 ? ((data.grossProfit / data.totalSales) * 100).toFixed(1) : '0.0'
+  
   const tableData = [
-    ['Ventas Brutas', `€${data.totalSales.toFixed(2)}`, ''],
-    ['(-) Costos Variables', `€${data.totalVariableCosts.toFixed(2)}`, `${((data.totalVariableCosts / data.totalSales) * 100 || 0).toFixed(1)}%`],
-    ['(=) Beneficio Bruto', `€${data.grossProfit.toFixed(2)}`, `${((data.grossProfit / data.totalSales) * 100 || 0).toFixed(1)}%`],
-    ['(-) Costos Fijos', `€${data.totalFixedCosts.toFixed(2)}`, ''],
-    ['(=) Beneficio Neto', `€${data.netProfit.toFixed(2)}`, `${((data.netProfit / data.totalSales) * 100 || 0).toFixed(1)}%`]
+    ['Ventas Brutas', `${data.totalSales.toFixed(2)} EUR`, ''],
+    ['(-) Costos Variables', `${data.totalVariableCosts.toFixed(2)} EUR`, `${variableCostPercent}%`],
+    ['(=) Beneficio Bruto', `${data.grossProfit.toFixed(2)} EUR`, `${grossProfitPercent}%`],
+    ['(-) Costos Fijos', `${data.totalFixedCosts.toFixed(2)} EUR`, ''],
+    ['(=) Beneficio Neto', `${data.netProfit.toFixed(2)} EUR`, `${netProfitPercent}%`]
   ]
   
   autoTable(doc, {
@@ -355,7 +338,7 @@ export const generateFinancialPDF = (data: FinancialData, periodo: string) => {
 }
 
 // ============================================================
-// 3. PDF DE ANÁLISIS DE VENTAS
+// 3. PDF DE ANALISIS DE VENTAS
 // ============================================================
 interface Product {
   name: string
@@ -383,14 +366,12 @@ export const generateSalesPDF = (data: SalesData) => {
     month: 'Este Mes'
   }
   
-  let yPos = addHeader(doc, 'Análisis de Ventas', periodLabels[data.period] || data.period)
+  let yPos = addHeader(doc, 'Analisis de Ventas', periodLabels[data.period] || data.period)
   
-  // Tarjetas de resumen
   const cardWidth = 55
   const cardHeight = 30
   const gap = 8
   
-  // Total Productos
   doc.setFillColor(...hexToRgb('#F3F4F6'))
   doc.roundedRect(20, yPos, cardWidth, cardHeight, 3, 3, 'F')
   doc.setFontSize(9)
@@ -401,7 +382,6 @@ export const generateSalesPDF = (data: SalesData) => {
   doc.setTextColor(...hexToRgb(COLORS.dark))
   doc.text(`${data.totalQuantity}`, 25, yPos + 22)
   
-  // Ingresos
   doc.setFillColor(...hexToRgb('#D1FAE5'))
   doc.roundedRect(20 + cardWidth + gap, yPos, cardWidth, cardHeight, 3, 3, 'F')
   doc.setFontSize(9)
@@ -411,9 +391,8 @@ export const generateSalesPDF = (data: SalesData) => {
   doc.setFontSize(14)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(...hexToRgb(COLORS.green))
-  doc.text(`€${data.totalRevenue.toFixed(2)}`, 25 + cardWidth + gap, yPos + 22)
+  doc.text(`${data.totalRevenue.toFixed(2)} EUR`, 25 + cardWidth + gap, yPos + 22)
   
-  // Número de Ventas
   doc.setFillColor(...hexToRgb('#F3F4F6'))
   doc.roundedRect(20 + (cardWidth + gap) * 2, yPos, cardWidth, cardHeight, 3, 3, 'F')
   doc.setFontSize(9)
@@ -427,13 +406,12 @@ export const generateSalesPDF = (data: SalesData) => {
   
   yPos += cardHeight + 15
   
-  // Top Producto
   if (data.topProduct) {
     doc.setFillColor(...hexToRgb('#FEF3C7'))
     doc.roundedRect(20, yPos, 170, 25, 3, 3, 'F')
     doc.setFontSize(10)
     doc.setTextColor(...hexToRgb(COLORS.gray))
-    doc.text('🏆 Producto Más Vendido', 25, yPos + 10)
+    doc.text('[TOP] Producto Mas Vendido', 25, yPos + 10)
     doc.setFontSize(14)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(...hexToRgb(COLORS.primary))
@@ -442,13 +420,12 @@ export const generateSalesPDF = (data: SalesData) => {
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(...hexToRgb(COLORS.green))
     doc.text(
-      `${data.topProduct.quantity} uds · €${data.topProduct.revenue.toFixed(2)}`,
+      `${data.topProduct.quantity} uds - ${data.topProduct.revenue.toFixed(2)} EUR`,
       180, yPos + 15, { align: 'right' }
     )
     yPos += 35
   }
   
-  // Tabla de productos
   if (data.products.length > 0) {
     doc.setFontSize(14)
     doc.setFont('helvetica', 'bold')
@@ -460,7 +437,7 @@ export const generateSalesPDF = (data: SalesData) => {
       `${i + 1}`,
       p.name,
       `${p.quantity}`,
-      `€${p.revenue.toFixed(2)}`,
+      `${p.revenue.toFixed(2)} EUR`,
       `${p.percentage.toFixed(1)}%`,
       `${p.revenuePercentage.toFixed(1)}%`
     ])
@@ -530,11 +507,11 @@ export const generateAdvisorPDF = (
   const doc = new jsPDF()
   
   const sectorLabels: Record<string, string> = {
-    'cafeteria': 'Cafetería',
+    'cafeteria': 'Cafeteria',
     'restaurante': 'Restaurante',
-    'peluqueria': 'Peluquería',
-    'taller_mecanico': 'Taller Mecánico',
-    'carpinteria': 'Carpintería',
+    'peluqueria': 'Peluqueria',
+    'taller_mecanico': 'Taller Mecanico',
+    'carpinteria': 'Carpinteria',
     'general': 'General'
   }
   
@@ -550,28 +527,26 @@ export const generateAdvisorPDF = (
     3: '#DBEAFE'
   }
   
-  let yPos = addHeader(doc, 'Análisis del Asesor IA', `Sector: ${sectorLabels[sector] || sector}`)
+  let yPos = addHeader(doc, 'Analisis del Asesor IA', `Sector: ${sectorLabels[sector] || sector}`)
   
-  // Resumen
   doc.setFillColor(...hexToRgb('#F3F4F6'))
   doc.roundedRect(20, yPos, 170, 20, 3, 3, 'F')
   doc.setFontSize(10)
   doc.setTextColor(...hexToRgb(COLORS.dark))
-  doc.text(`📊 ${recomendaciones.length} recomendaciones`, 30, yPos + 8)
-  doc.text(`✓ ${consejosAplicados.length} consejos aplicados`, 30, yPos + 16)
-  doc.text(`Período: ${periodo}`, 150, yPos + 12, { align: 'right' })
+  doc.text(`${recomendaciones.length} recomendaciones`, 30, yPos + 8)
+  doc.text(`${consejosAplicados.length} consejos aplicados`, 30, yPos + 16)
+  doc.text(`Periodo: ${periodo}`, 150, yPos + 12, { align: 'right' })
   
   yPos += 30
   
-  // Recomendaciones actuales
   if (recomendaciones.length > 0) {
     doc.setFontSize(14)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(...hexToRgb(COLORS.dark))
-    doc.text('💡 Recomendaciones', 20, yPos)
+    doc.text('Recomendaciones', 20, yPos)
     yPos += 10
     
-    recomendaciones.forEach((rec, index) => {
+    recomendaciones.forEach((rec) => {
       if (yPos > 250) {
         doc.addPage()
         yPos = 20
@@ -582,30 +557,27 @@ export const generateAdvisorPDF = (
       doc.setFillColor(...hexToRgb(bgColor))
       doc.roundedRect(20, yPos, 170, 35, 3, 3, 'F')
       
-      // Prioridad badge
       doc.setFontSize(8)
       doc.setTextColor(...hexToRgb(COLORS.gray))
       doc.text(`Prioridad: ${prioridadLabels[rec.prioridad] || 'Normal'}`, 25, yPos + 8)
       
-      // Título
       doc.setFontSize(11)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...hexToRgb(COLORS.dark))
-      doc.text(rec.titulo, 25, yPos + 18)
+      const tituloCorto = rec.titulo.length > 60 ? rec.titulo.substring(0, 60) + '...' : rec.titulo
+      doc.text(tituloCorto, 25, yPos + 18)
       
-      // Mensaje (truncado si es muy largo)
       doc.setFontSize(9)
       doc.setFont('helvetica', 'normal')
       doc.setTextColor(...hexToRgb(COLORS.gray))
       const mensaje = rec.mensaje.length > 100 ? rec.mensaje.substring(0, 100) + '...' : rec.mensaje
       doc.text(mensaje, 25, yPos + 26, { maxWidth: 160 })
       
-      // Datos
       if (rec.datosReales) {
         doc.setFontSize(8)
         doc.setTextColor(...hexToRgb(COLORS.green))
         doc.text(
-          `Ventas: ${rec.datosReales.ventas} | Ingresos: €${rec.datosReales.ingresos?.toFixed(2) || '0.00'}`,
+          `Ventas: ${rec.datosReales.ventas} | Ingresos: ${rec.datosReales.ingresos?.toFixed(2) || '0.00'} EUR`,
           180, yPos + 8, { align: 'right' }
         )
       }
@@ -614,7 +586,6 @@ export const generateAdvisorPDF = (
     })
   }
   
-  // Consejos aplicados
   if (consejosAplicados.length > 0) {
     if (yPos > 200) {
       doc.addPage()
@@ -625,14 +596,14 @@ export const generateAdvisorPDF = (
     doc.setFontSize(14)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(...hexToRgb(COLORS.dark))
-    doc.text('✓ Consejos Aplicados', 20, yPos)
+    doc.text('Consejos Aplicados', 20, yPos)
     yPos += 10
     
     const tableData = consejosAplicados.map(c => [
-      c.titulo,
+      c.titulo.length > 40 ? c.titulo.substring(0, 40) + '...' : c.titulo,
       prioridadLabels[c.prioridad] || 'Normal',
       new Date(c.aplicadoEn).toLocaleDateString('es-ES'),
-      `€${c.datosReales?.ingresos?.toFixed(2) || '0.00'}`
+      `${c.datosReales?.ingresos?.toFixed(2) || '0.00'} EUR`
     ])
     
     autoTable(doc, {
