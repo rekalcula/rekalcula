@@ -369,8 +369,9 @@ export default function AdvisorPage() {
     }
   }
 
-  return (
-    <div className="max-w-6xl mx-auto px-4 py-6 bg-[#262626] min-h-screen">
+return (
+    <div className="min-h-screen bg-[#262626]">
+      <div className="max-w-6xl mx-auto px-4 py-6"></div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-[#d98c21] flex items-center gap-2">
