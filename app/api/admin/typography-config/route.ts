@@ -1,190 +1,213 @@
-﻿// app/api/admin/typography-config/route.ts
-// API para gestionar la configuración tipográfica global
+﻿import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
-import { supabase } from '@/lib/supabase'
-import { NextResponse } from 'next/server'
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
-// GET: Obtener configuración actual
+// GET - Obtener configuración actual
 export async function GET() {
   try {
     const { data, error } = await supabase
       .from('typography_config')
       .select('*')
-      .eq('is_active', true)
+      .order('updated_at', { ascending: false })
+      .limit(1)
       .single()
 
-    if (error && error.code !== 'PGRST116') {
-      throw error
+    if (error) {
+      console.error('Error fetching typography config:', error)
+      return NextResponse.json(
+        { error: 'Error al obtener configuración' },
+        { status: 500 }
+      )
     }
 
-    // Si no existe, devolver valores por defecto
-    if (!data) {
-      return NextResponse.json({
-        success: true,
-        config: {
-          base_font_size_mobile: 16,
-          base_font_size_tablet: 16,
-          base_font_size_desktop: 18,
-          font_family: 'Inter, system-ui, -apple-system, sans-serif',
-          scale_ratio: 1.25,
-          line_height_body: 1.5,
-          line_height_heading: 1.2,
-          is_active: true,
-        }
-      })
-    }
-
-    return NextResponse.json({
-      success: true,
-      config: data
-    })
+    return NextResponse.json({ config: data })
   } catch (error) {
-    console.error('Error fetching typography config:', error)
+    console.error('Unexpected error:', error)
     return NextResponse.json(
-      { success: false, error: 'Error al obtener configuración tipográfica' },
+      { error: 'Error inesperado' },
       { status: 500 }
     )
   }
 }
 
-// POST: Actualizar configuración
+// POST - Guardar nueva configuración
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-
+    
     const {
-      base_font_size_mobile,
-      base_font_size_tablet,
-      base_font_size_desktop,
-      font_family,
-      scale_ratio,
-      line_height_body,
-      line_height_heading,
-      description
+      baseSizeMobile,
+      baseSizeTablet,
+      baseSizeDesktop,
+      fontFamily,
+      scaleRatio,
+      lineHeight
     } = body
 
-    // Validar valores
-    if (
-      base_font_size_mobile < 12 || base_font_size_mobile > 24 ||
-      base_font_size_tablet < 12 || base_font_size_tablet > 24 ||
-      base_font_size_desktop < 12 || base_font_size_desktop > 28
-    ) {
+    // Validaciones de tamaños base
+    if (baseSizeMobile < 12 || baseSizeMobile > 24) {
       return NextResponse.json(
-        { success: false, error: 'Tamaños de fuente fuera de rango permitido (12-24px móvil/tablet, 12-28px desktop)' },
+        { error: 'Tamaño mobile debe estar entre 12px y 24px' },
+        { status: 400 }
+      )
+    }
+    
+    if (baseSizeTablet < 12 || baseSizeTablet > 24) {
+      return NextResponse.json(
+        { error: 'Tamaño tablet debe estar entre 12px y 24px' },
+        { status: 400 }
+      )
+    }
+    
+    if (baseSizeDesktop < 12 || baseSizeDesktop > 24) {
+      return NextResponse.json(
+        { error: 'Tamaño desktop debe estar entre 12px y 24px' },
         { status: 400 }
       )
     }
 
-    if (scale_ratio < 1.1 || scale_ratio > 2.0) {
+    // Validación de Scale Ratio (ACTUALIZADO: 1.05 - 1.618)
+    if (scaleRatio < 1.05 || scaleRatio > 1.618) {
       return NextResponse.json(
-        { success: false, error: 'Escala tipográfica fuera de rango (1.1-2.0)' },
+        { error: 'Escala debe estar entre 1.05 y 1.618' },
         { status: 400 }
       )
     }
 
-    // Verificar si existe configuración
+    // Validación de Line Height (ACTUALIZADO: 1.05 - 2.0)
+    if (lineHeight < 1.05 || lineHeight > 2.0) {
+      return NextResponse.json(
+        { error: 'Line Height debe estar entre 1.05 y 2.0' },
+        { status: 400 }
+      )
+    }
+
+    // Obtener el ID del registro existente
     const { data: existing } = await supabase
       .from('typography_config')
       .select('id')
+      .limit(1)
       .single()
 
-    let result
-
     if (existing) {
-      // Actualizar existente
-      result = await supabase
+      // Actualizar registro existente
+      const { data, error } = await supabase
         .from('typography_config')
         .update({
-          base_font_size_mobile,
-          base_font_size_tablet,
-          base_font_size_desktop,
-          font_family,
-          scale_ratio,
-          line_height_body,
-          line_height_heading,
-          description,
-          is_active: true,
+          base_size_mobile: baseSizeMobile,
+          base_size_tablet: baseSizeTablet,
+          base_size_desktop: baseSizeDesktop,
+          font_family: fontFamily,
+          scale_ratio: scaleRatio,
+          line_height: lineHeight,
           updated_at: new Date().toISOString()
         })
         .eq('id', existing.id)
         .select()
         .single()
+
+      if (error) {
+        console.error('Error updating typography config:', error)
+        return NextResponse.json(
+          { error: 'Error al guardar configuración' },
+          { status: 500 }
+        )
+      }
+
+      return NextResponse.json({ 
+        message: 'Configuración actualizada',
+        config: data 
+      })
     } else {
-      // Crear nuevo
-      result = await supabase
+      // Crear nuevo registro
+      const { data, error } = await supabase
         .from('typography_config')
         .insert({
-          base_font_size_mobile,
-          base_font_size_tablet,
-          base_font_size_desktop,
-          font_family,
-          scale_ratio,
-          line_height_body,
-          line_height_heading,
-          description,
-          is_active: true
+          base_size_mobile: baseSizeMobile,
+          base_size_tablet: baseSizeTablet,
+          base_size_desktop: baseSizeDesktop,
+          font_family: fontFamily,
+          scale_ratio: scaleRatio,
+          line_height: lineHeight
         })
         .select()
         .single()
+
+      if (error) {
+        console.error('Error creating typography config:', error)
+        return NextResponse.json(
+          { error: 'Error al crear configuración' },
+          { status: 500 }
+        )
+      }
+
+      return NextResponse.json({ 
+        message: 'Configuración creada',
+        config: data 
+      })
     }
-
-    if (result.error) throw result.error
-
-    return NextResponse.json({
-      success: true,
-      config: result.data
-    })
   } catch (error) {
-    console.error('Error updating typography config:', error)
+    console.error('Unexpected error:', error)
     return NextResponse.json(
-      { success: false, error: 'Error al actualizar configuración tipográfica' },
+      { error: 'Error inesperado' },
       { status: 500 }
     )
   }
 }
 
-// PUT: Restablecer a valores por defecto
+// PUT - Restablecer configuración por defecto
 export async function PUT() {
   try {
+    const defaultConfig = {
+      base_size_mobile: 16,
+      base_size_tablet: 16,
+      base_size_desktop: 18,
+      font_family: 'Inter, system-ui, sans-serif',
+      scale_ratio: 1.25,
+      line_height: 1.5,
+      updated_at: new Date().toISOString()
+    }
+
     const { data: existing } = await supabase
       .from('typography_config')
       .select('id')
+      .limit(1)
       .single()
 
-    if (!existing) {
-      return NextResponse.json(
-        { success: false, error: 'No existe configuración para restablecer' },
-        { status: 404 }
-      )
+    if (existing) {
+      const { data, error } = await supabase
+        .from('typography_config')
+        .update(defaultConfig)
+        .eq('id', existing.id)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Error resetting typography config:', error)
+        return NextResponse.json(
+          { error: 'Error al restablecer configuración' },
+          { status: 500 }
+        )
+      }
+
+      return NextResponse.json({ 
+        message: 'Configuración restablecida',
+        config: data 
+      })
     }
 
-    const { data, error } = await supabase
-      .from('typography_config')
-      .update({
-        base_font_size_mobile: 16,
-        base_font_size_tablet: 16,
-        base_font_size_desktop: 18,
-        font_family: 'Inter, system-ui, -apple-system, sans-serif',
-        scale_ratio: 1.25,
-        line_height_body: 1.5,
-        line_height_heading: 1.2,
-        description: 'Restablecido a valores por defecto',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', existing.id)
-      .select()
-      .single()
-
-    if (error) throw error
-
-    return NextResponse.json({
-      success: true,
-      config: data
-    })
-  } catch (error) {
-    console.error('Error resetting typography config:', error)
     return NextResponse.json(
-      { success: false, error: 'Error al restablecer configuración' },
+      { error: 'No se encontró configuración' },
+      { status: 404 }
+    )
+  } catch (error) {
+    console.error('Unexpected error:', error)
+    return NextResponse.json(
+      { error: 'Error inesperado' },
       { status: 500 }
     )
   }
