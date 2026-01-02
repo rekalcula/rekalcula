@@ -81,7 +81,7 @@ export default async function SalesPage() {
               <div>
                 <p className="text-xl text-gray-500">Promedio por Venta</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  â‚¬{salesList.length > 0 ? (totalSales / salesList.length).toFixed(2) : '0.00'}
+                  €{salesList.length > 0 ? (totalSales / salesList.length).toFixed(2) : '0.00'}
                 </p>
               </div>
             </div>
