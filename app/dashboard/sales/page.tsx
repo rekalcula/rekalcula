@@ -1,4 +1,4 @@
-import { auth } from '@clerk/nextjs/server'
+﻿import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import DashboardNav from '@/components/DashboardNav'
@@ -63,7 +63,7 @@ export default async function SalesPage() {
               href="/dashboard/sales/upload"
               className="bg-[#0d0d0d] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2d2d2d]"
             >
-              📤 Subir Ticket
+              ðŸ“¤ Subir Ticket
             </Link>
           </div>
 
@@ -72,22 +72,22 @@ export default async function SalesPage() {
             <div className="grid md:grid-cols-3 gap-6">
               <div>
                 <p className="text-xl text-gray-500">Total Ventas</p>
-                <p className="text-2xl font-bold text-green-600">€{totalSales.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-green-600">â‚¬{totalSales.toFixed(2)}</p>
               </div>
               <div>
-                <p className="text-xl text-gray-500">Número de Ventas</p>
+                <p className="text-xl text-gray-500">NÃºmero de Ventas</p>
                 <p className="text-2xl font-bold text-gray-900">{salesList.length}</p>
               </div>
               <div>
                 <p className="text-xl text-gray-500">Promedio por Venta</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  €{salesList.length > 0 ? (totalSales / salesList.length).toFixed(2) : '0.00'}
+                  â‚¬{salesList.length > 0 ? (totalSales / salesList.length).toFixed(2) : '0.00'}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Lista con selección */}
+          {/* Lista con selecciÃ³n */}
           <SalesListWithSelection
             salesByDate={salesByDate}
             sortedDates={sortedDates}
