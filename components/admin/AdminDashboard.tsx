@@ -1,19 +1,21 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { 
-  Users, 
-  FileText, 
-  Receipt, 
+import {
+  Users,
+  FileText,
+  Receipt,
   TrendingUp,
   Package,
   Settings,
   BarChart3,
-  RefreshCw
+  RefreshCw,
+  Clock
 } from 'lucide-react'
 import PlansManager from './PlansManager'
 import PackagesManager from './PackagesManager'
 import UsersTable from './UsersTable'
+import TrialConfigManager from './TrialConfigManager'
 
 interface Stats {
   totalUsers: number
@@ -28,7 +30,7 @@ interface Stats {
 }
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'plans' | 'packages' | 'users'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'plans' | 'packages' | 'trial' | 'users'>('overview')
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -55,6 +57,7 @@ export default function AdminDashboard() {
     { id: 'overview', label: 'Resumen', icon: BarChart3 },
     { id: 'plans', label: 'Planes', icon: Package },
     { id: 'packages', label: 'Paquetes Extra', icon: Settings },
+    { id: 'trial', label: 'Config Trial', icon: Clock },
     { id: 'users', label: 'Usuarios', icon: Users },
   ]
 
@@ -78,7 +81,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-2 mt-6">
+          <div className="flex gap-2 mt-6 flex-wrap">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -182,6 +185,7 @@ export default function AdminDashboard() {
 
         {activeTab === 'plans' && <PlansManager />}
         {activeTab === 'packages' && <PackagesManager />}
+        {activeTab === 'trial' && <TrialConfigManager />}
         {activeTab === 'users' && <UsersTable />}
       </div>
     </div>
@@ -189,13 +193,13 @@ export default function AdminDashboard() {
 }
 
 // Stats Card Component
-function StatsCard({ 
-  title, 
-  value, 
-  icon: Icon, 
-  color, 
-  loading 
-}: { 
+function StatsCard({
+  title,
+  value,
+  icon: Icon,
+  color,
+  loading
+}: {
   title: string
   value: number
   icon: any

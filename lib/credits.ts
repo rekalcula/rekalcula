@@ -8,6 +8,32 @@ const supabase = createClient(
 type CreditType = 'invoices' | 'tickets' | 'analyses'
 
 // ============================================
+// OBTENER CONFIGURACIÓN DEL TRIAL
+// ============================================
+export async function getTrialConfig() {
+  const { data, error } = await supabase
+    .from('trial_config')
+    .select('*')
+    .eq('is_active', true)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  if (error) {
+    console.error('Error fetching trial config:', error)
+    // Valores por defecto si no hay configuración
+    return {
+      invoices_limit: 10,
+      tickets_limit: 10,
+      analyses_limit: 5,
+      trial_days: 7
+    }
+  }
+
+  return data
+}
+
+// ============================================
 // OBTENER CRÉDITOS DEL USUARIO
 // ============================================
 export async function getUserCredits(userId: string) {
@@ -30,7 +56,7 @@ export async function getUserCredits(userId: string) {
 // ============================================
 export async function hasCredits(userId: string, type: CreditType, amount: number = 1): Promise<boolean> {
   const credits = await getUserCredits(userId)
-  
+
   if (!credits) {
     // Si no tiene registro de créditos, verificar si está en trial
     const { data: subscription } = await supabase
@@ -39,15 +65,66 @@ export async function hasCredits(userId: string, type: CreditType, amount: numbe
       .eq('user_id', userId)
       .single()
 
-    // En trial, permitir uso limitado
+    // En trial, inicializar créditos con límites del trial
     if (subscription?.status === 'trialing') {
-      return true
+      const initialized = await initializeTrialCredits(userId)
+      if (initialized) {
+        // Reintentar verificación después de inicializar
+        return hasCredits(userId, type, amount)
+      }
+      return false
     }
     return false
   }
 
   const available = credits[`${type}_available`] || 0
   return available >= amount
+}
+
+// ============================================
+// INICIALIZAR CRÉDITOS PARA USUARIO EN TRIAL
+// ============================================
+export async function initializeTrialCredits(userId: string): Promise<boolean> {
+  // Obtener configuración actual del trial
+  const trialConfig = await getTrialConfig()
+
+  // Verificar si ya existe registro
+  const existingCredits = await getUserCredits(userId)
+  if (existingCredits) {
+    return true // Ya tiene créditos inicializados
+  }
+
+  // Crear registro de créditos con límites del trial
+  const { error } = await supabase
+    .from('user_credits')
+    .insert({
+      user_id: userId,
+      invoices_available: trialConfig.invoices_limit,
+      tickets_available: trialConfig.tickets_limit,
+      analyses_available: trialConfig.analyses_limit,
+      invoices_used_this_month: 0,
+      tickets_used_this_month: 0,
+      analyses_used_this_month: 0,
+      is_trial: true,
+      last_reset_date: new Date().toISOString().split('T')[0],
+      updated_at: new Date().toISOString()
+    })
+
+  if (error) {
+    console.error('Error initializing trial credits:', error)
+    return false
+  }
+
+  // Registrar transacción
+  await supabase.from('credit_transactions').insert({
+    user_id: userId,
+    transaction_type: 'trial_start',
+    credit_type: 'invoices',
+    amount: trialConfig.invoices_limit,
+    description: `Créditos de prueba gratuita: ${trialConfig.invoices_limit} facturas, ${trialConfig.tickets_limit} tickets, ${trialConfig.analyses_limit} análisis`
+  })
+
+  return true
 }
 
 // ============================================
@@ -60,26 +137,42 @@ export async function useCredits(userId: string, type: CreditType, amount: numbe
 }> {
   // Verificar disponibilidad
   const credits = await getUserCredits(userId)
-  
+
   if (!credits) {
-    // Crear registro si no existe (para usuarios en trial)
-    const initialized = await initializeUserCredits(userId)
-    if (!initialized) {
-      return { success: false, remaining: 0, error: 'No se pudo inicializar créditos' }
+    // Verificar si está en trial e inicializar
+    const { data: subscription } = await supabase
+      .from('subscriptions')
+      .select('status')
+      .eq('user_id', userId)
+      .single()
+
+    if (subscription?.status === 'trialing') {
+      const initialized = await initializeTrialCredits(userId)
+      if (!initialized) {
+        return { success: false, remaining: 0, error: 'No se pudo inicializar créditos de prueba' }
+      }
+      return useCredits(userId, type, amount) // Reintentar
     }
-    return useCredits(userId, type, amount) // Reintentar
+
+    return { success: false, remaining: 0, error: 'No tienes créditos disponibles' }
   }
 
   const availableField = `${type}_available` as keyof typeof credits
   const usedField = `${type}_used_this_month` as keyof typeof credits
-  
+
   const available = (credits[availableField] as number) || 0
 
   if (available < amount) {
-    return { 
-      success: false, 
-      remaining: available, 
-      error: `No tienes suficientes créditos. Disponibles: ${available}` 
+    // Mensaje personalizado para usuarios en trial
+    const isTrialUser = credits.is_trial
+    const errorMessage = isTrialUser 
+      ? `Has alcanzado el límite de tu prueba gratuita. Disponibles: ${available}. Actualiza a un plan de pago para continuar.`
+      : `No tienes suficientes créditos. Disponibles: ${available}`
+
+    return {
+      success: false,
+      remaining: available,
+      error: errorMessage
     }
   }
 
@@ -116,7 +209,7 @@ export async function useCredits(userId: string, type: CreditType, amount: numbe
 export async function initializeUserCredits(userId: string, planSlug?: string): Promise<boolean> {
   // Obtener plan del usuario
   let plan = null
-  
+
   if (planSlug) {
     const { data } = await supabase
       .from('plans')
@@ -133,7 +226,7 @@ export async function initializeUserCredits(userId: string, planSlug?: string): 
       .eq('user_id', userId)
       .single()
 
-    if (subscription?.plan) {
+    if (subscription?.plan && subscription.plan !== 'trial') {
       const { data } = await supabase
         .from('plans')
         .select('*')
@@ -142,13 +235,8 @@ export async function initializeUserCredits(userId: string, planSlug?: string): 
         .single()
       plan = data
     } else if (subscription?.status === 'trialing') {
-      // Plan trial por defecto (usar plan básico)
-      const { data } = await supabase
-        .from('plans')
-        .select('*')
-        .eq('slug', 'basico')
-        .single()
-      plan = data
+      // Usuario en trial - usar initializeTrialCredits
+      return initializeTrialCredits(userId)
     }
   }
 
@@ -168,6 +256,7 @@ export async function initializeUserCredits(userId: string, planSlug?: string): 
       invoices_used_this_month: 0,
       tickets_used_this_month: 0,
       analyses_used_this_month: 0,
+      is_trial: false,
       last_reset_date: new Date().toISOString().split('T')[0],
       updated_at: new Date().toISOString()
     }, {
@@ -196,7 +285,7 @@ export async function initializeUserCredits(userId: string, planSlug?: string): 
 // ============================================
 export async function addCredits(userId: string, type: CreditType, amount: number, reason: string): Promise<boolean> {
   const credits = await getUserCredits(userId)
-  
+
   if (!credits) {
     await initializeUserCredits(userId)
     return addCredits(userId, type, amount, reason)
@@ -285,6 +374,7 @@ export async function monthlyRefill(userId: string): Promise<boolean> {
       invoices_used_this_month: 0,
       tickets_used_this_month: 0,
       analyses_used_this_month: 0,
+      is_trial: false,
       last_reset_date: new Date().toISOString().split('T')[0],
       updated_at: new Date().toISOString()
     })
@@ -303,7 +393,7 @@ export async function monthlyRefill(userId: string): Promise<boolean> {
 // ============================================
 export async function getCreditsSummary(userId: string) {
   const credits = await getUserCredits(userId)
-  
+
   // Obtener plan del usuario
   const { data: subscription } = await supabase
     .from('subscriptions')
@@ -312,42 +402,56 @@ export async function getCreditsSummary(userId: string) {
     .single()
 
   let plan = null
-  if (subscription?.plan) {
+  let limits = null
+
+  if (subscription?.status === 'trialing') {
+    // Para usuarios en trial, usar configuración del trial
+    const trialConfig = await getTrialConfig()
+    limits = {
+      invoices_limit: trialConfig.invoices_limit,
+      tickets_limit: trialConfig.tickets_limit,
+      analyses_limit: trialConfig.analyses_limit,
+      name: 'Prueba Gratuita'
+    }
+  } else if (subscription?.plan) {
     const { data } = await supabase
       .from('plans')
       .select('*')
       .eq('slug', subscription.plan)
       .single()
     plan = data
+    limits = plan
   }
 
   if (!credits) {
     return {
-      invoices: { available: 0, limit: plan?.invoices_limit || 0, used: 0 },
-      tickets: { available: 0, limit: plan?.tickets_limit || 0, used: 0 },
-      analyses: { available: 0, limit: plan?.analyses_limit || 0, used: 0 },
-      plan: plan?.name || 'Sin plan',
-      status: subscription?.status || 'none'
+      invoices: { available: 0, limit: limits?.invoices_limit || 0, used: 0 },
+      tickets: { available: 0, limit: limits?.tickets_limit || 0, used: 0 },
+      analyses: { available: 0, limit: limits?.analyses_limit || 0, used: 0 },
+      plan: limits?.name || 'Sin plan',
+      status: subscription?.status || 'none',
+      isTrial: subscription?.status === 'trialing'
     }
   }
 
   return {
     invoices: {
       available: credits.invoices_available,
-      limit: plan?.invoices_limit || 0,
+      limit: limits?.invoices_limit || 0,
       used: credits.invoices_used_this_month
     },
     tickets: {
       available: credits.tickets_available,
-      limit: plan?.tickets_limit || 0,
+      limit: limits?.tickets_limit || 0,
       used: credits.tickets_used_this_month
     },
     analyses: {
       available: credits.analyses_available,
-      limit: plan?.analyses_limit || 0,
+      limit: limits?.analyses_limit || 0,
       used: credits.analyses_used_this_month
     },
-    plan: plan?.name || 'Sin plan',
-    status: subscription?.status || 'none'
+    plan: limits?.name || 'Sin plan',
+    status: subscription?.status || 'none',
+    isTrial: credits.is_trial || subscription?.status === 'trialing'
   }
 }
