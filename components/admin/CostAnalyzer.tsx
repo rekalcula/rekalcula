@@ -290,7 +290,7 @@ export default function CostAnalyzer() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-white flex items-center gap-2">
             <Euro className="w-5 h-5 text-[#D98C21]" />
-            Costos de IA por OperaciÃ³n
+            Costos de IA por Operación
           </h3>
           <button
             onClick={saveCostsConfig}
