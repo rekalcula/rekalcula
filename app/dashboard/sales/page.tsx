@@ -63,7 +63,7 @@ export default async function SalesPage() {
               href="/dashboard/sales/upload"
               className="bg-[#0d0d0d] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2d2d2d]"
             >
-              Subir Ticket
+              + Subir Ticket
             </Link>
           </div>
 
@@ -72,10 +72,10 @@ export default async function SalesPage() {
             <div className="grid md:grid-cols-3 gap-6">
               <div>
                 <p className="text-xl text-gray-500">Total Ventas</p>
-                <p className="text-2xl font-bold text-green-600">â‚¬{totalSales.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-green-600">€{totalSales.toFixed(2)}</p>
               </div>
               <div>
-                <p className="text-xl text-gray-500">NÃºmero de Ventas</p>
+                <p className="text-xl text-gray-500">Númerode Ventas</p>
                 <p className="text-2xl font-bold text-gray-900">{salesList.length}</p>
               </div>
               <div>

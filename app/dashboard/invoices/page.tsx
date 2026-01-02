@@ -63,7 +63,7 @@ export default async function InvoicesPage() {
               href="/dashboard/upload"
               className="bg-[#0d0d0d] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2d2d2d]"
             >
-              Subir Factura
+              + Subir Factura
             </Link>
           </div>
 
@@ -72,16 +72,16 @@ export default async function InvoicesPage() {
             <div className="grid md:grid-cols-3 gap-6">
               <div>
                 <p className="text-xl text-gray-500">Gasto Total</p>
-                <p className="text-2xl font-bold text-red-600">â‚¬{totalGasto.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-red-600">€{totalGasto.toFixed(2)}</p>
               </div>
               <div>
-                <p className="text-xl text-gray-500">NÃºmero de Facturas</p>
+                <p className="text-xl text-gray-500">Número de Facturas</p>
                 <p className="text-2xl font-bold text-gray-900">{invoiceList.length}</p>
               </div>
               <div>
                 <p className="text-xl text-gray-500">Promedio por Factura</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  â‚¬{invoiceList.length > 0 ? (totalGasto / invoiceList.length).toFixed(2) : '0.00'}
+                  €{invoiceList.length > 0 ? (totalGasto / invoiceList.length).toFixed(2) : '0.00'}
                 </p>
               </div>
             </div>
