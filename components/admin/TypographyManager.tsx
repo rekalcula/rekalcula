@@ -40,7 +40,10 @@ const getScaleName = (ratio: number): string => {
 }
 
 export default function TypographyManager() {
-  const { config, refreshConfig, isLoading: contextLoading } = useTypography()
+  const typography = useTypography()
+  const config = typography?.config
+  const refreshConfig = typography?.refreshConfig || (async () => {})
+  const contextLoading = typography?.isLoading || false
   const [formData, setFormData] = useState<TypographyFormData>({
     baseSizeMobile: 16,
     baseSizeTablet: 16,
