@@ -8,7 +8,7 @@ C:.
 |   eslint.config.mjs
 |   estructura-proyecto.txt
 |   estructura.txt
-|   estructura_proyecto rev1.txt
+|   estructura_proyecto rev2.txt
 |   estructura_proyecto.txt
 |   generate-icons.js
 |   middleware.ts
@@ -1850,6 +1850,7 @@ C:.
 |   |       
 |   +---api
 |   |   +---admin
+|   |   |   +---costs-config
 |   |   |   +---packages
 |   |   |   |       route.ts
 |   |   |   |       
@@ -2041,6 +2042,7 @@ C:.
 |   |   
 |   \---admin
 |           AdminDashboard.tsx
+|           CostAnalyzer.tsx
 |           PackagesManager.tsx
 |           PlansManager.tsx
 |           TrialConfigManager.tsx

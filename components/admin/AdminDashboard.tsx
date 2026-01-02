@@ -10,12 +10,14 @@ import {
   Settings,
   BarChart3,
   RefreshCw,
-  Clock
+  Clock,
+  DollarSign
 } from 'lucide-react'
 import PlansManager from './PlansManager'
 import PackagesManager from './PackagesManager'
 import UsersTable from './UsersTable'
 import TrialConfigManager from './TrialConfigManager'
+import CostAnalyzer from './CostAnalyzer'
 
 interface Stats {
   totalUsers: number
@@ -30,7 +32,7 @@ interface Stats {
 }
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'plans' | 'packages' | 'trial' | 'users'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'plans' | 'packages' | 'trial' | 'costs' | 'users'>('overview')
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -58,6 +60,7 @@ export default function AdminDashboard() {
     { id: 'plans', label: 'Planes', icon: Package },
     { id: 'packages', label: 'Paquetes Extra', icon: Settings },
     { id: 'trial', label: 'Config Trial', icon: Clock },
+    { id: 'costs', label: 'Análisis Costos', icon: DollarSign },
     { id: 'users', label: 'Usuarios', icon: Users },
   ]
 
@@ -186,6 +189,7 @@ export default function AdminDashboard() {
         {activeTab === 'plans' && <PlansManager />}
         {activeTab === 'packages' && <PackagesManager />}
         {activeTab === 'trial' && <TrialConfigManager />}
+        {activeTab === 'costs' && <CostAnalyzer />}
         {activeTab === 'users' && <UsersTable />}
       </div>
     </div>
