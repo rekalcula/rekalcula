@@ -1,3 +1,4 @@
+import { TypographyProvider } from './providers/TypographyProvider'
 import { ClerkProvider } from '@clerk/nextjs'
 import { Inter } from 'next/font/google'
 import './globals.css'
@@ -41,9 +42,10 @@ export default function RootLayout({
           <meta name="mobile-web-app-capable" content="yes" />
         </head>
         <body className={inter.className} style={{backgroundColor: '#EFE8B2'}}>
-          <PWARegister />
+        <TypographyProvider>
           {children}
-        </body>
+        </TypographyProvider>
+      </body>
       </html>
     </ClerkProvider>
   )
