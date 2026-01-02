@@ -26,7 +26,6 @@ const FONT_OPTIONS = [
   { value: '"Courier New", monospace', label: 'Courier (Monospace)' }
 ]
 
-// Función para obtener el nombre descriptivo de la escala
 const getScaleName = (ratio: number): string => {
   if (ratio >= 1.05 && ratio < 1.12) return 'Minor Second'
   if (ratio >= 1.12 && ratio < 1.19) return 'Major Second'
@@ -40,10 +39,7 @@ const getScaleName = (ratio: number): string => {
 }
 
 export default function TypographyManager() {
-  const typography = useTypography()
-  const config = typography?.config ?? null
-  const refreshConfig = typography?.refreshConfig ?? (async () => {})
-  const contextLoading = typography?.isLoading ?? false
+  const config = useTypography()
   const [formData, setFormData] = useState<TypographyFormData>({
     baseSizeMobile: 16,
     baseSizeTablet: 16,
@@ -55,16 +51,15 @@ export default function TypographyManager() {
   const [isSaving, setIsSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
-  // Sincronizar form con config del contexto
   useEffect(() => {
     if (config) {
       setFormData({
-        baseSizeMobile: config.baseSizeMobile,
-        baseSizeTablet: config.baseSizeTablet,
-        baseSizeDesktop: config.baseSizeDesktop,
-        fontFamily: config.fontFamily,
-        scaleRatio: config.scaleRatio,
-        lineHeight: config.lineHeight
+        baseSizeMobile: config.base_font_size_mobile,
+        baseSizeTablet: config.base_font_size_tablet,
+        baseSizeDesktop: config.base_font_size_desktop,
+        fontFamily: config.font_family,
+        scaleRatio: config.scale_ratio,
+        lineHeight: config.line_height_body
       })
     }
   }, [config])
@@ -85,10 +80,8 @@ export default function TypographyManager() {
         throw new Error(error.error || 'Error al guardar')
       }
 
-      await refreshConfig()
       setMessage({ type: 'success', text: '✅ Configuración guardada. La página se recargará en 2 segundos...' })
       
-      // Recargar después de 2 segundos para aplicar cambios
       setTimeout(() => {
         window.location.reload()
       }, 2000)
@@ -117,7 +110,6 @@ export default function TypographyManager() {
         throw new Error('Error al restablecer')
       }
 
-      await refreshConfig()
       setMessage({ type: 'success', text: '✅ Configuración restablecida. Recargando...' })
       
       setTimeout(() => {
@@ -137,7 +129,7 @@ export default function TypographyManager() {
     return Math.round(baseSize * multiplier)
   }
 
-  if (contextLoading) {
+  if (!config) {
     return (
       <div className="flex items-center justify-center p-12">
         <Loader2 className="w-8 h-8 animate-spin text-[#D98C21]" />
@@ -147,7 +139,6 @@ export default function TypographyManager() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-3 pb-4 border-b border-gray-700">
         <Type className="w-6 h-6 text-[#D98C21]" />
         <div>
@@ -158,7 +149,6 @@ export default function TypographyManager() {
         </div>
       </div>
 
-      {/* Mensaje de estado */}
       {message && (
         <div className={`p-4 rounded-lg ${
           message.type === 'success' 
@@ -169,7 +159,6 @@ export default function TypographyManager() {
         </div>
       )}
 
-      {/* Familia Tipográfica */}
       <div className="bg-[#222] p-6 rounded-lg border border-gray-700">
         <label className="block text-white font-semibold mb-3">
           📝 Familia Tipográfica
@@ -193,12 +182,10 @@ export default function TypographyManager() {
         </div>
       </div>
 
-      {/* Tamaños Base Responsive */}
       <div className="bg-[#222] p-6 rounded-lg border border-gray-700">
         <h3 className="text-white font-semibold mb-4">📱 Tamaños Base Responsive</h3>
         
         <div className="space-y-4">
-          {/* Mobile */}
           <div>
             <div className="flex justify-between mb-2">
               <label className="text-gray-300">📱 Mobile (&lt; 768px)</label>
@@ -214,7 +201,6 @@ export default function TypographyManager() {
             />
           </div>
 
-          {/* Tablet */}
           <div>
             <div className="flex justify-between mb-2">
               <label className="text-gray-300">📋 Tablet (768px - 1024px)</label>
@@ -230,7 +216,6 @@ export default function TypographyManager() {
             />
           </div>
 
-          {/* Desktop */}
           <div>
             <div className="flex justify-between mb-2">
               <label className="text-gray-300">💻 Desktop (&gt; 1024px)</label>
@@ -247,7 +232,6 @@ export default function TypographyManager() {
           </div>
         </div>
 
-        {/* Info Box */}
         <div className="mt-4 p-3 bg-blue-900/20 border border-blue-700/50 rounded-lg">
           <p className="text-blue-300 text-sm flex items-start gap-2">
             <span className="text-lg">ℹ️</span>
@@ -256,7 +240,6 @@ export default function TypographyManager() {
         </div>
       </div>
 
-      {/* Escala Tipográfica - MODIFICADO: Ahora es slider de 1.05 a 1.618 */}
       <div className="bg-[#222] p-6 rounded-lg border border-gray-700">
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
@@ -277,7 +260,6 @@ export default function TypographyManager() {
           />
         </div>
 
-        {/* Marcadores de referencia */}
         <div className="grid grid-cols-4 gap-2 text-xs text-gray-400">
           <div className="text-center">
             <div className="font-mono">1.05</div>
@@ -297,7 +279,6 @@ export default function TypographyManager() {
           </div>
         </div>
 
-        {/* Info Box */}
         <div className="mt-4 p-3 bg-yellow-900/20 border border-yellow-700/50 rounded-lg">
           <p className="text-yellow-300 text-sm flex items-start gap-2">
             <span className="text-lg">⚠️</span>
@@ -306,7 +287,6 @@ export default function TypographyManager() {
         </div>
       </div>
 
-      {/* Line Height - MODIFICADO: Ahora comienza en 1.05 */}
       <div className="bg-[#222] p-6 rounded-lg border border-gray-700">
         <div className="flex justify-between mb-3">
           <label className="text-white font-semibold">
@@ -324,7 +304,6 @@ export default function TypographyManager() {
           className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-[#D98C21]"
         />
 
-        {/* Marcadores de referencia */}
         <div className="grid grid-cols-4 gap-2 text-xs text-gray-400 mt-3">
           <div className="text-center">
             <div className="font-mono">1.05</div>
@@ -344,7 +323,6 @@ export default function TypographyManager() {
           </div>
         </div>
 
-        {/* Vista previa visual del line-height */}
         <div className="mt-4 p-4 bg-[#1a1a1a] rounded border border-gray-600">
           <p className="text-gray-300 text-sm" style={{ lineHeight: formData.lineHeight }}>
             Vista previa de altura de línea: Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
@@ -354,12 +332,10 @@ export default function TypographyManager() {
         </div>
       </div>
 
-      {/* Vista Previa de Tamaños */}
       <div className="bg-[#222] p-6 rounded-lg border border-gray-700">
         <h3 className="text-white font-semibold mb-4">👁️ Vista Previa de Tamaños Calculados</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Mobile Preview */}
           <div>
             <p className="text-gray-400 text-sm mb-2 font-semibold">📱 Mobile</p>
             <div className="space-y-1 text-gray-300 font-mono text-xs bg-[#1a1a1a] p-3 rounded border border-gray-600">
@@ -374,7 +350,6 @@ export default function TypographyManager() {
             </div>
           </div>
 
-          {/* Tablet Preview */}
           <div>
             <p className="text-gray-400 text-sm mb-2 font-semibold">📋 Tablet</p>
             <div className="space-y-1 text-gray-300 font-mono text-xs bg-[#1a1a1a] p-3 rounded border border-gray-600">
@@ -389,7 +364,6 @@ export default function TypographyManager() {
             </div>
           </div>
 
-          {/* Desktop Preview */}
           <div>
             <p className="text-gray-400 text-sm mb-2 font-semibold">💻 Desktop</p>
             <div className="space-y-1 text-gray-300 font-mono text-xs bg-[#1a1a1a] p-3 rounded border border-gray-600">
@@ -405,7 +379,6 @@ export default function TypographyManager() {
           </div>
         </div>
 
-        {/* Nota sobre text-3xl */}
         <div className="mt-4 p-3 bg-green-900/20 border border-green-700/50 rounded-lg">
           <p className="text-green-300 text-sm flex items-start gap-2">
             <span className="text-lg">💡</span>
@@ -414,7 +387,6 @@ export default function TypographyManager() {
         </div>
       </div>
 
-      {/* Botones de Acción */}
       <div className="flex gap-4">
         <button
           onClick={handleSave}
@@ -446,4 +418,3 @@ export default function TypographyManager() {
     </div>
   )
 }
-
