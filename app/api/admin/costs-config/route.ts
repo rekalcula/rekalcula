@@ -1,11 +1,9 @@
-import { createClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
 
 // GET: Obtener configuración actual de costos
 export async function GET() {
   try {
-    const supabase = createClient()
-
     const { data, error } = await supabase
       .from('ai_costs_config')
       .select('*')
@@ -43,7 +41,6 @@ export async function GET() {
 // POST: Actualizar configuración de costos
 export async function POST(request: Request) {
   try {
-    const supabase = createClient()
     const body = await request.json()
 
     const { invoice_cost, ticket_cost, analysis_cost } = body
