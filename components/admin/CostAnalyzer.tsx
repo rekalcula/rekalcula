@@ -360,7 +360,7 @@ export default function CostAnalyzer() {
         </div>
 
         <div>
-          <label className="text-gray-300 mb-2 block text-sm">Notas/DescripciÃ³n</label>
+          <label className="text-gray-300 mb-2 block text-sm">Notas/Descripción</label>
           <input
             type="text"
             value={costsDescription}
