@@ -63,7 +63,7 @@ export default async function SalesPage() {
               href="/dashboard/sales/upload"
               className="bg-[#0d0d0d] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2d2d2d]"
             >
-              ðŸ“¤ Subir Ticket
+              Subir Ticket
             </Link>
           </div>
 
