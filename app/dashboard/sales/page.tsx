@@ -72,7 +72,7 @@ export default async function SalesPage() {
             <div className="grid md:grid-cols-3 gap-6">
               <div>
                 <p className="text-xl text-gray-500">Total Ventas</p>
-                <p className="text-2xl font-bold text-green-600">EUR{totalSales.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-green-600">€{totalSales.toFixed(2)}</p>
               </div>
               <div>
                 <p className="text-xl text-gray-500">Númerode Ventas</p>
