@@ -24,7 +24,7 @@ export async function GET() {
       )
     }
 
-    return NextResponse.json({ config: data })
+    return NextResponse.json({ success: true, config: data })
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json(
