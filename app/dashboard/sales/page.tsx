@@ -75,7 +75,7 @@ export default async function SalesPage() {
                 <p className="text-2xl font-bold text-green-600">€{totalSales.toFixed(2)}</p>
               </div>
               <div>
-                <p className="text-xl text-gray-500">Númerode Ventas</p>
+                <p className="text-xl text-gray-500">Número de Ventas</p>
                 <p className="text-2xl font-bold text-gray-900">{salesList.length}</p>
               </div>
               <div>
