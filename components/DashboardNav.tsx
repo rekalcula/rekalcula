@@ -38,6 +38,7 @@ export default function DashboardNav() {
     { href: '/dashboard/fiscal', label: 'Configuracion Fiscal' },
     { href: '/dashboard/sales', label: 'Ventas' },
     { href: '/dashboard/costs', label: 'Costes Fijos' },
+    { href: '/dashboard/cashflow', label: 'Flujo de Caja' },
     { href: '/dashboard/analytics', label: 'Analisis' },
     { href: '/dashboard/analytics/sales', label: 'Analisis Ventas' },
     { href: '/dashboard/advisor', label: 'Asesor IA' },
