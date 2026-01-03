@@ -82,7 +82,7 @@ export default function BreakEvenChart({ data }: Props) {
           />
 
           <Tooltip
-            formatter={(value: number) => `€${value.toFixed(0)}`}
+            formatter={(value) => typeof value === 'number' ? `€${value.toFixed(0)}` : ''}
             labelFormatter={(label) => `Ventas: €${label}`}
             contentStyle={{
               backgroundColor: 'white',
