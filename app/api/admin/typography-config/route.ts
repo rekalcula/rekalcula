@@ -98,12 +98,12 @@ export async function POST(request: Request) {
       const { data, error } = await supabase
         .from('typography_config')
         .update({
-          base_size_mobile: baseSizeMobile,
-          base_size_tablet: baseSizeTablet,
-          base_size_desktop: baseSizeDesktop,
+          base_font_size_mobile: baseSizeMobile,
+          base_font_size_tablet: baseSizeTablet,
+          base_font_size_desktop: baseSizeDesktop,
           font_family: fontFamily,
           scale_ratio: scaleRatio,
-          line_height: lineHeight,
+          line_height_body: lineHeight,
           updated_at: new Date().toISOString()
         })
         .eq('id', existing.id)
@@ -127,12 +127,12 @@ export async function POST(request: Request) {
       const { data, error } = await supabase
         .from('typography_config')
         .insert({
-          base_size_mobile: baseSizeMobile,
-          base_size_tablet: baseSizeTablet,
-          base_size_desktop: baseSizeDesktop,
+          base_font_size_mobile: baseSizeMobile,
+          base_font_size_tablet: baseSizeTablet,
+          base_font_size_desktop: baseSizeDesktop,
           font_family: fontFamily,
           scale_ratio: scaleRatio,
-          line_height: lineHeight
+          line_height_body: lineHeight
         })
         .select()
         .single()
@@ -163,12 +163,12 @@ export async function POST(request: Request) {
 export async function PUT() {
   try {
     const defaultConfig = {
-      base_size_mobile: 16,
-      base_size_tablet: 16,
-      base_size_desktop: 18,
+      base_font_size_mobile: 16,
+      base_font_size_tablet: 16,
+      base_font_size_desktop: 18,
       font_family: 'Inter, system-ui, sans-serif',
       scale_ratio: 1.25,
-      line_height: 1.5,
+      line_height_body: 1.5,
       updated_at: new Date().toISOString()
     }
 
@@ -212,4 +212,3 @@ export async function PUT() {
     )
   }
 }
-
