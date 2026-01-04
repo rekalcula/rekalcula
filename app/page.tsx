@@ -33,8 +33,9 @@ export default function HomePage() {
             </h1>
 
             <p className="text-base sm:text-xl text-[#FFFCFF] mb-8 sm:mb-8 max-w-2xl mx-auto leading-relaxed px-4">
-              Fotografia tus facturas, recibe un analisis con IA en 3 minutos,
-              y descubre exactamente como aumentar tus beneficios.
+              Fotografía tus facturas, configura tu régimen fiscal y recibe un análisis con IA en 3 minutos, 
+              con tu cash flow, el resultado de la empresa y descubre exactamente cómo aumentar tus beneficios.
+              
             </p>
 
             <div className="flex flex-col gap-4 sm:flex-row sm:gap-4 justify-center mb-10 sm:mb-12 px-8 sm:px-0">
