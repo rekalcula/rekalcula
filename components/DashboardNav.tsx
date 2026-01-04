@@ -140,8 +140,6 @@ export default function DashboardNav() {
           </Link>
         </div>
       </aside>
-
-      <div className="h-14 md:hidden" />
       <div className="hidden md:block w-64 flex-shrink-0" />
     </>
   )
