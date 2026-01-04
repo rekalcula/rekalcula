@@ -59,7 +59,7 @@ interface ConsejoAplicado extends Recomendacion {
 }
 
 export default function AdvisorPage() {
-  const [tabActiva, setTabActiva] = useState<'nuevo' | 'guardados' | 'aplicados'>('guardados')
+  const [tabActiva, setTabActiva] = useState<'guardados' | 'aplicados' | 'nuevo'>('guardados')
   const [periodo, setPeriodo] = useState<'dia' | 'semana' | 'mes'>('mes')
   const [fechaInicio, setFechaInicio] = useState('')
   const [fechaFin, setFechaFin] = useState('')
@@ -379,7 +379,7 @@ export default function AdvisorPage() {
           </div>
         </div>
 
-        {/* Tabs estilo tarjetas */}
+        {/* Tabs estilo tarjetas - SOLO 2 PESTAÑAS */}
         <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] mb-6">
           <div className="flex border-b border-[#3a3a3a]">
             <button
@@ -393,18 +393,6 @@ export default function AdvisorPage() {
               <FolderOpen className="w-5 h-5" />
               <span className="hidden sm:inline">Análisis Guardados</span>
               <span className="sm:hidden">Guardados</span>
-            </button>
-            <button
-              onClick={() => { setTabActiva('nuevo'); setAnalisisDetalle(null) }}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 font-medium transition-colors ${
-                tabActiva === 'nuevo' 
-                  ? 'text-[#D98C21] border-b-2 border-[#D98C21] bg-[#2a2a2a]' 
-                  : 'text-gray-400 hover:text-white hover:bg-[#2a2a2a]'
-              }`}
-            >
-              <Lightbulb className="w-5 h-5" />
-              <span className="hidden sm:inline">Nuevo Análisis</span>
-              <span className="sm:hidden">Nuevo</span>
             </button>
             <button
               onClick={() => setTabActiva('aplicados')}
