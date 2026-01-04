@@ -59,24 +59,63 @@ export default async function CostsPage() {
       <DashboardNav />
       <div className="min-h-screen bg-[#262626]">
         <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 mb-8">
-            <div>
+          
+          {/* ========================================
+              VERSIÓN MÓVIL (sin cambios)
+              Se muestra solo en pantallas < md
+              ======================================== */}
+          <div className="md:hidden">
+            <div className="flex flex-col gap-6 mb-8">
+              <div>
+                <h1 className="text-3xl font-bold text-[#d98c21]">Costes Fijos</h1>
+                <p className="mt-2 text-[#FFFCFF] text-[20px]">Gestiona tus gastos fijos mensuales</p>
+              </div>
+              
+              <div className="bg-gray-200 rounded-xl shadow-sm p-6 border-2 border-[#979797] text-center">
+                <p className="text-xl text-gray-500">Total Mensual</p>
+                <p className="text-3xl font-bold text-red-600">
+                  €{monthlyTotal.toFixed(2)}
+                </p>
+              </div>
+              
+              <CostsExportButton 
+                costs={costs || []} 
+                categories={categories} 
+                monthlyTotal={monthlyTotal} 
+              />
+            </div>
+          </div>
+
+          {/* ========================================
+              VERSIÓN DESKTOP (reorganizada)
+              Se muestra solo en pantallas >= md
+              ======================================== */}
+          <div className="hidden md:block mb-8">
+            {/* Fila 1: Título y subtítulo */}
+            <div className="mb-6">
               <h1 className="text-3xl font-bold text-[#d98c21]">Costes Fijos</h1>
               <p className="mt-2 text-[#FFFCFF] text-[20px]">Gestiona tus gastos fijos mensuales</p>
             </div>
             
-            <div className="bg-gray-200 rounded-xl shadow-sm p-6 border-2 border-[#979797] text-center md:text-right">
-              <p className="text-xl text-gray-500">Total Mensual</p>
-              <p className="text-3xl font-bold text-red-600">
-                €{monthlyTotal.toFixed(2)}
-              </p>
+            {/* Fila 2: Botones a la izquierda + Total Mensual a la derecha */}
+            <div className="flex justify-between items-center">
+              {/* Botones a la izquierda */}
+              <div className="flex items-center gap-4">
+                <CostsExportButton 
+                  costs={costs || []} 
+                  categories={categories} 
+                  monthlyTotal={monthlyTotal} 
+                />
+              </div>
+              
+              {/* Total Mensual a la derecha */}
+              <div className="bg-gray-200 rounded-xl shadow-sm px-6 py-4 border-2 border-[#979797] text-right">
+                <p className="text-lg text-gray-500">Total Mensual</p>
+                <p className="text-2xl font-bold text-red-600">
+                  €{monthlyTotal.toFixed(2)}
+                </p>
+              </div>
             </div>
-            
-            <CostsExportButton 
-              costs={costs || []} 
-              categories={categories} 
-              monthlyTotal={monthlyTotal} 
-            />
           </div>
 
           <FixedCostsManager 
