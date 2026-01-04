@@ -4,61 +4,19 @@ import DateRangePicker from '@/components/DateRangePicker'
 import AdvisorExportButton from '@/components/AdvisorExportButton'
 import { useState, useEffect } from 'react'
 import { Recomendacion, Prioridad } from '@/lib/advisor/types'
-
-const IconRefresh = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
-    <path d="M21 3v5h-5"/>
-  </svg>
-)
-
-const IconLightbulb = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/>
-    <path d="M9 18h6"/>
-    <path d="M10 22h4"/>
-  </svg>
-)
-
-const IconTrendingUp = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-    <polyline points="17 6 23 6 23 12"/>
-  </svg>
-)
-
-const IconTrendingDown = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
-    <polyline points="17 18 23 18 23 12"/>
-  </svg>
-)
-
-const IconTrash = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 6h18"/>
-    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
-    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-  </svg>
-)
-
-const IconFolder = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-  </svg>
-)
-
-const IconPlay = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="5 3 19 12 5 21 5 3"/>
-  </svg>
-)
-
-const IconCheck = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12"/>
-  </svg>
-)
+import { 
+  Lightbulb, 
+  RefreshCw, 
+  TrendingUp, 
+  TrendingDown, 
+  Trash2, 
+  FolderOpen, 
+  Play, 
+  Check,
+  ChevronLeft,
+  Plus,
+  FileText
+} from 'lucide-react'
 
 interface AdvisorResponse {
   success: boolean
@@ -170,7 +128,7 @@ export default function AdvisorPage() {
   const eliminarConsejosAplicados = () => {
     if (seleccionadosAplicados.size === 0) return
     
-    if (!confirm(`Eliminar ${seleccionadosAplicados.size} consejos aplicados?`)) return
+    if (!confirm(`¿Eliminar ${seleccionadosAplicados.size} consejos aplicados?`)) return
 
     const nuevosConsejos = consejosAplicados.filter(c => !seleccionadosAplicados.has(c.id))
     setConsejosAplicados(nuevosConsejos)
@@ -204,12 +162,12 @@ export default function AdvisorPage() {
       const result = await response.json()
 
       if (!result.success) {
-        throw new Error(result.error || 'Error generando analisis')
+        throw new Error(result.error || 'Error generando análisis')
       }
 
       setAnalisisActual(result)
     } catch (err: any) {
-      setError(err.message || 'Error generando analisis')
+      setError(err.message || 'Error generando análisis')
     } finally {
       setGenerando(false)
     }
@@ -285,7 +243,7 @@ export default function AdvisorPage() {
   const borrarSeleccionados = async () => {
     if (seleccionados.size === 0) return
 
-    if (!confirm(`Eliminar ${seleccionados.size} analisis?`)) return
+    if (!confirm(`¿Eliminar ${seleccionados.size} análisis?`)) return
 
     setBorrando(true)
     try {
@@ -323,7 +281,7 @@ export default function AdvisorPage() {
 
   const traducirPeriodo = (p: string) => {
     switch(p) {
-      case 'dia': return 'Dia'
+      case 'dia': return 'Día'
       case 'semana': return 'Semana'
       case 'mes': return 'Mes'
       default: return p
@@ -341,11 +299,11 @@ export default function AdvisorPage() {
 
   const traducirSector = (s: string) => {
     const sectores: Record<string, string> = {
-      'cafeteria': 'Cafeteria',
+      'cafeteria': 'Cafetería',
       'restaurante': 'Restaurante',
-      'peluqueria': 'Peluqueria',
-      'taller_mecanico': 'Taller Mecanico',
-      'carpinteria': 'Carpinteria',
+      'peluqueria': 'Peluquería',
+      'taller_mecanico': 'Taller Mecánico',
+      'carpinteria': 'Carpintería',
       'general': 'General'
     }
     return sectores[s] || s
@@ -356,7 +314,7 @@ export default function AdvisorPage() {
       case 1: return { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', badge: 'bg-red-100 text-red-800' }
       case 2: return { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', badge: 'bg-amber-100 text-amber-800' }
       case 3: return { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', badge: 'bg-blue-100 text-blue-800' }
-      default: return { bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-[#FFFCFF]', badge: 'bg-gray-100 text-gray-800' }
+      default: return { bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-700', badge: 'bg-gray-100 text-gray-800' }
     }
   }
 
@@ -369,156 +327,483 @@ export default function AdvisorPage() {
     }
   }
 
-return (
-    <div className="min-h-screen bg-[#262626]">
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#d98c21] flex items-center gap-2">
-            <IconLightbulb /> <span className="text-[#d98c21]">Asesor IA</span>
+  // Calcular estadísticas para el badge
+  const getEstadisticas = () => {
+    if (tabActiva === 'guardados') {
+      return { label: 'Análisis Guardados', count: analisisGuardados.length }
+    } else if (tabActiva === 'aplicados') {
+      return { label: 'Consejos Aplicados', count: consejosAplicados.length }
+    } else {
+      return { label: 'Recomendaciones', count: analisisActual?.recomendaciones?.length || 0 }
+    }
+  }
+
+  const stats = getEstadisticas()
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        
+        {/* Header estilo Costes Fijos */}
+        <div className="mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#c15f3c] flex items-center gap-3">
+            <Lightbulb className="w-8 h-8" />
+            Asesor IA
           </h1>
-          <p className="text-xl text-[#FFFCFF] mt-1">Genera y guarda analisis de tu negocio</p>
+          <p className="text-gray-600 mt-1">Genera y guarda análisis de tu negocio</p>
         </div>
-        <AdvisorExportButton 
-          recomendaciones={analisisActual?.recomendaciones || analisisDetalle?.recomendaciones || []}
-          consejosAplicados={consejosAplicados}
-          periodo={analisisActual?.periodo || analisisDetalle?.periodo || 'mes'}
-          sector={analisisActual?.sector || analisisDetalle?.sector || 'general'}
-        />
-      </div>
 
-      <div className="bg-[#262626] rounded-xl mb-6 overflow-hidden flex justify-center">
-        <div className="inline-flex flex-col sm:flex-row bg-[#1a1a1a] rounded-lg p-1 mx-4 sm:mx-0">
-          <button
-            onClick={() => { setTabActiva('guardados'); setAnalisisDetalle(null) }}
-            className={`flex items-center gap-2 px-4 sm:px-6 py-2 rounded-lg font-medium transition ${
-              tabActiva === 'guardados' 
-                ? 'bg-[#D98C21] text-black' 
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <IconFolder />
-            Analisis Guardados
-          </button>
-          <button
-            onClick={() => { setTabActiva('nuevo'); setAnalisisDetalle(null) }}
-            className={`flex items-center gap-2 px-4 sm:px-6 py-2 rounded-lg font-medium transition ${
-              tabActiva === 'nuevo' 
-                ? 'bg-[#D98C21] text-black' 
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <IconLightbulb />
-            Nuevo Analisis
-          </button>
-          <button
-            onClick={() => setTabActiva('aplicados')}
-            className={`flex items-center gap-2 px-4 sm:px-6 py-2 rounded-lg font-medium transition ${
-              tabActiva === 'aplicados' 
-                ? 'bg-[#D98C21] text-black' 
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <IconCheck />
-            Consejos Aplicados
-          </button>
-        </div>
-      </div>
-
-      {tabActiva === 'nuevo' && (
-        <div className="space-y-6">
-          <div className="bg-[#262626] rounded-xl p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
-              <div>
-                <label className="block text-xl font-medium text-[#d98c21] mb-1">Periodo a analizar</label>
-                <DateRangePicker
-                  onDateChange={(inicio, fin, dias) => {
-                    setFechaInicio(inicio)
-                    setFechaFin(fin)
-                    setDiasSeleccionados(dias)
-                  }}
-                  disabled={generando}
-                />
-              </div>
-
-              <button
-                onClick={generarNuevoAnalisis}
-                disabled={generando}
-                className="flex items-center gap-2 px-6 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors disabled:opacity-50 font-medium"
-              >
-                {generando ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Analizando...
-                  </>
-                ) : (
-                  <>
-                    <IconPlay />
-                    Generar Analisis
-                  </>
-                )}
-              </button>
-            </div>
+        {/* Barra de acciones estilo Costes Fijos */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => { setTabActiva('nuevo'); setAnalisisDetalle(null) }}
+              className="flex items-center gap-2 px-4 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors font-medium"
+            >
+              <Plus className="w-4 h-4" />
+              Nuevo Análisis
+            </button>
+            
+            <AdvisorExportButton 
+              recomendaciones={analisisActual?.recomendaciones || analisisDetalle?.recomendaciones || []}
+              consejosAplicados={consejosAplicados}
+              periodo={analisisActual?.periodo || analisisDetalle?.periodo || 'mes'}
+              sector={analisisActual?.sector || analisisDetalle?.sector || 'general'}
+            />
           </div>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-              <p className="text-red-700">{error}</p>
-            </div>
-          )}
+          {/* Badge de estadísticas */}
+          <div className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-gray-200 rounded-lg">
+            <span className="text-gray-600 font-medium">{stats.label}</span>
+            <span className="text-[#c15f3c] font-bold text-xl">{stats.count}</span>
+          </div>
+        </div>
 
-          {analisisActual && !analisisActual.sinRecomendaciones && (
-            <div className="space-y-4">
-              <div className="bg-[#262626] rounded-xl p-4 sm:p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-[#FFFCFF]">
-                      Analisis Generado - {traducirSector(analisisActual.sector)}
-                    </h3>
-                    <p className="text-xl text-[#ACACAC]">
-                      {analisisActual.recomendaciones?.length || 0} recomendaciones encontradas
-                    </p>
+        {/* Tabs estilo tarjetas */}
+        <div className="bg-white rounded-xl border border-gray-200 mb-6">
+          <div className="flex border-b border-gray-200">
+            <button
+              onClick={() => { setTabActiva('guardados'); setAnalisisDetalle(null) }}
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 font-medium transition-colors ${
+                tabActiva === 'guardados' 
+                  ? 'text-[#c15f3c] border-b-2 border-[#c15f3c] bg-orange-50/50' 
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <FolderOpen className="w-5 h-5" />
+              <span className="hidden sm:inline">Análisis Guardados</span>
+              <span className="sm:hidden">Guardados</span>
+            </button>
+            <button
+              onClick={() => { setTabActiva('nuevo'); setAnalisisDetalle(null) }}
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 font-medium transition-colors ${
+                tabActiva === 'nuevo' 
+                  ? 'text-[#c15f3c] border-b-2 border-[#c15f3c] bg-orange-50/50' 
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <Lightbulb className="w-5 h-5" />
+              <span className="hidden sm:inline">Nuevo Análisis</span>
+              <span className="sm:hidden">Nuevo</span>
+            </button>
+            <button
+              onClick={() => setTabActiva('aplicados')}
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 font-medium transition-colors ${
+                tabActiva === 'aplicados' 
+                  ? 'text-[#c15f3c] border-b-2 border-[#c15f3c] bg-orange-50/50' 
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <Check className="w-5 h-5" />
+              <span className="hidden sm:inline">Consejos Aplicados</span>
+              <span className="sm:hidden">Aplicados</span>
+            </button>
+          </div>
+        </div>
+
+        {/* TAB: Nuevo Análisis */}
+        {tabActiva === 'nuevo' && (
+          <div className="space-y-6">
+            {/* Panel de configuración */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Configurar Análisis</h3>
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Período a analizar</label>
+                  <DateRangePicker
+                    onDateChange={(inicio, fin, dias) => {
+                      setFechaInicio(inicio)
+                      setFechaFin(fin)
+                      setDiasSeleccionados(dias)
+                    }}
+                    disabled={generando}
+                  />
+                </div>
+
+                <button
+                  onClick={generarNuevoAnalisis}
+                  disabled={generando}
+                  className="flex items-center gap-2 px-6 py-3 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors disabled:opacity-50 font-medium"
+                >
+                  {generando ? (
+                    <>
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                      Analizando...
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-5 h-5" />
+                      Generar Análisis
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Error */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                <p className="text-red-700">{error}</p>
+              </div>
+            )}
+
+            {/* Resultado del análisis */}
+            {analisisActual && !analisisActual.sinRecomendaciones && (
+              <div className="space-y-4">
+                {/* Header del resultado */}
+                <div className="bg-[#FFF8E7] rounded-xl border border-[#E8D5B5] p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        Análisis Generado - {traducirSector(analisisActual.sector)}
+                      </h3>
+                      <p className="text-gray-600 mt-1">
+                        {analisisActual.recomendaciones?.length || 0} recomendaciones encontradas
+                      </p>
+                    </div>
+                    <button
+                      onClick={guardarAnalisis}
+                      disabled={guardando}
+                      className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 font-medium"
+                    >
+                      {guardando ? 'Guardando...' : 'Guardar Análisis'}
+                    </button>
                   </div>
-                  <button
-                    onClick={guardarAnalisis}
-                    disabled={guardando}
-                    className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 font-medium"
-                  >
-                    {guardando ? 'Guardando...' : 'Guardar Analisis'}
-                  </button>
+                </div>
+
+                {/* Lista de recomendaciones */}
+                <div className="space-y-4">
+                  {analisisActual.recomendaciones?.map((rec) => {
+                    const colors = getColorPrioridad(rec.prioridad)
+                    return (
+                      <div key={rec.id} className={`bg-white rounded-xl border ${colors.border} p-5 hover:shadow-md transition-shadow`}>
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex flex-wrap items-center gap-2 mb-3">
+                              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${colors.badge}`}>
+                                Prioridad {getTextoPrioridad(rec.prioridad)}
+                              </span>
+                              {rec.datosReales?.tendencia !== 0 && (
+                                <span className={`flex items-center gap-1 text-sm font-medium ${rec.datosReales.tendencia > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  {rec.datosReales.tendencia > 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                                  {rec.datosReales.tendencia > 0 ? '+' : ''}{rec.datosReales.tendencia}%
+                                </span>
+                              )}
+                            </div>
+                            <h4 className="font-semibold text-gray-900 mb-2 text-lg">{rec.titulo}</h4>
+                            <p className="text-gray-700 mb-4">{rec.mensaje}</p>
+                            <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4 pb-4 border-b border-gray-100">
+                              <span>Ventas: <span className="font-semibold text-gray-900">{rec.datosReales?.ventas || 0}</span></span>
+                              <span>Ingresos: <span className="font-semibold text-green-600">€{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span></span>
+                            </div>
+                            <button
+                              onClick={() => aplicarConsejo(rec, { sector: analisisActual?.sector, periodo: analisisActual?.periodo })}
+                              className="flex items-center gap-2 px-4 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors text-sm font-medium"
+                            >
+                              <Check className="w-4 h-4" />
+                              Marcar como Aplicado
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
+            )}
 
+            {/* Sin recomendaciones */}
+            {analisisActual?.sinRecomendaciones && (
+              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Lightbulb className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Sin recomendaciones</h3>
+                <p className="text-gray-600 max-w-md mx-auto">
+                  {analisisActual.mensaje || 'No se detectaron oportunidades de mejora con los datos actuales del período seleccionado.'}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB: Consejos Aplicados */}
+        {tabActiva === 'aplicados' && (
+          <div className="space-y-4">
+            {/* Barra de selección */}
+            {consejosAplicados.length > 0 && (
+              <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={seleccionadosAplicados.size === consejosAplicados.length && consejosAplicados.length > 0}
+                    onChange={seleccionarTodosAplicados}
+                    className="w-5 h-5 rounded border-gray-300 text-[#c15f3c] focus:ring-[#c15f3c]"
+                  />
+                  <span className="text-gray-700">Seleccionar todos</span>
+                  {seleccionadosAplicados.size > 0 && (
+                    <span className="text-gray-500">({seleccionadosAplicados.size} seleccionados)</span>
+                  )}
+                </label>
+
+                {seleccionadosAplicados.size > 0 && (
+                  <button
+                    onClick={eliminarConsejosAplicados}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Eliminar ({seleccionadosAplicados.size})
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Lista vacía */}
+            {consejosAplicados.length === 0 ? (
+              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Check className="w-8 h-8 text-green-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Sin consejos aplicados</h3>
+                <p className="text-gray-600 mb-6">Los consejos que apliques aparecerán aquí para hacer seguimiento</p>
+                <button
+                  onClick={() => setTabActiva('nuevo')}
+                  className="inline-flex items-center gap-2 px-6 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors font-medium"
+                >
+                  <Plus className="w-4 h-4" />
+                  Generar Análisis
+                </button>
+              </div>
+            ) : (
               <div className="space-y-4">
-                {analisisActual.recomendaciones?.map((rec) => {
+                {consejosAplicados.map((consejo) => {
+                  const colors = getColorPrioridad(consejo.prioridad)
+                  return (
+                    <div key={`${consejo.id}-${consejo.aplicadoEn}`} className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-start gap-4">
+                        <input
+                          type="checkbox"
+                          checked={seleccionadosAplicados.has(consejo.id)}
+                          onChange={() => toggleSeleccionAplicado(consejo.id)}
+                          className="w-5 h-5 rounded border-gray-300 text-[#c15f3c] focus:ring-[#c15f3c] mt-1 flex-shrink-0"
+                        />
+                        <div className="flex-1">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${colors.badge}`}>
+                              {getTextoPrioridad(consejo.prioridad)}
+                            </span>
+                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                              Aplicado: {formatearFecha(consejo.aplicadoEn)}
+                            </span>
+                          </div>
+                          <h4 className="font-semibold text-gray-900 mb-2">{consejo.titulo}</h4>
+                          <p className="text-gray-700 text-sm mb-3">{consejo.mensaje}</p>
+                          <div className="flex flex-wrap gap-3 text-sm text-gray-600">
+                            <span className="bg-gray-50 px-2 py-1 rounded">Sector: {traducirSector(consejo.sector)}</span>
+                            <span className="bg-gray-50 px-2 py-1 rounded">Período: {traducirPeriodo(consejo.periodoAnalisis)}</span>
+                            <span className="bg-gray-50 px-2 py-1 rounded">Ventas: {consejo.datosReales?.ventas || 0}</span>
+                            <span className="bg-green-50 text-green-700 px-2 py-1 rounded">€{consejo.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB: Análisis Guardados - Lista */}
+        {tabActiva === 'guardados' && !analisisDetalle && (
+          <div className="space-y-4">
+            {/* Barra de selección */}
+            {analisisGuardados.length > 0 && (
+              <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={seleccionados.size === analisisGuardados.length && analisisGuardados.length > 0}
+                    onChange={seleccionarTodos}
+                    className="w-5 h-5 rounded border-gray-300 text-[#c15f3c] focus:ring-[#c15f3c]"
+                  />
+                  <span className="text-gray-700">Seleccionar todos</span>
+                  {seleccionados.size > 0 && (
+                    <span className="text-gray-500">({seleccionados.size} seleccionados)</span>
+                  )}
+                </label>
+
+                {seleccionados.size > 0 && (
+                  <button
+                    onClick={borrarSeleccionados}
+                    disabled={borrando}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 font-medium"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    {borrando ? 'Borrando...' : `Borrar (${seleccionados.size})`}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Cargando */}
+            {cargandoGuardados ? (
+              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+                <RefreshCw className="w-8 h-8 text-gray-400 animate-spin mx-auto mb-4" />
+                <p className="text-gray-600">Cargando análisis...</p>
+              </div>
+            ) : analisisGuardados.length === 0 ? (
+              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FolderOpen className="w-8 h-8 text-[#c15f3c]" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Sin análisis guardados</h3>
+                <p className="text-gray-600 mb-6">Genera tu primer análisis para empezar a recibir recomendaciones</p>
+                <button
+                  onClick={() => setTabActiva('nuevo')}
+                  className="inline-flex items-center gap-2 px-6 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors font-medium"
+                >
+                  <Plus className="w-4 h-4" />
+                  Crear Análisis
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {analisisGuardados.map((analisis) => (
+                  <div
+                    key={analisis.id}
+                    className="bg-white rounded-xl border border-gray-200 p-4 hover:border-[#c15f3c] hover:shadow-md transition-all cursor-pointer"
+                  >
+                    <div className="flex items-center gap-4">
+                      <input
+                        type="checkbox"
+                        checked={seleccionados.has(analisis.id)}
+                        onChange={(e) => {
+                          e.stopPropagation()
+                          toggleSeleccion(analisis.id)
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-5 h-5 rounded border-gray-300 text-[#c15f3c] focus:ring-[#c15f3c] flex-shrink-0"
+                      />
+
+                      <div
+                        className="flex-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+                        onClick={() => verDetalleAnalisis(analisis.id)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-[#FFF8E7] rounded-lg flex items-center justify-center flex-shrink-0">
+                            <FileText className="w-5 h-5 text-[#c15f3c]" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              {formatearFecha(analisis.created_at)}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {formatearPeriodoAnalisis(analisis)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                            {analisis.num_recomendaciones || 0} recomendaciones
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB: Análisis Guardados - Detalle */}
+        {tabActiva === 'guardados' && analisisDetalle && (
+          <div className="space-y-4">
+            {/* Header del detalle */}
+            <div className="bg-[#FFF8E7] rounded-xl border border-[#E8D5B5] p-6">
+              <button
+                onClick={() => setAnalisisDetalle(null)}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Volver a la lista
+              </button>
+
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Análisis del {formatearFecha(analisisDetalle.created_at)}
+                  </h2>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <span className="text-sm bg-white text-[#c15f3c] px-3 py-1 rounded-full border border-[#E8D5B5]">
+                      Período: {traducirPeriodo(analisisDetalle.periodo)}
+                    </span>
+                    <span className="text-sm bg-white text-gray-600 px-3 py-1 rounded-full border border-gray-200">
+                      {analisisDetalle.recomendaciones?.length || 0} recomendaciones
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Cargando detalle */}
+            {cargandoDetalle ? (
+              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+                <RefreshCw className="w-8 h-8 text-gray-400 animate-spin mx-auto mb-4" />
+                <p className="text-gray-600">Cargando detalles...</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {analisisDetalle.recomendaciones?.map((rec: any) => {
                   const colors = getColorPrioridad(rec.prioridad)
                   return (
-                    <div key={rec.id} className={`${colors.bg} border ${colors.border} rounded-xl p-4 sm:p-5`}>
+                    <div key={rec.id} className={`bg-white rounded-xl border ${colors.border} p-5 hover:shadow-md transition-shadow`}>
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors.badge}`}>
-                              {getTextoPrioridad(rec.prioridad)}
+                          <div className="flex flex-wrap items-center gap-2 mb-3">
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${colors.badge}`}>
+                              Prioridad {getTextoPrioridad(rec.prioridad)}
                             </span>
                             {rec.datosReales?.tendencia !== 0 && (
-                              <span className={`flex items-center gap-1 text-xs ${rec.datosReales.tendencia > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                {rec.datosReales.tendencia > 0 ? <IconTrendingUp /> : <IconTrendingDown />}
-                                {rec.datosReales.tendencia > 0 ? '+' : ''}{rec.datosReales.tendencia}%
+                              <span className={`flex items-center gap-1 text-sm font-medium ${rec.datosReales?.tendencia > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {rec.datosReales?.tendencia > 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                                {rec.datosReales?.tendencia > 0 ? '+' : ''}{rec.datosReales?.tendencia}%
                               </span>
                             )}
                           </div>
-                          <h4 className="font-semibold text-[#262626] mb-2 text-lg">{rec.titulo}</h4>
-                          <p className="text-lg text-gray-800 mb-3">{rec.mensaje}</p>
-                          <div className="flex flex-wrap gap-4 text-lg text-[#ACACAC] mb-3">
-                            <span className="text-[#262626]">Ventas: <span className="text-gray-900">{rec.datosReales?.ventas || 0}</span></span>
-                            <span className="text-[#262626]">Ingresos: <span className="text-green-600">{rec.datosReales?.ingresos?.toFixed(2) || '0.00'} EUR</span></span>
+                          <h4 className="font-semibold text-gray-900 mb-2 text-lg">{rec.titulo}</h4>
+                          <p className="text-gray-700 mb-4">{rec.mensaje}</p>
+                          <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4 pb-4 border-b border-gray-100">
+                            <span>Ventas: <span className="font-semibold text-gray-900">{rec.datosReales?.ventas || 0}</span></span>
+                            <span>Ingresos: <span className="font-semibold text-green-600">€{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span></span>
                           </div>
                           <button
                             onClick={() => aplicarConsejo(rec, { sector: analisisDetalle?.sector, periodo: analisisDetalle?.periodo })}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xl font-medium"
+                            className="flex items-center gap-2 px-4 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors text-sm font-medium"
                           >
-                            <IconCheck />
-                            Aplicar
+                            <Check className="w-4 h-4" />
+                            Marcar como Aplicado
                           </button>
                         </div>
                       </div>
@@ -526,266 +811,10 @@ return (
                   )
                 })}
               </div>
-            </div>
-          )}
-
-          {analisisActual?.sinRecomendaciones && (
-            <div className="bg-[#262626] rounded-xl p-8 text-center">
-              <div className="text-6xl mb-4"><IconLightbulb /></div>
-              <h3 className="text-lg font-medium text-[#FFFCFF] mt-4 mb-2">Sin recomendaciones</h3>
-              <p className="text-xl text-[#ACACAC]">
-                {analisisActual.mensaje || 'No se detectaron oportunidades con los datos actuales.'}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {tabActiva === 'aplicados' && (
-        <div className="space-y-4">
-          {consejosAplicados.length > 0 && (
-            <div className="bg-[#262626] rounded-xl p-4 inline-flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={seleccionadosAplicados.size === consejosAplicados.length && consejosAplicados.length > 0}
-                    onChange={seleccionarTodosAplicados}
-                    className="w-4 h-4 rounded border-gray-300"
-                  />
-                  <span className="text-xl text-[#ACACAC]">Seleccionar todos</span>
-                </label>
-                {seleccionadosAplicados.size > 0 && (
-                  <span className="text-xl text-[#ACACAC]">
-                    ({seleccionadosAplicados.size} seleccionados)
-                  </span>
-                )}
-              </div>
-
-              {seleccionadosAplicados.size > 0 && (
-                <button
-                  onClick={eliminarConsejosAplicados}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xl font-medium"
-                >
-                  <IconTrash />
-                  Eliminar ({seleccionadosAplicados.size})
-                </button>
-              )}
-            </div>
-          )}
-
-          {consejosAplicados.length === 0 ? (
-            <div className="bg-[#262626] rounded-xl p-8 text-center">
-              <div className="text-6xl mb-4"><IconCheck /></div>
-              <h3 className="text-lg font-medium text-[#FFFCFF] mt-4 mb-2">Sin consejos aplicados</h3>
-              <p className="text-[#ACACAC] text-[16PX] mb-4">Los consejos que apliques apareceran aqui</p>
-              <button
-                onClick={() => setTabActiva('nuevo')}
-                className="px-6 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors font-medium"
-              >
-                Generar Analisis
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {consejosAplicados.map((consejo) => {
-                const colors = getColorPrioridad(consejo.prioridad)
-                return (
-                  <div key={`${consejo.id}-${consejo.aplicadoEn}`} className="bg-[#262626] rounded-xl p-4">
-                    <div className="flex items-start gap-4">
-                      <input
-                        type="checkbox"
-                        checked={seleccionadosAplicados.has(consejo.id)}
-                        onChange={() => toggleSeleccionAplicado(consejo.id)}
-                        className="w-4 h-4 rounded border-gray-300 mt-1 flex-shrink-0"
-                      />
-                      <div className={`flex-1 ${colors.bg} border ${colors.border} rounded-lg p-4`}>
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors.badge}`}>
-                            {getTextoPrioridad(consejo.prioridad)}
-                          </span>
-                          <span className="text-xs text-[#ACACAC]">
-                            Aplicado: {formatearFecha(consejo.aplicadoEn)}
-                          </span>
-                        </div>
-                        <h4 className="font-semibold text-[#262626] mb-2">{consejo.titulo}</h4>
-                        <p className="text-sm text-gray-800 mb-3">{consejo.mensaje}</p>
-                        <div className="flex flex-wrap gap-4 text-lg text-[#ACACAC]">
-                          <span>Sector: {traducirSector(consejo.sector)}</span>
-                          <span>Periodo: {traducirPeriodo(consejo.periodoAnalisis)}</span>
-                          <span className="text-[#262626]">Ventas: <span className="text-gray-900">{consejo.datosReales?.ventas || 0}</span></span>
-                          <span className="text-[#262626]">Ingresos: <span className="text-green-600">{consejo.datosReales?.ingresos?.toFixed(2) || '0.00'} EUR</span></span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {tabActiva === 'guardados' && !analisisDetalle && (
-        <div className="space-y-4">
-          {analisisGuardados.length > 0 && (
-            <div className="bg-[#262626] rounded-xl p-4 inline-flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={seleccionados.size === analisisGuardados.length && analisisGuardados.length > 0}
-                    onChange={seleccionarTodos}
-                    className="w-4 h-4 rounded border-gray-300"
-                  />
-                  <span className="text-xl text-[#ACACAC]">Seleccionar todos</span>
-                </label>
-                {seleccionados.size > 0 && (
-                  <span className="text-xl text-[#ACACAC]">
-                    ({seleccionados.size} seleccionados)
-                  </span>
-                )}
-              </div>
-
-              {seleccionados.size > 0 && (
-                <button
-                  onClick={borrarSeleccionados}
-                  disabled={borrando}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 text-xl font-medium"
-                >
-                  <IconTrash />
-                  {borrando ? 'Borrando...' : `Borrar (${seleccionados.size})`}
-                </button>
-              )}
-            </div>
-          )}
-
-          {cargandoGuardados ? (
-            <div className="bg-[#262626] rounded-xl p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-              <p className="text-[#ACACAC] mt-4">Cargando analisis...</p>
-            </div>
-          ) : analisisGuardados.length === 0 ? (
-            <div className="bg-[#262626] rounded-xl p-8 text-center">
-              <div className="text-6xl mb-4"><IconFolder /></div>
-              <h3 className="text-lg font-medium text-[#FFFCFF] mt-4 mb-2">Sin analisis guardados</h3>
-              <p className="text-[#ACACAC] text-[16PX] mb-4">Genera tu primer analisis para empezar</p>
-              <button
-                onClick={() => setTabActiva('nuevo')}
-                className="px-6 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors font-medium"
-              >
-                Crear Analisis
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {analisisGuardados.map((analisis) => (
-                <div
-                  key={analisis.id}
-                  className="bg-[#262626] rounded-xl p-4 hover:border-gray-300 transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    <input
-                      type="checkbox"
-                      checked={seleccionados.has(analisis.id)}
-                      onChange={() => toggleSeleccion(analisis.id)}
-                      className="w-4 h-4 rounded border-gray-300 flex-shrink-0"
-                    />
-
-                    <div
-                      className="flex-1 cursor-pointer"
-                      onClick={() => verDetalleAnalisis(analisis.id)}
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                        <div>
-                          <p className="text-xl text-[#ACACAC]">
-                            {formatearFecha(analisis.created_at)} - {formatearPeriodoAnalisis(analisis)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {tabActiva === 'guardados' && analisisDetalle && (
-        <div className="space-y-4">
-          <div className="bg-[#262626] rounded-xl p-4 sm:p-6">
-            <button
-              onClick={() => setAnalisisDetalle(null)}
-              className="text-xl text-[#ACACAC] hover:text-[#FFFCFF] mb-4 flex items-center gap-1"
-            >
-              Volver a la lista
-            </button>
-
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-bold text-[#FFFCFF]">
-                  Analisis del {formatearFecha(analisisDetalle.created_at)}
-                </h2>
-                <div className="flex flex-wrap gap-2 mt-2 text-xl">
-                  <span className="bg-[#262626] text-[#D98C21] px-2 py-1 rounded text-xl">
-                    Periodo: {traducirPeriodo(analisisDetalle.periodo)}
-                  </span>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
+        )}
 
-          {cargandoDetalle ? (
-            <div className="bg-[#262626] rounded-xl p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-              <p className="text-[#ACACAC] mt-4">Cargando detalles...</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <p className="text-xl text-[#ACACAC]">
-                {analisisDetalle.recomendaciones?.length || 0} recomendaciones
-              </p>
-
-              {analisisDetalle.recomendaciones?.map((rec: any) => {
-                const colors = getColorPrioridad(rec.prioridad)
-                return (
-                  <div key={rec.id} className={`${colors.bg} border ${colors.border} rounded-xl p-4 sm:p-5`}>
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors.badge}`}>
-                            {getTextoPrioridad(rec.prioridad)}
-                          </span>
-                          {rec.datosReales?.tendencia !== 0 && (
-                            <span className={`flex items-center gap-1 text-xs ${rec.datosReales?.tendencia > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {rec.datosReales?.tendencia > 0 ? <IconTrendingUp /> : <IconTrendingDown />}
-                              {rec.datosReales?.tendencia > 0 ? '+' : ''}{rec.datosReales?.tendencia}%
-                            </span>
-                          )}
-                        </div>
-                        <h4 className="font-semibold text-[#262626] mb-2 text-lg">{rec.titulo}</h4>
-                        <p className="text-lg text-gray-800 mb-3">{rec.mensaje}</p>
-                        <div className="flex flex-wrap gap-4 text-lg text-[#ACACAC]">
-                          <span className="text-[#262626]">Ventas: <span className="text-gray-900">{rec.datosReales?.ventas || 0}</span></span>
-                          <span className="text-[#262626]">Ingresos: <span className="text-green-600">{rec.datosReales?.ingresos?.toFixed(2) || '0.00'} EUR</span></span>
-                        </div>
-                        <button
-                          onClick={() => aplicarConsejo(rec, { sector: analisisDetalle?.sector, periodo: analisisDetalle?.periodo })}
-                          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xl font-medium mt-3"
-                        >
-                          <IconCheck />
-                          Aplicar
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
-      )}
       </div>
     </div>
   )
