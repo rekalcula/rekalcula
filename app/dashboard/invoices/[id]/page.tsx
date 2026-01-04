@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import DeleteInvoiceButton from '@/components/DeleteInvoiceButton'
 import Link from 'next/link'
 import InvoiceImageViewer from '@/components/InvoiceImageViewer'
+import PaymentStatusSelector from '@/components/PaymentStatusSelector'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -109,6 +110,17 @@ export default async function InvoiceDetailPage({
                 </div>
               </div>
             </div>
+
+            {/* ========================================
+                ESTADO DE PAGO - NUEVO COMPONENTE
+                ======================================== */}
+            <PaymentStatusSelector
+              invoiceId={Number(id)}
+              invoiceDate={invoice.invoice_date}
+              currentPaymentStatus={invoice.payment_status}
+              currentPaymentTerm={invoice.payment_term}
+              currentDueDate={invoice.due_date}
+            />
 
             {invoice.items && invoice.items.length > 0 && (
               <div className="bg-white rounded-lg shadow p-6">
