@@ -54,7 +54,7 @@ export default function TrialBanner() {
     }
 
     return (
-      <div className={`${bgColor} border rounded-lg p-4 mb-6 flex items-center justify-between`}>
+      <div className={`${bgColor} border rounded-lg px-4 py-3 sm:py-4 mb-6 flex items-center justify-between`}>
         <div className="flex items-center">
           <span className="mr-3">
             <IconAlertTriangle size={28} color={iconColor} />
@@ -88,7 +88,7 @@ export default function TrialBanner() {
   // Si expiro o esta cancelado
   if (data.subscription.status === 'expired' || data.subscription.status === 'canceled') {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center justify-between">
+      <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 sm:py-4 mb-6 flex items-center justify-between">
         <div className="flex items-center">
           <span className="mr-3">
             <IconXCircle size={28} color="#DC2626" />
