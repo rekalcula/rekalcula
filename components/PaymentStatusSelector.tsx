@@ -143,15 +143,15 @@ export default function PaymentStatusSelector({
 
       {/* Dropdown de forma de pago (solo si NO) */}
       {showDropdown && (
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="mt-4 p-4 bg-[#262626] rounded-lg border border-gray-600">
+          <label className="block text-sm font-medium text-white mb-2">
             Forma de pago:
           </label>
           <select
             value={paymentTerm}
             onChange={(e) => handlePaymentTermChange(e.target.value)}
             disabled={saving}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-[#d98c21] focus:border-transparent disabled:opacity-50"
+            className="w-full px-4 py-3 border border-gray-600 rounded-lg bg-[#1a1a1a] text-white focus:ring-2 focus:ring-[#d98c21] focus:border-transparent disabled:opacity-50"
           >
             <option value="">Seleccionar plazo...</option>
             {paymentOptions.map(option => (
