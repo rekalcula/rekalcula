@@ -102,9 +102,9 @@ export default function SalesAnalyticsChart() {
   }
 
   const getChangeColor = (change: number) => {
-    if (change > 0) return 'text-green-600'
-    if (change < 0) return 'text-[#D98C21]'
-    return 'text-gray-700'
+    if (change > 0) return 'text-green-400'
+    if (change < 0) return 'text-red-400'
+    return 'text-gray-400'
   }
 
   const getMaxValue = () => {
@@ -118,40 +118,47 @@ export default function SalesAnalyticsChart() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#c15f3c]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D98C21]"></div>
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      {/* Filtros */}
-      <div className="bg-[#0D0D0D] rounded-xl shadow-sm p-4 text-[#FFFFFF]">
+      {/* Filtros - ESTILO MODERNO */}
+      <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-6">
         <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-4">
-          {/* Periodo */}
-          <div className="flex items-center space-x-2">
-            <span className="text-[20px] font-medium text-[#FFFFFF]">Periodo:</span>
-            <div className="flex bg-gray-100 rounded-lg p-1">
+          
+          {/* Período */}
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-gray-300">Período:</span>
+            <div className="flex bg-[#0d0d0d] rounded-lg p-1 border border-[#3a3a3a]">
               <button
                 onClick={() => setPeriod('day')}
-                className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[20px] font-medium transition-colors ${
-                  period === 'day' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#0D0D0D] hover:text-[#2D2D2D]'
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  period === 'day' 
+                    ? 'bg-[#D98C21] text-white' 
+                    : 'text-gray-300 hover:text-white hover:bg-[#2a2a2a]'
                 }`}
               >
-                Dia
+                Día
               </button>
               <button
                 onClick={() => setPeriod('week')}
-                className={`px-4 py-2 rounded-lg text-[20px] font-medium transition-colors ${
-                  period === 'week' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#0D0D0D] hover:text-[#2D2D2D]'
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  period === 'week' 
+                    ? 'bg-[#D98C21] text-white' 
+                    : 'text-gray-300 hover:text-white hover:bg-[#2a2a2a]'
                 }`}
               >
                 Semana
               </button>
               <button
                 onClick={() => setPeriod('month')}
-                className={`px-4 py-2 rounded-lg text-[20px] font-medium transition-colors ${
-                  period === 'month' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#0D0D0D] hover:text-[#2D2D2D]'
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  period === 'month' 
+                    ? 'bg-[#D98C21] text-white' 
+                    : 'text-gray-300 hover:text-white hover:bg-[#2a2a2a]'
                 }`}
               >
                 Mes
@@ -160,34 +167,38 @@ export default function SalesAnalyticsChart() {
           </div>
 
           {/* Comparativa */}
-          <label className="flex items-center space-x-2 cursor-pointer">
+          <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
               checked={compare}
               onChange={(e) => setCompare(e.target.checked)}
-              className="w-5 h-5 rounded border-gray-300 text-[#c15f3c] focus:ring-[#c15f3c]"
+              className="w-5 h-5 rounded border-gray-600 bg-[#2a2a2a] text-[#D98C21] focus:ring-[#D98C21]"
             />
-            <span className="text-[20px] font-medium text-[#FFFFFF]">
+            <span className="text-sm font-medium text-gray-300">
               Comparar {getCompareLabel()}
             </span>
           </label>
 
           {/* Vista */}
-          <div className="flex items-center space-x-2">
-            <span className="text-[20px] font-medium text-[#FFFFFF]">Ver:</span>
-            <div className="flex bg-gray-100 rounded-lg p-1">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-gray-300">Ver:</span>
+            <div className="flex bg-[#0d0d0d] rounded-lg p-1 border border-[#3a3a3a]">
               <button
                 onClick={() => setViewMode('quantity')}
-                className={`px-4 py-2 rounded-lg text-[20px] font-medium transition-colors ${
-                  viewMode === 'quantity' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#0D0D0D] hover:text-[#2D2D2D]'
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  viewMode === 'quantity' 
+                    ? 'bg-[#D98C21] text-white' 
+                    : 'text-gray-300 hover:text-white hover:bg-[#2a2a2a]'
                 }`}
               >
                 Cantidad
               </button>
               <button
                 onClick={() => setViewMode('revenue')}
-                className={`px-4 py-2 rounded-lg text-[20px] font-medium transition-colors ${
-                  viewMode === 'revenue' ? 'bg-[#0D0D0D] text-[#D98C21]' : 'text-[#0D0D0D] hover:text-[#2D2D2D]'
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  viewMode === 'revenue' 
+                    ? 'bg-[#D98C21] text-white' 
+                    : 'text-gray-300 hover:text-white hover:bg-[#2a2a2a]'
                 }`}
               >
                 Ingresos
@@ -197,66 +208,66 @@ export default function SalesAnalyticsChart() {
 
           {/* Botón Exportar PDF */}
           {data && data.products.length > 0 && (
-            <div className="ml-auto">
+            <div className="sm:ml-auto">
               <ExportPDFButton onClick={handleExportPDF} label="Exportar PDF" />
             </div>
           )}
         </div>
       </div>
 
-      {/* Tarjetas de resumen */}
+      {/* Tarjetas de resumen - ESTILO MODERNO */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-gray-200 rounded-xl shadow-sm p-6">
-          <p className="text-[20px] text-gray-700">Total Productos Vendidos</p>
-          <p className="text-2xl font-bold text-gray-900">{data?.totalQuantity || 0}</p>
+        <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-6">
+          <p className="text-sm text-gray-400">Total Productos Vendidos</p>
+          <p className="text-2xl font-bold text-white mt-2">{data?.totalQuantity || 0}</p>
           {compare && data?.comparison && (
-            <p className={`text-[20px] mt-1 ${getChangeColor(data.comparison.quantityChange)}`}>
+            <p className={`text-sm mt-2 font-medium ${getChangeColor(data.comparison.quantityChange)}`}>
               {formatChange(data.comparison.quantityChange)}
             </p>
           )}
         </div>
 
-        <div className="bg-gray-200 rounded-xl shadow-sm p-6">
-          <p className="text-[20px] text-gray-700">Ingresos Totales</p>
-          <p className="text-2xl font-bold text-green-600">€{data?.totalRevenue?.toFixed(2) || '0.00'}</p>
+        <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-6">
+          <p className="text-sm text-gray-400">Ingresos Totales</p>
+          <p className="text-2xl font-bold text-green-400 mt-2">€{data?.totalRevenue?.toFixed(2) || '0.00'}</p>
           {compare && data?.comparison && (
-            <p className={`text-[20px] mt-1 ${getChangeColor(data.comparison.revenueChange)}`}>
+            <p className={`text-sm mt-2 font-medium ${getChangeColor(data.comparison.revenueChange)}`}>
               {formatChange(data.comparison.revenueChange)}
             </p>
           )}
         </div>
 
-        <div className="bg-gray-200 rounded-xl shadow-sm p-6">
-          <p className="text-[20px] text-gray-700">Numero de Ventas</p>
-          <p className="text-2xl font-bold text-gray-900">{data?.totalSales || 0}</p>
+        <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-6">
+          <p className="text-sm text-gray-400">Número de Ventas</p>
+          <p className="text-2xl font-bold text-white mt-2">{data?.totalSales || 0}</p>
           {compare && data?.comparison && (
-            <p className="text-[20px] mt-1 text-gray-700">
+            <p className="text-sm mt-2 text-gray-400">
               Anterior: {data.comparison.prevTotalSales}
             </p>
           )}
         </div>
 
-        <div className="bg-gray-200 rounded-xl shadow-sm p-6">
-          <p className="text-[20px] text-gray-700">Producto Mas Vendido</p>
-          <p className="text-2xl font-bold text-[#c15f3c]">{data?.topProduct?.name || '-'}</p>
+        <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-6">
+          <p className="text-sm text-gray-400">Producto Más Vendido</p>
+          <p className="text-2xl font-bold text-[#D98C21] mt-2">{data?.topProduct?.name || '-'}</p>
           {data?.topProduct && (
-            <p className="text-[20px] mt-1 text-[#10B981]">
+            <p className="text-sm mt-2 text-green-400">
               {data.topProduct.quantity} uds · €{data.topProduct.revenue.toFixed(2)}
             </p>
           )}
         </div>
       </div>
 
-      {/* Grafico de barras */}
-      <div className="bg-gray-200 rounded-xl shadow-sm p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-6">
+      {/* Gráfico de barras - ESTILO MODERNO */}
+      <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-6">
+        <h3 className="text-lg font-bold text-white mb-6">
           {viewMode === 'quantity' ? 'Productos por Cantidad Vendida' : 'Productos por Ingresos'} - {getPeriodLabel()}
         </h3>
 
         {!data || data.products.length === 0 ? (
           <div className="text-center py-12">
-            <IconBarChart size={48} color="#9CA3AF" className="mx-auto mb-2" />
-            <p className="text-gray-700">No hay datos para el periodo seleccionado</p>
+            <IconBarChart size={48} color="#6B7280" className="mx-auto mb-2" />
+            <p className="text-gray-400">No hay datos para el período seleccionado</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -271,15 +282,15 @@ export default function SalesAnalyticsChart() {
               return (
                 <div key={product.name} className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="font-medium text-gray-900">{product.name}</span>
-                    <div className="flex items-center space-x-4">
-                      <span className="text-[#10B981]">
+                    <span className="font-medium text-white">{product.name}</span>
+                    <div className="flex items-center gap-4">
+                      <span className="text-green-400 font-medium">
                         {viewMode === 'quantity'
                           ? `${product.quantity} uds`
                           : `€${product.revenue.toFixed(2)}`
                         }
                       </span>
-                      <span className="text-sm text-gray-700">
+                      <span className="text-sm text-gray-400">
                         ({viewMode === 'quantity'
                           ? product.percentage.toFixed(1)
                           : product.revenuePercentage.toFixed(1)
@@ -294,15 +305,15 @@ export default function SalesAnalyticsChart() {
                   </div>
 
                   {/* Barra actual */}
-                  <div className="h-6 bg-gray-100 rounded-full overflow-hidden relative">
+                  <div className="h-6 bg-[#0d0d0d] rounded-full overflow-hidden relative border border-[#3a3a3a]">
                     <div
-                      className="h-full bg-[#c15f3c] rounded-full transition-all duration-500"
+                      className="h-full bg-[#D98C21] rounded-full transition-all duration-500"
                       style={{ width: `${barWidth}%` }}
                     />
                     {/* Barra anterior (comparativa) */}
                     {compare && prevValue > 0 && (
                       <div
-                        className="absolute top-0 h-full border-r-2 border-dashed border-gray-400"
+                        className="absolute top-0 h-full border-r-2 border-dashed border-gray-500"
                         style={{ left: `${prevBarWidth}%` }}
                         title={`Anterior: ${viewMode === 'quantity' ? prevValue : `€${prevValue.toFixed(2)}`}`}
                       />
@@ -315,44 +326,44 @@ export default function SalesAnalyticsChart() {
         )}
       </div>
 
-      {/* Tabla detallada */}
-      <div className="bg-gray-200 rounded-xl shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b">
-          <h3 className="text-lg font-bold text-gray-900">Detalle por Producto</h3>
+      {/* Tabla detallada - ESTILO MODERNO */}
+      <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] overflow-hidden">
+        <div className="px-6 py-4 border-b border-[#3a3a3a]">
+          <h3 className="text-lg font-bold text-white">Detalle por Producto</h3>
         </div>
 
         {!data || data.products.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-700">No hay datos disponibles</p>
+            <p className="text-gray-400">No hay datos disponibles</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-[#0d0d0d]">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">#</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Producto</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase">Cantidad</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase">Ingresos</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase">% Cantidad</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase">% Ingresos</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">#</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Producto</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase">Cantidad</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase">Ingresos</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase">% Cantidad</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase">% Ingresos</th>
                   {compare && (
                     <>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase">Var. Cantidad</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase">Var. Ingresos</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase">Var. Cantidad</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase">Var. Ingresos</th>
                     </>
                   )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-[#3a3a3a]">
                 {data.products.map((product, index) => (
-                  <tr key={product.name} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-700">{index + 1}</td>
-                    <td className="px-6 py-4 font-medium text-gray-900">{product.name}</td>
-                    <td className="px-6 py-4 text-right text-gray-900">{product.quantity}</td>
-                    <td className="px-6 py-4 text-right text-green-600 font-medium">€{product.revenue.toFixed(2)}</td>
-                    <td className="px-6 py-4 text-right text-gray-700">{product.percentage.toFixed(1)}%</td>
-                    <td className="px-6 py-4 text-right text-gray-700">{product.revenuePercentage.toFixed(1)}%</td>
+                  <tr key={product.name} className="hover:bg-[#2a2a2a] transition-colors">
+                    <td className="px-6 py-4 text-sm text-gray-400">{index + 1}</td>
+                    <td className="px-6 py-4 font-medium text-white">{product.name}</td>
+                    <td className="px-6 py-4 text-right text-white">{product.quantity}</td>
+                    <td className="px-6 py-4 text-right text-green-400 font-medium">€{product.revenue.toFixed(2)}</td>
+                    <td className="px-6 py-4 text-right text-gray-400">{product.percentage.toFixed(1)}%</td>
+                    <td className="px-6 py-4 text-right text-gray-400">{product.revenuePercentage.toFixed(1)}%</td>
                     {compare && (
                       <>
                         <td className={`px-6 py-4 text-right font-medium ${getChangeColor(product.quantityChange)}`}>
