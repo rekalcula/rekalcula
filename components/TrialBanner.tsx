@@ -54,7 +54,7 @@ export default function TrialBanner() {
     }
 
     return (
-      <div className={`${bgColor} border rounded-lg px-4 py-2 sm:py-4 mb-6 flex items-center justify-between`}>
+      <div className={`${bgColor} border rounded-lg px-4 py-2 sm:py-4 mb-2 flex items-center justify-between`}>
         <div className="flex items-center">
           <span className="mr-3">
             <IconAlertTriangle size={28} color={iconColor} />
