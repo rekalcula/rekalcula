@@ -34,15 +34,15 @@ export default function DashboardNav() {
 
   const navItems = [
     { href: '/dashboard', label: 'Panel' },
-    { href: '/dashboard/invoices', label: 'Facturas' },
     { href: '/dashboard/fiscal', label: 'Configuracion Fiscal' },
+    { href: '/dashboard/invoices', label: 'Facturas' },
     { href: '/dashboard/sales', label: 'Ventas' },
     { href: '/dashboard/costs', label: 'Costes Fijos' },
-    { href: '/dashboard/cashflow', label: 'Flujo de Caja' },
-    { href: '/dashboard/analytics', label: 'Analisis' },
+    { href: '/dashboard/analytics', label: 'Analisis Financiero' },
     { href: '/dashboard/analytics/sales', label: 'Analisis Ventas' },
-    { href: '/dashboard/resultado', label: 'Resultado Empresa' },
     { href: '/dashboard/advisor', label: 'Asesor IA' },
+    { href: '/dashboard/cashflow', label: 'Flujo de Caja' },
+    { href: '/dashboard/resultado', label: 'Resultado Empresa' },
   ]
 
   return (
