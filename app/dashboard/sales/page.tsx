@@ -54,14 +54,15 @@ export default async function SalesPage() {
       <DashboardNav />
       <div className="min-h-screen bg-[#262626]">
         <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="flex justify-between items-center mb-8">
+          {/* Header responsive - Apilado en móvil, horizontal en desktop */}
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-[#d98c21]">Ventas</h1>
-              <p className="text-[#FFFCFF] text-[20px]">Historial de ventas ordenadas por fecha</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#d98c21]">Ventas</h1>
+              <p className="text-[#FFFCFF] text-base sm:text-[20px] mt-1">Historial de ventas ordenadas por fecha</p>
             </div>
             <Link
               href="/dashboard/sales/upload"
-              className="bg-[#0d0d0d] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2d2d2d]"
+              className="bg-[#0d0d0d] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2d2d2d] w-full sm:w-auto text-center"
             >
               + Subir Ventas
             </Link>
@@ -87,7 +88,7 @@ export default async function SalesPage() {
             </div>
           </div>
 
-          {/* Lista con selecciÃ³n */}
+          {/* Lista con selección */}
           <SalesListWithSelection
             salesByDate={salesByDate}
             sortedDates={sortedDates}
