@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { IconMoney, IconTrash } from './Icons'
 
@@ -25,9 +25,16 @@ interface FixedCost {
 interface Props {
   initialCategories: Category[]
   initialCosts: FixedCost[]
+  hideAddButton?: boolean
+  externalAddTrigger?: number
 }
 
-export default function FixedCostsManager({ initialCategories, initialCosts }: Props) {
+export default function FixedCostsManager({ 
+  initialCategories, 
+  initialCosts,
+  hideAddButton = false,
+  externalAddTrigger = 0
+}: Props) {
   const router = useRouter()
   const [costs, setCosts] = useState(initialCosts)
   const [showAddCost, setShowAddCost] = useState(false)
@@ -40,6 +47,13 @@ export default function FixedCostsManager({ initialCategories, initialCosts }: P
     category_id: '',
     description: ''
   })
+
+  // Abrir formulario cuando se dispare el trigger externo
+  useEffect(() => {
+    if (externalAddTrigger > 0) {
+      setShowAddCost(true)
+    }
+  }, [externalAddTrigger])
 
   const handleAddCost = async () => {
     if (!newCost.name || !newCost.amount || !newCost.category_id) return
@@ -104,15 +118,17 @@ export default function FixedCostsManager({ initialCategories, initialCosts }: P
 
   return (
     <div className="space-y-6">
-      {/* Boton anadir */}
-      <div className="flex justify-end">
-        <button
-          onClick={() => setShowAddCost(true)}
-          className="bg-[#0d0d0d] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2d2d2d]"
-        >
-          + Anadir Costo Fijo
-        </button>
-      </div>
+      {/* Boton anadir - solo si no está oculto */}
+      {!hideAddButton && (
+        <div className="flex justify-end">
+          <button
+            onClick={() => setShowAddCost(true)}
+            className="bg-[#0d0d0d] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2d2d2d]"
+          >
+            + Anadir Costo Fijo
+          </button>
+        </div>
+      )}
 
       {/* Formulario nuevo costo */}
       {showAddCost && (
