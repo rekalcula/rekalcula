@@ -346,7 +346,7 @@ export default function AdvisorPage() {
         
         {/* Header estilo Costes Fijos */}
         <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#c15f3c] flex items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#D98C21] flex items-center gap-3">
             <Lightbulb className="w-8 h-8" />
             Asesor IA
           </h1>
@@ -375,7 +375,7 @@ export default function AdvisorPage() {
           {/* Badge de estadísticas */}
           <div className="flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] border-2 border-[#3a3a3a] rounded-lg">
             <span className="text-gray-300 font-medium">{stats.label}</span>
-            <span className="text-[#c15f3c] font-bold text-xl">{stats.count}</span>
+            <span className="text-[#D98C21] font-bold text-xl">{stats.count}</span>
           </div>
         </div>
 
@@ -386,7 +386,7 @@ export default function AdvisorPage() {
               onClick={() => { setTabActiva('guardados'); setAnalisisDetalle(null) }}
               className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 font-medium transition-colors ${
                 tabActiva === 'guardados' 
-                  ? 'text-[#c15f3c] border-b-2 border-[#c15f3c] bg-[#2a2a2a]' 
+                  ? 'text-[#D98C21] border-b-2 border-[#D98C21] bg-[#2a2a2a]' 
                   : 'text-gray-400 hover:text-white hover:bg-[#2a2a2a]'
               }`}
             >
@@ -398,7 +398,7 @@ export default function AdvisorPage() {
               onClick={() => { setTabActiva('nuevo'); setAnalisisDetalle(null) }}
               className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 font-medium transition-colors ${
                 tabActiva === 'nuevo' 
-                  ? 'text-[#c15f3c] border-b-2 border-[#c15f3c] bg-[#2a2a2a]' 
+                  ? 'text-[#D98C21] border-b-2 border-[#D98C21] bg-[#2a2a2a]' 
                   : 'text-gray-400 hover:text-white hover:bg-[#2a2a2a]'
               }`}
             >
@@ -410,7 +410,7 @@ export default function AdvisorPage() {
               onClick={() => setTabActiva('aplicados')}
               className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 font-medium transition-colors ${
                 tabActiva === 'aplicados' 
-                  ? 'text-[#c15f3c] border-b-2 border-[#c15f3c] bg-[#2a2a2a]' 
+                  ? 'text-[#D98C21] border-b-2 border-[#D98C21] bg-[#2a2a2a]' 
                   : 'text-gray-400 hover:text-white hover:bg-[#2a2a2a]'
               }`}
             >
@@ -496,7 +496,7 @@ export default function AdvisorPage() {
                   {analisisActual.recomendaciones?.map((rec) => {
                     const colors = getColorPrioridad(rec.prioridad)
                     return (
-                      <div key={rec.id} className={`bg-[#1a1a1a] rounded-xl border ${colors.border} p-5 hover:border-[#c15f3c] transition-all`}>
+                      <div key={rec.id} className={`bg-[#1a1a1a] rounded-xl border ${colors.border} p-5 hover:border-[#D98C21] transition-all`}>
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -558,7 +558,7 @@ export default function AdvisorPage() {
                     type="checkbox"
                     checked={seleccionadosAplicados.size === consejosAplicados.length && consejosAplicados.length > 0}
                     onChange={seleccionarTodosAplicados}
-                    className="w-5 h-5 rounded border-gray-600 bg-[#2a2a2a] text-[#c15f3c] focus:ring-[#c15f3c]"
+                    className="w-5 h-5 rounded border-gray-600 bg-[#2a2a2a] text-[#D98C21] focus:ring-[#D98C21]"
                   />
                   <span className="text-gray-300">Seleccionar todos</span>
                   {seleccionadosAplicados.size > 0 && (
@@ -599,13 +599,13 @@ export default function AdvisorPage() {
                 {consejosAplicados.map((consejo) => {
                   const colors = getColorPrioridad(consejo.prioridad)
                   return (
-                    <div key={`${consejo.id}-${consejo.aplicadoEn}`} className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-4 hover:border-[#c15f3c] transition-all">
+                    <div key={`${consejo.id}-${consejo.aplicadoEn}`} className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-4 hover:border-[#D98C21] transition-all">
                       <div className="flex items-start gap-4">
                         <input
                           type="checkbox"
                           checked={seleccionadosAplicados.has(consejo.id)}
                           onChange={() => toggleSeleccionAplicado(consejo.id)}
-                          className="w-5 h-5 rounded border-gray-600 bg-[#2a2a2a] text-[#c15f3c] focus:ring-[#c15f3c] mt-1 flex-shrink-0"
+                          className="w-5 h-5 rounded border-gray-600 bg-[#2a2a2a] text-[#D98C21] focus:ring-[#D98C21] mt-1 flex-shrink-0"
                         />
                         <div className="flex-1">
                           <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -645,7 +645,7 @@ export default function AdvisorPage() {
                     type="checkbox"
                     checked={seleccionados.size === analisisGuardados.length && analisisGuardados.length > 0}
                     onChange={seleccionarTodos}
-                    className="w-5 h-5 rounded border-gray-600 bg-[#2a2a2a] text-[#c15f3c] focus:ring-[#c15f3c]"
+                    className="w-5 h-5 rounded border-gray-600 bg-[#2a2a2a] text-[#D98C21] focus:ring-[#D98C21]"
                   />
                   <span className="text-gray-300">Seleccionar todos</span>
                   {seleccionados.size > 0 && (
@@ -674,8 +674,8 @@ export default function AdvisorPage() {
               </div>
             ) : analisisGuardados.length === 0 ? (
               <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-12 text-center">
-                <div className="w-16 h-16 bg-[#c15f3c]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FolderOpen className="w-8 h-8 text-[#c15f3c]" />
+                <div className="w-16 h-16 bg-[#D98C21]/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FolderOpen className="w-8 h-8 text-[#D98C21]" />
                 </div>
                 <h3 className="text-lg font-semibold text-white mb-2">Sin análisis guardados</h3>
                 <p className="text-gray-400 mb-6">Genera tu primer análisis para empezar a recibir recomendaciones</p>
@@ -692,7 +692,7 @@ export default function AdvisorPage() {
                 {analisisGuardados.map((analisis) => (
                   <div
                     key={analisis.id}
-                    className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-4 hover:border-[#c15f3c] transition-all cursor-pointer"
+                    className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-4 hover:border-[#D98C21] transition-all cursor-pointer"
                   >
                     <div className="flex items-center gap-4">
                       <input
@@ -703,7 +703,7 @@ export default function AdvisorPage() {
                           toggleSeleccion(analisis.id)
                         }}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-5 h-5 rounded border-gray-600 bg-[#2a2a2a] text-[#c15f3c] focus:ring-[#c15f3c] flex-shrink-0"
+                        className="w-5 h-5 rounded border-gray-600 bg-[#2a2a2a] text-[#D98C21] focus:ring-[#D98C21] flex-shrink-0"
                       />
 
                       <div
@@ -711,8 +711,8 @@ export default function AdvisorPage() {
                         onClick={() => verDetalleAnalisis(analisis.id)}
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-[#c15f3c]/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <FileText className="w-5 h-5 text-[#c15f3c]" />
+                          <div className="w-10 h-10 bg-[#D98C21]/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <FileText className="w-5 h-5 text-[#D98C21]" />
                           </div>
                           <div>
                             <p className="font-medium text-white">
@@ -756,7 +756,7 @@ export default function AdvisorPage() {
                     Análisis del {formatearFecha(analisisDetalle.created_at)}
                   </h2>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    <span className="text-sm bg-[#c15f3c]/20 text-[#c15f3c] px-3 py-1 rounded-full border border-[#c15f3c]/30">
+                    <span className="text-sm bg-[#D98C21]/20 text-[#D98C21] px-3 py-1 rounded-full border border-[#D98C21]/30">
                       Período: {traducirPeriodo(analisisDetalle.periodo)}
                     </span>
                     <span className="text-sm bg-[#2a2a2a] text-gray-300 px-3 py-1 rounded-full border border-[#3a3a3a]">
@@ -778,7 +778,7 @@ export default function AdvisorPage() {
                 {analisisDetalle.recomendaciones?.map((rec: any) => {
                   const colors = getColorPrioridad(rec.prioridad)
                   return (
-                    <div key={rec.id} className={`bg-[#1a1a1a] rounded-xl border ${colors.border} p-5 hover:border-[#c15f3c] transition-all`}>
+                    <div key={rec.id} className={`bg-[#1a1a1a] rounded-xl border ${colors.border} p-5 hover:border-[#D98C21] transition-all`}>
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex flex-wrap items-center gap-2 mb-3">
