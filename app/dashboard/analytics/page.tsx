@@ -97,7 +97,10 @@ export default async function AnalyticsPage() {
       <DashboardNav />
       <div className="min-h-screen bg-[#262626]">
         <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="flex justify-between items-start mb-8">
+          {/* ========================================
+              HEADER - Móvil: vertical / Desktop: horizontal
+              ======================================== */}
+          <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 md:gap-0 mb-8">
             <div>
               <h1 className="text-3xl font-bold text-[#d98c21]">Analisis Financiero</h1>
               <p className="mt-2 text-[#FFFCFF] text-[20px]">Punto de equilibrio y rentabilidad - {periodo}</p>
