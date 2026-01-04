@@ -341,7 +341,7 @@ export default function AdvisorPage() {
   const stats = getEstadisticas()
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#262626]">
       <div className="max-w-6xl mx-auto px-4 py-8">
         
         {/* Header estilo Costes Fijos */}
@@ -350,7 +350,7 @@ export default function AdvisorPage() {
             <Lightbulb className="w-8 h-8" />
             Asesor IA
           </h1>
-          <p className="text-gray-600 mt-1">Genera y guarda análisis de tu negocio</p>
+          <p className="text-white mt-1">Genera y guarda análisis de tu negocio</p>
         </div>
 
         {/* Barra de acciones estilo Costes Fijos */}
@@ -373,21 +373,21 @@ export default function AdvisorPage() {
           </div>
 
           {/* Badge de estadísticas */}
-          <div className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-gray-200 rounded-lg">
-            <span className="text-gray-600 font-medium">{stats.label}</span>
+          <div className="flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] border-2 border-[#3a3a3a] rounded-lg">
+            <span className="text-gray-300 font-medium">{stats.label}</span>
             <span className="text-[#c15f3c] font-bold text-xl">{stats.count}</span>
           </div>
         </div>
 
         {/* Tabs estilo tarjetas */}
-        <div className="bg-white rounded-xl border border-gray-200 mb-6">
-          <div className="flex border-b border-gray-200">
+        <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] mb-6">
+          <div className="flex border-b border-[#3a3a3a]">
             <button
               onClick={() => { setTabActiva('guardados'); setAnalisisDetalle(null) }}
               className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 font-medium transition-colors ${
                 tabActiva === 'guardados' 
-                  ? 'text-[#c15f3c] border-b-2 border-[#c15f3c] bg-orange-50/50' 
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                  ? 'text-[#c15f3c] border-b-2 border-[#c15f3c] bg-[#2a2a2a]' 
+                  : 'text-gray-400 hover:text-white hover:bg-[#2a2a2a]'
               }`}
             >
               <FolderOpen className="w-5 h-5" />
@@ -398,8 +398,8 @@ export default function AdvisorPage() {
               onClick={() => { setTabActiva('nuevo'); setAnalisisDetalle(null) }}
               className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 font-medium transition-colors ${
                 tabActiva === 'nuevo' 
-                  ? 'text-[#c15f3c] border-b-2 border-[#c15f3c] bg-orange-50/50' 
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                  ? 'text-[#c15f3c] border-b-2 border-[#c15f3c] bg-[#2a2a2a]' 
+                  : 'text-gray-400 hover:text-white hover:bg-[#2a2a2a]'
               }`}
             >
               <Lightbulb className="w-5 h-5" />
@@ -410,8 +410,8 @@ export default function AdvisorPage() {
               onClick={() => setTabActiva('aplicados')}
               className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 font-medium transition-colors ${
                 tabActiva === 'aplicados' 
-                  ? 'text-[#c15f3c] border-b-2 border-[#c15f3c] bg-orange-50/50' 
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                  ? 'text-[#c15f3c] border-b-2 border-[#c15f3c] bg-[#2a2a2a]' 
+                  : 'text-gray-400 hover:text-white hover:bg-[#2a2a2a]'
               }`}
             >
               <Check className="w-5 h-5" />
@@ -425,11 +425,11 @@ export default function AdvisorPage() {
         {tabActiva === 'nuevo' && (
           <div className="space-y-6">
             {/* Panel de configuración */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Configurar Análisis</h3>
+            <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Configurar Análisis</h3>
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
                 <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Período a analizar</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Período a analizar</label>
                   <DateRangePicker
                     onDateChange={(inicio, fin, dias) => {
                       setFechaInicio(inicio)
@@ -443,7 +443,7 @@ export default function AdvisorPage() {
                 <button
                   onClick={generarNuevoAnalisis}
                   disabled={generando}
-                  className="flex items-center gap-2 px-6 py-3 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors disabled:opacity-50 font-medium"
+                  className="flex items-center gap-2 px-6 py-3 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#3d3d3d] transition-colors disabled:opacity-50 font-medium border border-[#4a4a4a]"
                 >
                   {generando ? (
                     <>
@@ -471,13 +471,13 @@ export default function AdvisorPage() {
             {analisisActual && !analisisActual.sinRecomendaciones && (
               <div className="space-y-4">
                 {/* Header del resultado */}
-                <div className="bg-[#FFF8E7] rounded-xl border border-[#E8D5B5] p-6">
+                <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-lg font-semibold text-white">
                         Análisis Generado - {traducirSector(analisisActual.sector)}
                       </h3>
-                      <p className="text-gray-600 mt-1">
+                      <p className="text-gray-400 mt-1">
                         {analisisActual.recomendaciones?.length || 0} recomendaciones encontradas
                       </p>
                     </div>
@@ -496,7 +496,7 @@ export default function AdvisorPage() {
                   {analisisActual.recomendaciones?.map((rec) => {
                     const colors = getColorPrioridad(rec.prioridad)
                     return (
-                      <div key={rec.id} className={`bg-white rounded-xl border ${colors.border} p-5 hover:shadow-md transition-shadow`}>
+                      <div key={rec.id} className={`bg-[#1a1a1a] rounded-xl border ${colors.border} p-5 hover:border-[#c15f3c] transition-all`}>
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -504,21 +504,21 @@ export default function AdvisorPage() {
                                 Prioridad {getTextoPrioridad(rec.prioridad)}
                               </span>
                               {rec.datosReales?.tendencia !== 0 && (
-                                <span className={`flex items-center gap-1 text-sm font-medium ${rec.datosReales.tendencia > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                <span className={`flex items-center gap-1 text-sm font-medium ${rec.datosReales.tendencia > 0 ? 'text-green-400' : 'text-red-400'}`}>
                                   {rec.datosReales.tendencia > 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                                   {rec.datosReales.tendencia > 0 ? '+' : ''}{rec.datosReales.tendencia}%
                                 </span>
                               )}
                             </div>
-                            <h4 className="font-semibold text-gray-900 mb-2 text-lg">{rec.titulo}</h4>
-                            <p className="text-gray-700 mb-4">{rec.mensaje}</p>
-                            <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4 pb-4 border-b border-gray-100">
-                              <span>Ventas: <span className="font-semibold text-gray-900">{rec.datosReales?.ventas || 0}</span></span>
-                              <span>Ingresos: <span className="font-semibold text-green-600">€{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span></span>
+                            <h4 className="font-semibold text-white mb-2 text-lg">{rec.titulo}</h4>
+                            <p className="text-gray-300 mb-4">{rec.mensaje}</p>
+                            <div className="flex flex-wrap gap-4 text-sm text-gray-400 mb-4 pb-4 border-b border-[#3a3a3a]">
+                              <span>Ventas: <span className="font-semibold text-white">{rec.datosReales?.ventas || 0}</span></span>
+                              <span>Ingresos: <span className="font-semibold text-green-400">€{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span></span>
                             </div>
                             <button
                               onClick={() => aplicarConsejo(rec, { sector: analisisActual?.sector, periodo: analisisActual?.periodo })}
-                              className="flex items-center gap-2 px-4 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors text-sm font-medium"
+                              className="flex items-center gap-2 px-4 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#3d3d3d] transition-colors text-sm font-medium border border-[#4a4a4a]"
                             >
                               <Check className="w-4 h-4" />
                               Marcar como Aplicado
@@ -534,12 +534,12 @@ export default function AdvisorPage() {
 
             {/* Sin recomendaciones */}
             {analisisActual?.sinRecomendaciones && (
-              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Lightbulb className="w-8 h-8 text-gray-400" />
+              <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-12 text-center">
+                <div className="w-16 h-16 bg-[#2a2a2a] rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Lightbulb className="w-8 h-8 text-gray-500" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Sin recomendaciones</h3>
-                <p className="text-gray-600 max-w-md mx-auto">
+                <h3 className="text-lg font-semibold text-white mb-2">Sin recomendaciones</h3>
+                <p className="text-gray-400 max-w-md mx-auto">
                   {analisisActual.mensaje || 'No se detectaron oportunidades de mejora con los datos actuales del período seleccionado.'}
                 </p>
               </div>
@@ -552,15 +552,15 @@ export default function AdvisorPage() {
           <div className="space-y-4">
             {/* Barra de selección */}
             {consejosAplicados.length > 0 && (
-              <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={seleccionadosAplicados.size === consejosAplicados.length && consejosAplicados.length > 0}
                     onChange={seleccionarTodosAplicados}
-                    className="w-5 h-5 rounded border-gray-300 text-[#c15f3c] focus:ring-[#c15f3c]"
+                    className="w-5 h-5 rounded border-gray-600 bg-[#2a2a2a] text-[#c15f3c] focus:ring-[#c15f3c]"
                   />
-                  <span className="text-gray-700">Seleccionar todos</span>
+                  <span className="text-gray-300">Seleccionar todos</span>
                   {seleccionadosAplicados.size > 0 && (
                     <span className="text-gray-500">({seleccionadosAplicados.size} seleccionados)</span>
                   )}
@@ -580,15 +580,15 @@ export default function AdvisorPage() {
 
             {/* Lista vacía */}
             {consejosAplicados.length === 0 ? (
-              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Check className="w-8 h-8 text-green-600" />
+              <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-12 text-center">
+                <div className="w-16 h-16 bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Check className="w-8 h-8 text-green-500" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Sin consejos aplicados</h3>
-                <p className="text-gray-600 mb-6">Los consejos que apliques aparecerán aquí para hacer seguimiento</p>
+                <h3 className="text-lg font-semibold text-white mb-2">Sin consejos aplicados</h3>
+                <p className="text-gray-400 mb-6">Los consejos que apliques aparecerán aquí para hacer seguimiento</p>
                 <button
                   onClick={() => setTabActiva('nuevo')}
-                  className="inline-flex items-center gap-2 px-6 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors font-medium"
+                  className="inline-flex items-center gap-2 px-6 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#3d3d3d] transition-colors font-medium border border-[#4a4a4a]"
                 >
                   <Plus className="w-4 h-4" />
                   Generar Análisis
@@ -599,30 +599,30 @@ export default function AdvisorPage() {
                 {consejosAplicados.map((consejo) => {
                   const colors = getColorPrioridad(consejo.prioridad)
                   return (
-                    <div key={`${consejo.id}-${consejo.aplicadoEn}`} className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                    <div key={`${consejo.id}-${consejo.aplicadoEn}`} className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-4 hover:border-[#c15f3c] transition-all">
                       <div className="flex items-start gap-4">
                         <input
                           type="checkbox"
                           checked={seleccionadosAplicados.has(consejo.id)}
                           onChange={() => toggleSeleccionAplicado(consejo.id)}
-                          className="w-5 h-5 rounded border-gray-300 text-[#c15f3c] focus:ring-[#c15f3c] mt-1 flex-shrink-0"
+                          className="w-5 h-5 rounded border-gray-600 bg-[#2a2a2a] text-[#c15f3c] focus:ring-[#c15f3c] mt-1 flex-shrink-0"
                         />
                         <div className="flex-1">
                           <div className="flex flex-wrap items-center gap-2 mb-2">
                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${colors.badge}`}>
                               {getTextoPrioridad(consejo.prioridad)}
                             </span>
-                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                            <span className="text-xs text-gray-500 bg-[#2a2a2a] px-2 py-1 rounded">
                               Aplicado: {formatearFecha(consejo.aplicadoEn)}
                             </span>
                           </div>
-                          <h4 className="font-semibold text-gray-900 mb-2">{consejo.titulo}</h4>
-                          <p className="text-gray-700 text-sm mb-3">{consejo.mensaje}</p>
-                          <div className="flex flex-wrap gap-3 text-sm text-gray-600">
-                            <span className="bg-gray-50 px-2 py-1 rounded">Sector: {traducirSector(consejo.sector)}</span>
-                            <span className="bg-gray-50 px-2 py-1 rounded">Período: {traducirPeriodo(consejo.periodoAnalisis)}</span>
-                            <span className="bg-gray-50 px-2 py-1 rounded">Ventas: {consejo.datosReales?.ventas || 0}</span>
-                            <span className="bg-green-50 text-green-700 px-2 py-1 rounded">€{consejo.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
+                          <h4 className="font-semibold text-white mb-2">{consejo.titulo}</h4>
+                          <p className="text-gray-300 text-sm mb-3">{consejo.mensaje}</p>
+                          <div className="flex flex-wrap gap-3 text-sm text-gray-400">
+                            <span className="bg-[#2a2a2a] px-2 py-1 rounded">Sector: {traducirSector(consejo.sector)}</span>
+                            <span className="bg-[#2a2a2a] px-2 py-1 rounded">Período: {traducirPeriodo(consejo.periodoAnalisis)}</span>
+                            <span className="bg-[#2a2a2a] px-2 py-1 rounded">Ventas: {consejo.datosReales?.ventas || 0}</span>
+                            <span className="bg-green-900/30 text-green-400 px-2 py-1 rounded">€{consejo.datosReales?.ingresos?.toFixed(2) || '0.00'}</span>
                           </div>
                         </div>
                       </div>
@@ -639,15 +639,15 @@ export default function AdvisorPage() {
           <div className="space-y-4">
             {/* Barra de selección */}
             {analisisGuardados.length > 0 && (
-              <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={seleccionados.size === analisisGuardados.length && analisisGuardados.length > 0}
                     onChange={seleccionarTodos}
-                    className="w-5 h-5 rounded border-gray-300 text-[#c15f3c] focus:ring-[#c15f3c]"
+                    className="w-5 h-5 rounded border-gray-600 bg-[#2a2a2a] text-[#c15f3c] focus:ring-[#c15f3c]"
                   />
-                  <span className="text-gray-700">Seleccionar todos</span>
+                  <span className="text-gray-300">Seleccionar todos</span>
                   {seleccionados.size > 0 && (
                     <span className="text-gray-500">({seleccionados.size} seleccionados)</span>
                   )}
@@ -668,20 +668,20 @@ export default function AdvisorPage() {
 
             {/* Cargando */}
             {cargandoGuardados ? (
-              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                <RefreshCw className="w-8 h-8 text-gray-400 animate-spin mx-auto mb-4" />
-                <p className="text-gray-600">Cargando análisis...</p>
+              <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-12 text-center">
+                <RefreshCw className="w-8 h-8 text-gray-500 animate-spin mx-auto mb-4" />
+                <p className="text-gray-400">Cargando análisis...</p>
               </div>
             ) : analisisGuardados.length === 0 ? (
-              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-12 text-center">
+                <div className="w-16 h-16 bg-[#c15f3c]/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FolderOpen className="w-8 h-8 text-[#c15f3c]" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Sin análisis guardados</h3>
-                <p className="text-gray-600 mb-6">Genera tu primer análisis para empezar a recibir recomendaciones</p>
+                <h3 className="text-lg font-semibold text-white mb-2">Sin análisis guardados</h3>
+                <p className="text-gray-400 mb-6">Genera tu primer análisis para empezar a recibir recomendaciones</p>
                 <button
                   onClick={() => setTabActiva('nuevo')}
-                  className="inline-flex items-center gap-2 px-6 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors font-medium"
+                  className="inline-flex items-center gap-2 px-6 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#3d3d3d] transition-colors font-medium border border-[#4a4a4a]"
                 >
                   <Plus className="w-4 h-4" />
                   Crear Análisis
@@ -692,7 +692,7 @@ export default function AdvisorPage() {
                 {analisisGuardados.map((analisis) => (
                   <div
                     key={analisis.id}
-                    className="bg-white rounded-xl border border-gray-200 p-4 hover:border-[#c15f3c] hover:shadow-md transition-all cursor-pointer"
+                    className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-4 hover:border-[#c15f3c] transition-all cursor-pointer"
                   >
                     <div className="flex items-center gap-4">
                       <input
@@ -703,7 +703,7 @@ export default function AdvisorPage() {
                           toggleSeleccion(analisis.id)
                         }}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-5 h-5 rounded border-gray-300 text-[#c15f3c] focus:ring-[#c15f3c] flex-shrink-0"
+                        className="w-5 h-5 rounded border-gray-600 bg-[#2a2a2a] text-[#c15f3c] focus:ring-[#c15f3c] flex-shrink-0"
                       />
 
                       <div
@@ -711,20 +711,20 @@ export default function AdvisorPage() {
                         onClick={() => verDetalleAnalisis(analisis.id)}
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-[#FFF8E7] rounded-lg flex items-center justify-center flex-shrink-0">
+                          <div className="w-10 h-10 bg-[#c15f3c]/20 rounded-lg flex items-center justify-center flex-shrink-0">
                             <FileText className="w-5 h-5 text-[#c15f3c]" />
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900">
+                            <p className="font-medium text-white">
                               {formatearFecha(analisis.created_at)}
                             </p>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-400">
                               {formatearPeriodoAnalisis(analisis)}
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                          <span className="text-sm text-gray-400 bg-[#2a2a2a] px-2 py-1 rounded">
                             {analisis.num_recomendaciones || 0} recomendaciones
                           </span>
                         </div>
@@ -741,10 +741,10 @@ export default function AdvisorPage() {
         {tabActiva === 'guardados' && analisisDetalle && (
           <div className="space-y-4">
             {/* Header del detalle */}
-            <div className="bg-[#FFF8E7] rounded-xl border border-[#E8D5B5] p-6">
+            <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-6">
               <button
                 onClick={() => setAnalisisDetalle(null)}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
+                className="flex items-center gap-2 text-gray-400 hover:text-white mb-4 transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
                 Volver a la lista
@@ -752,14 +752,14 @@ export default function AdvisorPage() {
 
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">
+                  <h2 className="text-xl font-bold text-white">
                     Análisis del {formatearFecha(analisisDetalle.created_at)}
                   </h2>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    <span className="text-sm bg-white text-[#c15f3c] px-3 py-1 rounded-full border border-[#E8D5B5]">
+                    <span className="text-sm bg-[#c15f3c]/20 text-[#c15f3c] px-3 py-1 rounded-full border border-[#c15f3c]/30">
                       Período: {traducirPeriodo(analisisDetalle.periodo)}
                     </span>
-                    <span className="text-sm bg-white text-gray-600 px-3 py-1 rounded-full border border-gray-200">
+                    <span className="text-sm bg-[#2a2a2a] text-gray-300 px-3 py-1 rounded-full border border-[#3a3a3a]">
                       {analisisDetalle.recomendaciones?.length || 0} recomendaciones
                     </span>
                   </div>
@@ -769,16 +769,16 @@ export default function AdvisorPage() {
 
             {/* Cargando detalle */}
             {cargandoDetalle ? (
-              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                <RefreshCw className="w-8 h-8 text-gray-400 animate-spin mx-auto mb-4" />
-                <p className="text-gray-600">Cargando detalles...</p>
+              <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-12 text-center">
+                <RefreshCw className="w-8 h-8 text-gray-500 animate-spin mx-auto mb-4" />
+                <p className="text-gray-400">Cargando detalles...</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {analisisDetalle.recomendaciones?.map((rec: any) => {
                   const colors = getColorPrioridad(rec.prioridad)
                   return (
-                    <div key={rec.id} className={`bg-white rounded-xl border ${colors.border} p-5 hover:shadow-md transition-shadow`}>
+                    <div key={rec.id} className={`bg-[#1a1a1a] rounded-xl border ${colors.border} p-5 hover:border-[#c15f3c] transition-all`}>
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -786,21 +786,21 @@ export default function AdvisorPage() {
                               Prioridad {getTextoPrioridad(rec.prioridad)}
                             </span>
                             {rec.datosReales?.tendencia !== 0 && (
-                              <span className={`flex items-center gap-1 text-sm font-medium ${rec.datosReales?.tendencia > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              <span className={`flex items-center gap-1 text-sm font-medium ${rec.datosReales?.tendencia > 0 ? 'text-green-400' : 'text-red-400'}`}>
                                 {rec.datosReales?.tendencia > 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                                 {rec.datosReales?.tendencia > 0 ? '+' : ''}{rec.datosReales?.tendencia}%
                               </span>
                             )}
                           </div>
-                          <h4 className="font-semibold text-gray-900 mb-2 text-lg">{rec.titulo}</h4>
-                          <p className="text-gray-700 mb-4">{rec.mensaje}</p>
-                          <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4 pb-4 border-b border-gray-100">
-                            <span>Ventas: <span className="font-semibold text-gray-900">{rec.datosReales?.ventas || 0}</span></span>
-                            <span>Ingresos: <span className="font-semibold text-green-600">€{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span></span>
+                          <h4 className="font-semibold text-white mb-2 text-lg">{rec.titulo}</h4>
+                          <p className="text-gray-300 mb-4">{rec.mensaje}</p>
+                          <div className="flex flex-wrap gap-4 text-sm text-gray-400 mb-4 pb-4 border-b border-[#3a3a3a]">
+                            <span>Ventas: <span className="font-semibold text-white">{rec.datosReales?.ventas || 0}</span></span>
+                            <span>Ingresos: <span className="font-semibold text-green-400">€{rec.datosReales?.ingresos?.toFixed(2) || '0.00'}</span></span>
                           </div>
                           <button
                             onClick={() => aplicarConsejo(rec, { sector: analisisDetalle?.sector, periodo: analisisDetalle?.periodo })}
-                            className="flex items-center gap-2 px-4 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#2d2d2d] transition-colors text-sm font-medium"
+                            className="flex items-center gap-2 px-4 py-2 bg-[#0d0d0d] text-white rounded-lg hover:bg-[#3d3d3d] transition-colors text-sm font-medium border border-[#4a4a4a]"
                           >
                             <Check className="w-4 h-4" />
                             Marcar como Aplicado
