@@ -68,7 +68,7 @@ export default function CashFlowPage() {
       setData(result);
       setError(null);
     } catch (err) {
-      setError('No se pudieron cargar los datos del flujo de caja');
+      setError('No se pudieron cargar los datos del Cash Flow');
       // Datos de ejemplo en caso de error
       setData({
         entradas: { total: 0, cobrado: 0, pendiente: 0 },
@@ -117,7 +117,7 @@ export default function CashFlowPage() {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="flex flex-col items-center gap-3">
             <RefreshCw className="w-8 h-8 text-[#d98c21] animate-spin" />
-            <p className="text-gray-300">Cargando flujo de caja...</p>
+            <p className="text-gray-300">Cargando Cash Flow...</p>
           </div>
         </div>
       </div>
@@ -147,7 +147,7 @@ export default function CashFlowPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               {/* Título en naranja #d98c21 - igual que Analytics */}
-              <h1 className="text-3xl font-bold text-[#d98c21]">Flujo de Caja</h1>
+              <h1 className="text-3xl font-bold text-[#d98c21]">Cash Flow</h1>
               {/* Subtítulo en blanco - igual que Analytics */}
               <p className="mt-2 text-[#FFFCFF] text-[20px]">
                 Controla tus cobros y pagos en tiempo real
@@ -294,8 +294,8 @@ export default function CashFlowPage() {
                     balancePositivo ? 'text-emerald-600' : 'text-red-600'
                   }`}>
                     {balancePositivo 
-                      ? 'Flujo de caja positivo' 
-                      : 'Flujo de caja negativo'}
+                      ? 'Cash Flow positivo' 
+                      : 'Cash Flow negativo'}
                   </p>
                 </div>
               </div>
