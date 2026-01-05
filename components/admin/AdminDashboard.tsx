@@ -1,6 +1,7 @@
 'use client'
 
 import TypographyManager from './TypographyManager'
+import BetaTestersManager from './BetaTestersManager'
 import { useState, useEffect } from 'react'
 import {
   Users,
@@ -13,7 +14,8 @@ import {
   RefreshCw,
   Clock,
   DollarSign,
-  Type
+  Type,
+  Sparkles
 } from 'lucide-react'
 import PlansManager from './PlansManager'
 import PackagesManager from './PackagesManager'
@@ -34,7 +36,7 @@ interface Stats {
 }
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'plans' | 'packages' | 'trial' | 'costs' | 'users' | 'typography'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'plans' | 'packages' | 'trial' | 'costs' | 'users' | 'typography' | 'beta-testers'>('overview')
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -63,6 +65,7 @@ export default function AdminDashboard() {
     { id: 'packages', label: 'Paquetes Extra', icon: Settings },
     { id: 'trial', label: 'Config Trial', icon: Clock },
     { id: 'costs', label: 'Análisis Costos', icon: DollarSign },
+    { id: 'beta-testers', label: 'Beta Testers', icon: Sparkles },
     { id: 'typography', label: 'Tipografía', icon: Type },
     { id: 'users', label: 'Usuarios', icon: Users },
   ]
@@ -193,6 +196,7 @@ export default function AdminDashboard() {
         {activeTab === 'packages' && <PackagesManager />}
         {activeTab === 'trial' && <TrialConfigManager />}
         {activeTab === 'costs' && <CostAnalyzer />}
+        {activeTab === 'beta-testers' && <BetaTestersManager />}
         {activeTab === 'typography' && <TypographyManager />}
         {activeTab === 'users' && <UsersTable />}
       </div>
