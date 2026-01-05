@@ -185,7 +185,7 @@ export default function PricingPage() {
                   {/* Price */}
                   <div className="mb-4">
                     <div className="flex items-baseline">
-                      <span className="text-1xl font-extrabold text-white">
+                      <span className="text-4xl font-extrabold text-white">
                         €{getPrice(plan).toFixed(2)}
                       </span>
                       <span className="text-gray-400 ml-2">
@@ -193,7 +193,7 @@ export default function PricingPage() {
                       </span>
                     </div>
                     {billingCycle === 'yearly' && (
-                      <p className="text-4xl font-extrabold text-white">
+                      <p className="text-sm text-gray-400 mt-1">
                         €{getPricePerMonth(plan).toFixed(2)}/mes
                       </p>
                     )}
