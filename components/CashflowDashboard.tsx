@@ -137,7 +137,7 @@ export default function CashflowDashboard() {
       {/* Header con filtros */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Flujo de Caja</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Cash Flow</h1>
           <p className="text-gray-500 mt-1">Controla tus cobros y pagos en tiempo real</p>
         </div>
         
@@ -273,8 +273,8 @@ export default function CashflowDashboard() {
           </p>
           <p className="mt-2 text-sm text-gray-600">
             {(data?.netCashflow || 0) >= 0 
-              ? 'Flujo de caja positivo' 
-              : 'Flujo de caja negativo'
+              ? 'Cash Flow positivo' 
+              : 'Cash Flow negativo'
             }
           </p>
         </div>
@@ -284,7 +284,7 @@ export default function CashflowDashboard() {
       {data?.byPeriod && data.byPeriod.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-gray-900">Evolución del Flujo de Caja</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Evolución del Cash Flow</h2>
             <div className="flex bg-gray-100 rounded-lg p-1">
               {[
                 { value: 'day', label: 'Día' },
