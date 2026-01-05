@@ -56,7 +56,7 @@ export async function addBetaTester(
   // Verificar si ya es beta tester
   const { data: existing } = await supabase
     .from('beta_testers')
-    .select('id, is_active')
+    .select('id, is_active, notes')
     .eq('user_id', userId)
     .single()
 
