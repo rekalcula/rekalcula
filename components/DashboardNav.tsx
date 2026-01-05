@@ -41,7 +41,7 @@ export default function DashboardNav() {
     { href: '/dashboard/analytics', label: 'Analisis Financiero' },
     { href: '/dashboard/analytics/sales', label: 'Analisis Ventas' },
     { href: '/dashboard/advisor', label: 'Asesor IA' },
-    { href: '/dashboard/cashflow', label: 'Flujo de Caja' },
+    { href: '/dashboard/cashflow', label: 'Cash Flow' },
     { href: '/dashboard/resultado', label: 'Resultado Empresa' },
   ]
 
