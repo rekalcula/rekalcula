@@ -8,6 +8,24 @@ const supabase = createClient(
 type CreditType = 'invoices' | 'tickets' | 'analyses'
 
 // ============================================
+// VERIFICAR SI ES BETA TESTER (ACCESO ILIMITADO)
+// ============================================
+export async function isBetaTester(userId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('beta_testers')
+    .select('is_active')
+    .eq('user_id', userId)
+    .eq('is_active', true)
+    .single()
+
+  if (error && error.code !== 'PGRST116') {
+    console.error('Error checking beta tester status:', error)
+  }
+
+  return !!data?.is_active
+}
+
+// ============================================
 // OBTENER CONFIGURACIÓN DEL TRIAL
 // ============================================
 export async function getTrialConfig() {
@@ -55,6 +73,11 @@ export async function getUserCredits(userId: string) {
 // VERIFICAR SI TIENE CRÉDITOS DISPONIBLES
 // ============================================
 export async function hasCredits(userId: string, type: CreditType, amount: number = 1): Promise<boolean> {
+  // 🆕 Beta testers tienen acceso ilimitado
+  if (await isBetaTester(userId)) {
+    return true
+  }
+
   const credits = await getUserCredits(userId)
 
   if (!credits) {
@@ -134,7 +157,26 @@ export async function useCredits(userId: string, type: CreditType, amount: numbe
   success: boolean
   remaining: number
   error?: string
+  isBetaTester?: boolean
 }> {
+  // 🆕 Beta testers: permitir sin descontar créditos
+  if (await isBetaTester(userId)) {
+    // Registrar la transacción para tracking (sin descontar)
+    await supabase.from('credit_transactions').insert({
+      user_id: userId,
+      transaction_type: 'beta_usage',
+      credit_type: type,
+      amount: 0, // No se descuenta
+      description: `[BETA TESTER] Uso de ${type} sin cargo`
+    })
+
+    return { 
+      success: true, 
+      remaining: 999999, // Ilimitado
+      isBetaTester: true 
+    }
+  }
+
   // Verificar disponibilidad
   const credits = await getUserCredits(userId)
 
@@ -392,6 +434,21 @@ export async function monthlyRefill(userId: string): Promise<boolean> {
 // OBTENER RESUMEN DE CRÉDITOS PARA UI
 // ============================================
 export async function getCreditsSummary(userId: string) {
+  // 🆕 Verificar si es beta tester
+  const betaTester = await isBetaTester(userId)
+  
+  if (betaTester) {
+    return {
+      invoices: { available: 999999, limit: 999999, used: 0 },
+      tickets: { available: 999999, limit: 999999, used: 0 },
+      analyses: { available: 999999, limit: 999999, used: 0 },
+      plan: 'Beta Tester',
+      status: 'beta',
+      isTrial: false,
+      isBetaTester: true
+    }
+  }
+
   const credits = await getUserCredits(userId)
 
   // Obtener plan del usuario
@@ -430,7 +487,8 @@ export async function getCreditsSummary(userId: string) {
       analyses: { available: 0, limit: limits?.analyses_limit || 0, used: 0 },
       plan: limits?.name || 'Sin plan',
       status: subscription?.status || 'none',
-      isTrial: subscription?.status === 'trialing'
+      isTrial: subscription?.status === 'trialing',
+      isBetaTester: false
     }
   }
 
@@ -452,6 +510,7 @@ export async function getCreditsSummary(userId: string) {
     },
     plan: limits?.name || 'Sin plan',
     status: subscription?.status || 'none',
-    isTrial: credits.is_trial || subscription?.status === 'trialing'
+    isTrial: credits.is_trial || subscription?.status === 'trialing',
+    isBetaTester: false
   }
 }
