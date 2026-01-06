@@ -46,13 +46,15 @@ export async function GET(request: NextRequest) {
       console.error('Error obteniendo ventas:', errorVentas);
     }
 
-    // Obtener facturas/gastos (salidas/pagos)
+    // ========================================
+    // CORREGIDO: Obtener facturas con campos correctos
+    // ========================================
     const { data: facturas, error: errorFacturas } = await supabase
       .from('invoices')
-      .select('id, total, payment_status, date, supplier')
+      .select('id, total_amount, invoice_date, payment_confirmed, payment_method, payment_due_date, category')
       .eq('user_id', userId)
-      .gte('date', startDate.toISOString().split('T')[0])
-      .lte('date', now.toISOString().split('T')[0]);
+      .gte('invoice_date', startDate.toISOString().split('T')[0])
+      .lte('invoice_date', now.toISOString().split('T')[0]);
 
     if (errorFacturas) {
       console.error('Error obteniendo facturas:', errorFacturas);
@@ -75,10 +77,18 @@ export async function GET(request: NextRequest) {
       .reduce((sum, v) => sum + (v.total || 0), 0) || 0;
     const ventasPendientes = totalVentas - ventasCobradas;
 
-    // Calcular totales de salidas
-    const totalFacturas = facturas?.reduce((sum, f) => sum + (f.total || 0), 0) || 0;
-    const facturasPagadas = facturas?.filter(f => f.payment_status === 'paid')
-      .reduce((sum, f) => sum + (f.total || 0), 0) || 0;
+    // ========================================
+    // CORREGIDO: Calcular totales de salidas
+    // ========================================
+    const totalFacturas = facturas?.reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
+    
+    // Facturas ya pagadas (las que tienen payment_method en efectivo o tarjeta Y están confirmadas)
+    const facturasPagadas = facturas?.filter(f => 
+      f.payment_confirmed && 
+      (f.payment_method === 'cash' || f.payment_method === 'card')
+    ).reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
+    
+    // Facturas pendientes (las que tienen fecha de vencimiento futura o no están pagadas)
     const facturasPendientes = totalFacturas - facturasPagadas;
 
     // Calcular costos fijos mensuales
@@ -115,11 +125,11 @@ export async function GET(request: NextRequest) {
         return fecha.getMonth() === mesIndex && fecha.getFullYear() === año;
       }).reduce((sum, v) => sum + (v.total || 0), 0) || 0;
 
-      // Filtrar facturas del mes
+      // Filtrar facturas del mes (CORREGIDO: usar invoice_date y total_amount)
       const facturasMes = facturas?.filter(f => {
-        const fecha = new Date(f.date);
+        const fecha = new Date(f.invoice_date);
         return fecha.getMonth() === mesIndex && fecha.getFullYear() === año;
-      }).reduce((sum, f) => sum + (f.total || 0), 0) || 0;
+      }).reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
 
       datosHistoricos.push({
         periodo: mesNombre,
@@ -128,12 +138,39 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // ========================================
+    // CORREGIDO: Próximos pagos con facturas pendientes
+    // ========================================
+    const ahora = new Date();
+    const en30Dias = new Date(ahora);
+    en30Dias.setDate(ahora.getDate() + 30);
+
+    // Facturas con vencimiento en los próximos 30 días
+    const facturasProximasAPagar = facturas
+      ?.filter(f => {
+        if (!f.payment_due_date) return false;
+        const vencimiento = new Date(f.payment_due_date);
+        return vencimiento > ahora && vencimiento <= en30Dias;
+      })
+      .sort((a, b) => {
+        const dateA = new Date(a.payment_due_date!).getTime();
+        const dateB = new Date(b.payment_due_date!).getTime();
+        return dateA - dateB;
+      })
+      .slice(0, 3)
+      .map(f => ({
+        id: String(f.id),
+        concepto: `Factura ${f.category || 'compra'}`,
+        monto: f.total_amount || 0,
+        fecha: f.payment_due_date!
+      })) || [];
+
     // Próximos cobros (ventas pendientes de cobro)
     const proximosCobros = ventas
       ?.filter(v => v.payment_status !== 'paid')
       .slice(0, 5)
       .map(v => ({
-        id: v.id,
+        id: String(v.id),
         concepto: 'Venta pendiente',
         monto: v.total || 0,
         fecha: v.created_at
@@ -141,17 +178,9 @@ export async function GET(request: NextRequest) {
 
     // Próximos pagos (facturas pendientes + costos fijos)
     const proximosPagos = [
-      ...(facturas
-        ?.filter(f => f.payment_status !== 'paid')
-        .slice(0, 3)
-        .map(f => ({
-          id: f.id,
-          concepto: f.supplier || 'Factura pendiente',
-          monto: f.total || 0,
-          fecha: f.date
-        })) || []),
+      ...facturasProximasAPagar,
       ...(costosFijos?.slice(0, 2).map(c => ({
-        id: c.id,
+        id: String(c.id),
         concepto: c.name || 'Costo fijo',
         monto: c.amount || 0,
         fecha: new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString()
