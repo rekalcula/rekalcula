@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import { createClient } from '@supabase/supabase-js'
 import Anthropic from '@anthropic-ai/sdk'
 import { hasCredits, useCredits } from '@/lib/credits'
+import { createInvoiceBackup, InvoiceBackupData } from '@/lib/invoice-backups'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -108,17 +109,27 @@ export async function POST(request: NextRequest) {
 
 {
   "supplier": "nombre del proveedor",
+  "supplier_address": "dirección completa del proveedor",
+  "supplier_nif": "NIF/CIF del proveedor",
+  "supplier_email": "email del proveedor si aparece",
+  "supplier_phone": "teléfono del proveedor si aparece",
   "total_amount": número decimal del importe total,
+  "tax_amount": número decimal del IVA/impuestos,
   "invoice_date": "fecha en formato YYYY-MM-DD",
+  "invoice_number": "número de factura",
   "category": "categoría del gasto (ej: Servicios, Productos, Materiales, etc)",
   "items": [
     {
       "description": "descripción del producto/servicio",
       "quantity": cantidad,
       "unit_price": precio unitario,
+      "tax_rate": porcentaje de IVA,
       "total": total
     }
   ],
+  "payment_conditions": "condiciones de pago si aparecen",
+  "bank_account": "cuenta bancaria si aparece",
+  "notes": "notas o comentarios adicionales",
   "analysis": {
     "insights": ["insight 1", "insight 2"],
     "savings_opportunities": ["oportunidad 1", "oportunidad 2"],
@@ -151,17 +162,27 @@ Responde SOLO con el JSON, sin texto adicional.`
 
 {
   "supplier": "nombre del proveedor",
+  "supplier_address": "dirección completa del proveedor",
+  "supplier_nif": "NIF/CIF del proveedor",
+  "supplier_email": "email del proveedor si aparece",
+  "supplier_phone": "teléfono del proveedor si aparece",
   "total_amount": número decimal del importe total,
+  "tax_amount": número decimal del IVA/impuestos,
   "invoice_date": "fecha en formato YYYY-MM-DD",
+  "invoice_number": "número de factura",
   "category": "categoría del gasto (ej: Servicios, Productos, Materiales, etc)",
   "items": [
     {
       "description": "descripción del producto/servicio",
       "quantity": cantidad,
       "unit_price": precio unitario,
+      "tax_rate": porcentaje de IVA,
       "total": total
     }
   ],
+  "payment_conditions": "condiciones de pago si aparecen",
+  "bank_account": "cuenta bancaria si aparece",
+  "notes": "notas o comentarios adicionales",
   "analysis": {
     "insights": ["insight 1", "insight 2"],
     "savings_opportunities": ["oportunidad 1", "oportunidad 2"],
@@ -214,19 +235,26 @@ Responde SOLO con el JSON, sin texto adicional.`
       )
     }
 
-    // Guardar en la base de datos
+    // ========================================
+    // GUARDAR FACTURA (SOLO DATOS ECONÓMICOS ANONIMIZADOS)
+    // ========================================
     const { data: invoiceData, error: dbError } = await supabase
       .from('invoices')
       .insert({
         user_id: userId,
         file_url: filePath,
         file_name: file.name,
-        supplier: analysisData.supplier,
+        // NO guardamos datos del proveedor aquí
+        // supplier: analysisData.supplier, ← ELIMINADO
         total_amount: analysisData.total_amount,
+        tax_amount: analysisData.tax_amount || 0,
         invoice_date: analysisData.invoice_date,
+        invoice_number: analysisData.invoice_number || null,
         category: analysisData.category,
         items: analysisData.items,
-        analysis: analysisData.analysis
+        analysis: analysisData.analysis,
+        // ⭐ NUEVO: Marcar como pendiente de confirmar forma de pago
+        payment_confirmed: false
       })
       .select()
       .single()
@@ -240,6 +268,32 @@ Responde SOLO con el JSON, sin texto adicional.`
     }
 
     // ========================================
+    // CREAR BACKUP CON DATOS COMPLETOS DEL PROVEEDOR
+    // ========================================
+    const backupData: InvoiceBackupData = {
+      supplier_name: analysisData.supplier,
+      supplier_address: analysisData.supplier_address,
+      supplier_nif: analysisData.supplier_nif,
+      supplier_email: analysisData.supplier_email,
+      supplier_phone: analysisData.supplier_phone,
+      items: analysisData.items,
+      payment_conditions: analysisData.payment_conditions,
+      bank_account: analysisData.bank_account,
+      notes: analysisData.notes,
+      file_name: file.name,
+      file_size: file.size,
+      invoice_number: analysisData.invoice_number,
+    }
+
+    // Crear el backup (no bloqueamos si falla)
+    const backupResult = await createInvoiceBackup(userId, invoiceData.id, backupData)
+    if (!backupResult.success) {
+      console.warn('⚠️ Error creando backup (continuando):', backupResult.error)
+    } else {
+      console.log('✅ Backup creado exitosamente')
+    }
+
+    // ========================================
     // DESCONTAR CRÉDITO DESPUÉS DE ÉXITO
     // ========================================
     const creditResult = await useCredits(userId, 'invoices')
@@ -247,14 +301,23 @@ Responde SOLO con el JSON, sin texto adicional.`
       console.warn('Error descontando crédito:', creditResult.error)
     }
 
-    // Retornar resultado exitoso
+    // ========================================
+    // RETORNAR CON FLAG DE PAGO NO CONFIRMADO
+    // ========================================
     return NextResponse.json({
       success: true,
       data: {
-        invoice: invoiceData,
+        invoice: {
+          ...invoiceData,
+          // ⭐ Datos necesarios para el modal (solo para UI)
+          supplier_name: analysisData.supplier,
+          payment_confirmed: false // ← Indica que FALTA forma de pago
+        },
         analysis: analysisData
       },
-      creditsRemaining: creditResult.remaining
+      creditsRemaining: creditResult.remaining,
+      // ⭐ Flag explícito para el frontend
+      requiresPaymentConfirmation: true
     })
 
   } catch (error) {
