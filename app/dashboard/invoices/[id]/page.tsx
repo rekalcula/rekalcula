@@ -4,7 +4,6 @@ import { createClient } from '@supabase/supabase-js'
 import DeleteInvoiceButton from '@/components/DeleteInvoiceButton'
 import Link from 'next/link'
 import InvoiceImageViewer from '@/components/InvoiceImageViewer'
-import PaymentStatusSelector from '@/components/PaymentStatusSelector'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -35,6 +34,34 @@ export default async function InvoiceDetailPage({
     notFound()
   }
 
+  // Obtener datos del proveedor desde el backup (si existe)
+  const { data: backup } = await supabase
+    .from('invoice_backups')
+    .select('original_data')
+    .eq('invoice_id', id)
+    .single()
+
+  const supplierName = backup?.original_data?.supplier_name || 'No especificado'
+
+  // Mapeo de métodos de pago para mostrar
+  const paymentMethodLabels: Record<string, string> = {
+    cash: 'Efectivo',
+    transfer: 'Transferencia',
+    card: 'Tarjeta',
+    check: 'Cheque',
+    deferred: 'Aplazado'
+  }
+
+  // Mapeo de plazos de pago
+  const paymentTermsLabels: Record<string, string> = {
+    immediate: 'Inmediato',
+    '30_days': '30 días',
+    '45_days': '45 días',
+    '60_days': '60 días',
+    '90_days': '90 días',
+    custom: 'Personalizado'
+  }
+
   return (
     <div className="min-h-screen bg-[#262626]">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -43,7 +70,7 @@ export default async function InvoiceDetailPage({
             href="/dashboard/invoices"
             className="text-[#ACACAC] hover:text-white font-medium text-xl mb-4 inline-block"
           >
-            Volver a la lista
+            ← Volver a la lista
           </Link>
           <h1 className="text-3xl font-bold text-[#D98C21]">
             Detalle de Factura
@@ -55,6 +82,7 @@ export default async function InvoiceDetailPage({
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="space-y-6">
+            {/* Información General */}
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
                 Informacion General
@@ -63,7 +91,7 @@ export default async function InvoiceDetailPage({
                 <div>
                   <div className="text-sm text-gray-500">Proveedor</div>
                   <div className="text-lg font-semibold text-gray-900">
-                    {invoice.supplier || 'No especificado'}
+                    {supplierName}
                   </div>
                 </div>
 
@@ -112,16 +140,81 @@ export default async function InvoiceDetailPage({
             </div>
 
             {/* ========================================
-                ESTADO DE PAGO - NUEVO COMPONENTE
+                ESTADO DE PAGO - NUEVO SISTEMA
                 ======================================== */}
-            <PaymentStatusSelector
-              invoiceId={Number(id)}
-              invoiceDate={invoice.invoice_date}
-              currentPaymentStatus={invoice.payment_status}
-              currentPaymentTerm={invoice.payment_term}
-              currentDueDate={invoice.due_date}
-            />
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Estado de Pago
+              </h2>
 
+              {invoice.payment_confirmed ? (
+                // ✅ Pago confirmado - Mostrar en modo lectura
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-green-600 mb-4">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span className="font-medium">Forma de pago confirmada</span>
+                  </div>
+
+                  <div>
+                    <div className="text-sm text-gray-500">Forma de pago</div>
+                    <div className="text-lg font-semibold text-gray-900">
+                      {paymentMethodLabels[invoice.payment_method] || invoice.payment_method || 'No especificado'}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text-sm text-gray-500">Plazo de pago</div>
+                    <div className="text-lg font-semibold text-gray-900">
+                      {paymentTermsLabels[invoice.payment_terms] || invoice.payment_terms || 'No especificado'}
+                    </div>
+                  </div>
+
+                  {invoice.payment_due_date && (
+                    <div>
+                      <div className="text-sm text-gray-500">Fecha de vencimiento</div>
+                      <div className="text-lg font-semibold text-gray-900">
+                        {new Date(invoice.payment_due_date).toLocaleDateString('es-ES', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="pt-4 border-t">
+                    <div className="text-sm text-gray-500 mb-2">¿Se ha pagado al contado?</div>
+                    <div className="flex gap-3">
+                      <button className="flex-1 px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm">
+                        SI
+                      </button>
+                      <button className="flex-1 px-4 py-2 bg-[#d98c21] text-white rounded-lg text-sm font-semibold">
+                        NO
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                // ❌ Pago NO confirmado - Mostrar advertencia
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <div>
+                      <h3 className="font-semibold text-yellow-800">Forma de pago no confirmada</h3>
+                      <p className="text-sm text-yellow-700 mt-1">
+                        Esta factura no tiene forma de pago asignada. Los análisis de cash flow pueden no ser precisos.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Artículos/Servicios */}
             {invoice.items && invoice.items.length > 0 && (
               <div className="bg-white rounded-lg shadow p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
@@ -149,6 +242,7 @@ export default async function InvoiceDetailPage({
               </div>
             )}
 
+            {/* Análisis IA */}
             {invoice.analysis && (
               <div className="bg-white rounded-lg shadow p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
@@ -191,6 +285,7 @@ export default async function InvoiceDetailPage({
             )}
           </div>
 
+          {/* Columna derecha - Archivo original */}
           <div className="lg:sticky lg:top-8">
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
