@@ -151,7 +151,7 @@ export default function UploadInvoiceTicket() {
     try {
       // Actualizar la factura con la forma de pago
       const response = await fetch('/api/invoices/payment-status', {
-        method: 'PUT',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           invoiceId: pendingInvoice.id,
