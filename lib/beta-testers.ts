@@ -37,26 +37,73 @@ export async function getBetaTesters(): Promise<BetaTester[]> {
 }
 
 // ========================================
-// FUNCIÓN AUXILIAR: Verificar si es un ID de Clerk válido
+// FUNCIÓN: Verificar si es un email
+// ========================================
+function isEmail(input: string): boolean {
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailPattern.test(input)
+}
+
+// ========================================
+// FUNCIÓN: Verificar si es un ID de Clerk válido
 // ========================================
 function isValidClerkUserId(userId: string): boolean {
   if (!userId || typeof userId !== 'string') return false
-  
-  // Los IDs de Clerk tienen formato: user_XXXXXXXXXXXXXXXXXXXXXXXXXX
   const clerkPattern = /^user_[a-zA-Z0-9]{20,}$/
   return clerkPattern.test(userId)
 }
 
 // ========================================
-// FUNCIÓN AUXILIAR: Verificar usuario en Clerk API
+// FUNCIÓN: Buscar usuario en Clerk por email
 // ========================================
-async function verifyClerkUser(userId: string): Promise<{ exists: boolean; error?: string }> {
+async function findClerkUserByEmail(email: string): Promise<{ userId: string | null; error?: string }> {
   try {
     const clerkSecretKey = process.env.CLERK_SECRET_KEY
     
     if (!clerkSecretKey) {
-      console.warn('CLERK_SECRET_KEY no configurado')
-      // Sin clave de Clerk, solo validamos el formato
+      return { userId: null, error: 'CLERK_SECRET_KEY no configurado en el servidor' }
+    }
+
+    // Buscar usuarios por email en Clerk API
+    const response = await fetch(
+      `https://api.clerk.com/v1/users?email_address=${encodeURIComponent(email)}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${clerkSecretKey}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    )
+
+    if (!response.ok) {
+      console.error('Error buscando usuario en Clerk:', response.status)
+      return { userId: null, error: 'Error al conectar con Clerk API' }
+    }
+
+    const users = await response.json()
+
+    if (!users || users.length === 0) {
+      return { userId: null, error: `No se encontró ningún usuario con el email: ${email}` }
+    }
+
+    // Devolver el primer usuario encontrado
+    return { userId: users[0].id }
+
+  } catch (error) {
+    console.error('Error en findClerkUserByEmail:', error)
+    return { userId: null, error: 'Error al buscar usuario' }
+  }
+}
+
+// ========================================
+// FUNCIÓN: Verificar que un user_id existe en Clerk
+// ========================================
+async function verifyClerkUserById(userId: string): Promise<{ exists: boolean; error?: string }> {
+  try {
+    const clerkSecretKey = process.env.CLERK_SECRET_KEY
+    
+    if (!clerkSecretKey) {
+      // Sin clave, solo validamos formato
       return { exists: isValidClerkUserId(userId) }
     }
 
@@ -70,23 +117,22 @@ async function verifyClerkUser(userId: string): Promise<{ exists: boolean; error
     if (response.ok) {
       return { exists: true }
     } else if (response.status === 404) {
-      return { exists: false, error: 'El usuario no existe en Clerk. Verifica que el ID sea correcto.' }
+      return { exists: false, error: 'El usuario no existe en Clerk' }
     } else {
-      console.warn('Error verificando usuario en Clerk:', response.status)
-      // Si hay error de API, permitir si el formato es válido
       return { exists: isValidClerkUserId(userId) }
     }
   } catch (error) {
-    console.error('Error conectando con Clerk API:', error)
+    console.error('Error verificando usuario:', error)
     return { exists: isValidClerkUserId(userId) }
   }
 }
 
 // ========================================
-// CORREGIDO: Añadir nuevo beta tester
+// FUNCIÓN PRINCIPAL: Añadir nuevo beta tester
+// Acepta EMAIL o ID de Clerk
 // ========================================
 export async function addBetaTester(
-  userId: string, 
+  userInput: string, 
   grantedBy: string, 
   notes?: string
 ): Promise<{ success: boolean; error?: string }> {
@@ -94,48 +140,60 @@ export async function addBetaTester(
   // ========================================
   // PASO 1: Validar que no esté vacío
   // ========================================
-  if (!userId || userId.trim() === '') {
-    return { success: false, error: 'El ID de usuario es requerido' }
+  if (!userInput || userInput.trim() === '') {
+    return { success: false, error: 'El ID de usuario o email es requerido' }
   }
 
-  const trimmedUserId = userId.trim()
+  const trimmedInput = userInput.trim()
+  let clerkUserId: string
 
   // ========================================
-  // PASO 2: Validar formato de ID de Clerk
+  // PASO 2: Determinar si es email o ID de Clerk
   // ========================================
-  if (!isValidClerkUserId(trimmedUserId)) {
-    // Detectar si es un email
-    if (trimmedUserId.includes('@')) {
+  if (isEmail(trimmedInput)) {
+    // Es un email - buscar el usuario en Clerk
+    console.log('Buscando usuario por email:', trimmedInput)
+    
+    const result = await findClerkUserByEmail(trimmedInput)
+    
+    if (!result.userId) {
       return { 
         success: false, 
-        error: 'Debes introducir el ID de Clerk (ej: user_2abc123...), no el email del usuario.' 
+        error: result.error || `No se encontró usuario con el email: ${trimmedInput}` 
       }
     }
+    
+    clerkUserId = result.userId
+    console.log('Usuario encontrado:', clerkUserId)
+    
+  } else if (isValidClerkUserId(trimmedInput)) {
+    // Es un ID de Clerk válido - verificar que existe
+    const verifyResult = await verifyClerkUserById(trimmedInput)
+    
+    if (!verifyResult.exists) {
+      return { 
+        success: false, 
+        error: verifyResult.error || 'El ID de usuario no existe en Clerk' 
+      }
+    }
+    
+    clerkUserId = trimmedInput
+    
+  } else {
+    // Formato no reconocido
     return { 
       success: false, 
-      error: 'Formato de ID inválido. Debe ser un ID de Clerk (ej: user_2abc123...)' 
+      error: 'Formato inválido. Introduce un email válido o un ID de Clerk (ej: user_2abc123...)' 
     }
   }
 
   // ========================================
-  // PASO 3: Verificar que el usuario existe en Clerk
-  // ========================================
-  const clerkCheck = await verifyClerkUser(trimmedUserId)
-  
-  if (!clerkCheck.exists) {
-    return { 
-      success: false, 
-      error: clerkCheck.error || 'El usuario no existe en Clerk' 
-    }
-  }
-
-  // ========================================
-  // PASO 4: Verificar si ya es beta tester
+  // PASO 3: Verificar si ya es beta tester
   // ========================================
   const { data: existing } = await supabase
     .from('beta_testers')
     .select('id, is_active, notes')
-    .eq('user_id', trimmedUserId)
+    .eq('user_id', clerkUserId)
     .single()
 
   if (existing?.is_active) {
@@ -143,7 +201,7 @@ export async function addBetaTester(
   }
 
   // ========================================
-  // PASO 5: Si existía pero estaba revocado, reactivar
+  // PASO 4: Si existía pero estaba revocado, reactivar
   // ========================================
   if (existing && !existing.is_active) {
     const { error } = await supabase
@@ -161,19 +219,17 @@ export async function addBetaTester(
       return { success: false, error: error.message }
     }
     
-    // Actualizar suscripción si existe
-    await updateSubscriptionBetaStatus(trimmedUserId, true)
-    
+    await updateSubscriptionBetaStatus(clerkUserId, true)
     return { success: true }
   }
 
   // ========================================
-  // PASO 6: Crear nuevo registro de beta tester
+  // PASO 5: Crear nuevo registro de beta tester
   // ========================================
   const { error } = await supabase
     .from('beta_testers')
     .insert({
-      user_id: trimmedUserId,
+      user_id: clerkUserId,
       granted_by: grantedBy,
       notes: notes || null
     })
@@ -183,9 +239,9 @@ export async function addBetaTester(
   }
 
   // ========================================
-  // PASO 7: Crear o actualizar suscripción como beta tester
+  // PASO 6: Crear o actualizar suscripción como beta tester
   // ========================================
-  await ensureBetaTesterSubscription(trimmedUserId)
+  await ensureBetaTesterSubscription(clerkUserId)
 
   return { success: true }
 }
@@ -201,7 +257,6 @@ async function ensureBetaTesterSubscription(userId: string): Promise<void> {
     .single()
 
   if (!existingSub) {
-    // Crear suscripción de tipo beta_tester
     await supabase
       .from('subscriptions')
       .insert({
@@ -213,7 +268,6 @@ async function ensureBetaTesterSubscription(userId: string): Promise<void> {
         updated_at: new Date().toISOString()
       })
   } else {
-    // Actualizar suscripción existente
     await updateSubscriptionBetaStatus(userId, true)
   }
 }
@@ -247,9 +301,7 @@ export async function revokeBetaTester(
     return { success: false, error: error.message }
   }
 
-  // También actualizar la suscripción
   await updateSubscriptionBetaStatus(userId, false)
-
   return { success: true }
 }
 

@@ -11,7 +11,8 @@ import {
   FileText,
   Receipt,
   Brain,
-  X
+  X,
+  Mail
 } from 'lucide-react'
 
 interface BetaTester {
@@ -68,7 +69,7 @@ export default function BetaTestersManager() {
 
   const handleAdd = async () => {
     if (!newUserId.trim()) {
-      setError('Introduce el ID del usuario')
+      setError('Introduce el email o ID del usuario')
       return
     }
 
@@ -319,14 +320,19 @@ export default function BetaTestersManager() {
         </details>
       )}
 
-      {/* Add Modal */}
+      {/* Add Modal - ACTUALIZADO */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-[#262626] rounded-xl border border-gray-700 p-6 w-full max-w-md mx-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-white">Añadir Beta Tester</h3>
               <button
-                onClick={() => setShowAddModal(false)}
+                onClick={() => {
+                  setShowAddModal(false)
+                  setError('')
+                  setNewUserId('')
+                  setNewNotes('')
+                }}
                 className="text-gray-400 hover:text-white transition"
               >
                 <X className="w-5 h-5" />
@@ -334,17 +340,27 @@ export default function BetaTestersManager() {
             </div>
 
             <div className="space-y-4">
+              {/* Campo actualizado para aceptar email o ID */}
               <div>
                 <label className="block text-sm text-gray-400 mb-1">
-                  ID de Usuario (Clerk)
+                  Email o ID de Usuario (Clerk)
                 </label>
-                <input
-                  type="text"
-                  value={newUserId}
-                  onChange={(e) => setNewUserId(e.target.value)}
-                  placeholder="user_2abc123..."
-                  className="w-full bg-[#333] border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:border-[#D98C21] focus:outline-none"
-                />
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                  <input
+                    type="text"
+                    value={newUserId}
+                    onChange={(e) => {
+                      setNewUserId(e.target.value)
+                      setError('')
+                    }}
+                    placeholder="email@ejemplo.com o user_2abc123..."
+                    className="w-full bg-[#333] border border-gray-600 rounded-lg pl-10 pr-4 py-2 text-white placeholder-gray-500 focus:border-[#D98C21] focus:outline-none"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Puedes introducir el email del usuario o su ID de Clerk
+                </p>
               </div>
 
               <div>
@@ -361,12 +377,19 @@ export default function BetaTestersManager() {
               </div>
 
               {error && (
-                <p className="text-red-400 text-sm">{error}</p>
+                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+                  <p className="text-red-400 text-sm">{error}</p>
+                </div>
               )}
 
               <div className="flex gap-3 pt-2">
                 <button
-                  onClick={() => setShowAddModal(false)}
+                  onClick={() => {
+                    setShowAddModal(false)
+                    setError('')
+                    setNewUserId('')
+                    setNewNotes('')
+                  }}
                   className="flex-1 px-4 py-2 bg-[#333] text-gray-300 rounded-lg hover:bg-[#444] transition"
                 >
                   Cancelar
@@ -376,7 +399,7 @@ export default function BetaTestersManager() {
                   disabled={adding}
                   className="flex-1 px-4 py-2 bg-[#D98C21] text-black rounded-lg font-medium hover:bg-[#c47d1d] transition disabled:opacity-50"
                 >
-                  {adding ? 'Añadiendo...' : 'Añadir'}
+                  {adding ? 'Buscando...' : 'Añadir'}
                 </button>
               </div>
             </div>
