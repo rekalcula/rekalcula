@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 import { supabase } from '@/lib/supabase'
 import Stripe from 'stripe'
 import { initializeUserCredits, monthlyRefill, addCredits } from '@/lib/credits'
@@ -9,6 +9,9 @@ export async function POST(request: NextRequest) {
   const sig = request.headers.get('stripe-signature')!
 
   let event: Stripe.Event
+
+  // Obtener instancia de Stripe
+  const stripe = getStripe()
 
   try {
     event = stripe.webhooks.constructEvent(
