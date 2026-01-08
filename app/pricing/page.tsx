@@ -260,7 +260,7 @@ export default function PricingPage() {
                     </li>
                     <li className="flex items-start">
                       <Check className="w-4 h-4 text-[#D98C21] mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-400 text-xs">Exportación CSV/Excel</span>
+                      <span className="text-gray-400 text-xs">Exportación CSV/Excel/Pdf</span>
                     </li>
                     <li className="flex items-start">
                       <Check className="w-4 h-4 text-[#D98C21] mr-2 flex-shrink-0 mt-0.5" />
