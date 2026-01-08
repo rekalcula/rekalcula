@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
         itemSum + ((item.cost_price || 0) * (item.quantity || 0)), 0)
     }, 0)
 
-    // Ventas cobradas vs pendientes
+    // Ventas cobradas vs pendientes (usando payment_status)
     const ventasCobradas = (sales || [])
       .filter(s => s.payment_status === 'paid')
       .reduce((sum, s) => sum + (s.total || 0), 0)
@@ -135,7 +135,7 @@ export async function GET(request: NextRequest) {
       .from('fixed_costs')
       .select('*')
       .eq('user_id', userId)
-      .eq('is_active', true)
+      .eq('active', true)
 
     const costosFijos = (fixedCosts || []).reduce((sum, cost) => {
       let monthly = cost.amount || 0
@@ -146,6 +146,7 @@ export async function GET(request: NextRequest) {
 
     // ========================================
     // 4. OBTENER FACTURAS/GASTOS
+    // CORREGIDO: Usar total_amount en lugar de total
     // ========================================
     const { data: invoices } = await supabase
       .from('invoices')
@@ -154,16 +155,17 @@ export async function GET(request: NextRequest) {
       .gte('invoice_date', startDate.toISOString().split('T')[0])
       .lte('invoice_date', endDate.toISOString().split('T')[0])
 
-    const gastosFacturas = (invoices || []).reduce((sum, inv) => sum + (inv.total || 0), 0)
+    // CORREGIDO: Usar total_amount
+    const gastosFacturas = (invoices || []).reduce((sum, inv) => sum + (inv.total_amount || 0), 0)
     
     // Calcular IVA soportado de las facturas
     const baseImponibleGastos = gastosFacturas / (1 + config.porcentajeIva / 100)
     const ivaSoportado = gastosFacturas - baseImponibleGastos
 
-    // Facturas pagadas vs pendientes
+    // CORREGIDO: Usar payment_status y total_amount
     const facturasPagadas = (invoices || [])
       .filter(i => i.payment_status === 'paid')
-      .reduce((sum, i) => sum + (i.total || 0), 0)
+      .reduce((sum, i) => sum + (i.total_amount || 0), 0)
     const facturasPendientes = gastosFacturas - facturasPagadas
 
     // ========================================
@@ -242,13 +244,15 @@ export async function GET(request: NextRequest) {
     })
 
     // Costos Variables
-    cumulative -= costosVariables
-    waterfallData.push({
-      name: 'Costos Variables',
-      value: -costosVariables,
-      type: 'expense',
-      cumulative
-    })
+    if (costosVariables > 0) {
+      cumulative -= costosVariables
+      waterfallData.push({
+        name: 'Costos Variables',
+        value: -costosVariables,
+        type: 'expense',
+        cumulative
+      })
+    }
 
     // Margen Bruto (subtotal)
     waterfallData.push({
@@ -259,19 +263,21 @@ export async function GET(request: NextRequest) {
     })
 
     // Costos Fijos
-    cumulative -= costosFijos
-    waterfallData.push({
-      name: 'Costos Fijos',
-      value: -costosFijos,
-      type: 'expense',
-      cumulative
-    })
+    if (costosFijos > 0) {
+      cumulative -= costosFijos
+      waterfallData.push({
+        name: 'Costos Fijos',
+        value: -costosFijos,
+        type: 'expense',
+        cumulative
+      })
+    }
 
-    // Otros Gastos
+    // Gastos (Facturas)
     if (gastosFacturas > 0) {
       cumulative -= gastosFacturas
       waterfallData.push({
-        name: 'Otros Gastos',
+        name: 'Gastos (Facturas)',
         value: -gastosFacturas,
         type: 'expense',
         cumulative
