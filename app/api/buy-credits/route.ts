@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
-import { stripe } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 import { supabase } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
@@ -8,6 +8,17 @@ export async function POST(request: NextRequest) {
     const { userId } = await auth()
     if (!userId) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+
+    // Verificar que Stripe está configurado
+    let stripe
+    try {
+      stripe = getStripe()
+    } catch (error) {
+      console.error('Stripe no configurado:', error)
+      return NextResponse.json({ 
+        error: 'El sistema de pagos no está configurado correctamente' 
+      }, { status: 500 })
     }
 
     const { packageId } = await request.json()
