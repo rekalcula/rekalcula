@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
 
     // ========================================
     // GUARDAR FACTURA EN BD
+    // ⭐ CORREGIDO: Ahora incluye el campo supplier
     // ========================================
     const { data: invoiceData, error: dbError } = await supabase
       .from('invoices')
@@ -65,6 +66,8 @@ export async function POST(request: NextRequest) {
         user_id: userId,
         file_url: fileData.filePath,
         file_name: fileData.fileName,
+        // ⭐ CORRECCIÓN: Guardar nombre del proveedor
+        supplier: analysis.supplier || null,
         total_amount: analysis.total_amount,
         tax_amount: analysis.tax_amount || 0,
         invoice_date: analysis.invoice_date,
