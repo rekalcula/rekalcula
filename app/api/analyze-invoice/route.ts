@@ -14,6 +14,18 @@ const anthropic = new Anthropic({
 })
 
 // ========================================
+// FUNCIÓN PARA SANITIZAR NOMBRE DE ARCHIVO
+// ========================================
+function sanitizeFileName(fileName: string): string {
+  return fileName
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Eliminar acentos (é → e, í → i)
+    .replace(/[^a-zA-Z0-9._-]/g, '_') // Reemplazar caracteres especiales por _
+    .replace(/_+/g, '_') // Eliminar guiones bajos múltiples
+    .replace(/^_|_$/g, '') // Eliminar guiones bajos al inicio/final
+}
+
+// ========================================
 // PASO 1: SOLO ANALIZAR (NO GUARDA EN BD)
 // ========================================
 export async function POST(request: NextRequest) {
@@ -187,7 +199,9 @@ Responde SOLO con el JSON, sin texto adicional.`
     // SUBIR ARCHIVO A STORAGE (temporal)
     // ========================================
     const timestamp = Date.now()
-    const fileName = `${userId}/${timestamp}-${file.name}`
+    // ⭐ SANITIZAR NOMBRE DEL ARCHIVO
+    const sanitizedName = sanitizeFileName(file.name)
+    const fileName = `${userId}/${timestamp}-${sanitizedName}`
 
     const { error: uploadError } = await supabase
       .storage
@@ -212,7 +226,7 @@ Responde SOLO con el JSON, sin texto adicional.`
       // Datos necesarios para guardar después
       fileData: {
         filePath: fileName,
-        fileName: file.name,
+        fileName: file.name, // Mantener nombre original para mostrar
         fileSize: file.size
       },
       // Flag que indica que requiere confirmación de pago ANTES de guardar
