@@ -105,10 +105,10 @@ export default function BusinessResultSummary({ data, loading }: Props) {
           <p className="text-3xl font-bold text-gray-900">
             {formatCurrency(data.totalCostos)}
           </p>
+          {/* CORREGIDO: Mostrar solo Compras y Fijos, sin duplicados */}
           <div className="mt-2 text-xs text-gray-500 space-y-0.5">
-            <p>Variables: {formatCurrency(data.costosVariables)}</p>
+            <p>Compras: {formatCurrency(data.costosVariables)}</p>
             <p>Fijos: {formatCurrency(data.costosFijos)}</p>
-            {data.gastosFacturas > 0 && <p>Otros: {formatCurrency(data.gastosFacturas)}</p>}
           </div>
         </div>
 
@@ -177,7 +177,7 @@ export default function BusinessResultSummary({ data, loading }: Props) {
             </div>
           )}
 
-          {/* Línea divisoria */}
+          {/* Linea divisoria */}
           <div className="border-t-2 border-gray-300 my-2"></div>
 
           {/* Beneficio Neto Final */}
@@ -235,7 +235,7 @@ export default function BusinessResultSummary({ data, loading }: Props) {
           </div>
         </div>
 
-        {/* Días de Cobertura */}
+        {/* Dias de Cobertura */}
         <div className={`rounded-xl shadow-sm p-6 ${
           data.diasCobertura >= 30 
             ? 'bg-green-50 border border-green-200' 
@@ -256,16 +256,16 @@ export default function BusinessResultSummary({ data, loading }: Props) {
           <p className={`text-2xl font-bold ${
             data.diasCobertura >= 30 ? 'text-green-700' : data.diasCobertura >= 15 ? 'text-amber-700' : 'text-red-700'
           }`}>
-            {data.diasCobertura > 365 ? '+365' : data.diasCobertura} días
+            {data.diasCobertura > 365 ? '+365' : data.diasCobertura} dias
           </p>
           <div className={`mt-3 text-xs ${
             data.diasCobertura >= 30 ? 'text-green-600' : data.diasCobertura >= 15 ? 'text-amber-600' : 'text-red-600'
           }`}>
             {data.diasCobertura >= 30 
-              ? 'Situación saludable' 
+              ? 'Situacion saludable' 
               : data.diasCobertura >= 15 
-                ? 'Revisar próximos cobros'
-                : 'Atención: liquidez baja'
+                ? 'Revisar proximos cobros'
+                : 'Atencion: liquidez baja'
             }
           </div>
         </div>
