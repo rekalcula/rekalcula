@@ -50,27 +50,17 @@ export async function GET(request: NextRequest) {
 
     // ========================================
     // OBTENER FACTURAS (SALIDAS/PAGOS)
-    // ⭐ CORREGIDO: Obtener TODAS las facturas pendientes, no solo las del período
     // ========================================
-    const { data: facturasDelPeriodo, error: errorFacturas } = await supabase
+    const { data: facturas, error: errorFacturas } = await supabase
       .from('invoices')
-      .select('id, total_amount, invoice_date, payment_status, payment_method, payment_due_date, actual_payment_date, category, supplier, payment_confirmed, payment_terms')
+      .select('id, total_amount, invoice_date, payment_status, payment_method, payment_due_date, actual_payment_date, category, supplier, payment_confirmed')
       .eq('user_id', userId)
       .gte('invoice_date', startDate.toISOString().split('T')[0])
       .lte('invoice_date', now.toISOString().split('T')[0]);
 
-    // ⭐ NUEVO: Obtener TODAS las facturas pendientes de pago (independiente del período)
-    const { data: facturasPendientesGlobal } = await supabase
-      .from('invoices')
-      .select('id, total_amount, invoice_date, payment_status, payment_method, payment_due_date, actual_payment_date, category, supplier, payment_confirmed, payment_terms')
-      .eq('user_id', userId)
-      .neq('payment_status', 'paid');
-
     if (errorFacturas) {
       console.error('Error obteniendo facturas:', errorFacturas);
     }
-
-    const facturas = facturasDelPeriodo || [];
 
     // ========================================
     // OBTENER COSTOS FIJOS
@@ -90,6 +80,7 @@ export async function GET(request: NextRequest) {
     // ========================================
     const totalVentas = ventas?.reduce((sum, v) => sum + (v.total || 0), 0) || 0;
     
+    // Ventas cobradas = las que tienen payment_status = 'paid'
     const ventasCobradas = ventas
       ?.filter(v => v.payment_status === 'paid')
       .reduce((sum, v) => sum + (v.total || 0), 0) || 0;
@@ -98,14 +89,17 @@ export async function GET(request: NextRequest) {
 
     // ========================================
     // CALCULAR TOTALES DE SALIDAS (FACTURAS)
+    // Usando payment_status correctamente
     // ========================================
-    const totalFacturas = facturas.reduce((sum, f) => sum + (f.total_amount || 0), 0);
+    const totalFacturas = facturas?.reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
     
+    // Facturas pagadas = las que tienen payment_status = 'paid'
     const facturasPagadas = facturas
-      .filter(f => f.payment_status === 'paid')
-      .reduce((sum, f) => sum + (f.total_amount || 0), 0);
+      ?.filter(f => f.payment_status === 'paid')
+      .reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
     
-    const facturasPendientesDelPeriodo = totalFacturas - facturasPagadas;
+    // Facturas pendientes = las que tienen payment_status != 'paid'
+    const facturasPendientes = totalFacturas - facturasPagadas;
 
     // ========================================
     // CALCULAR COSTOS FIJOS MENSUALES
@@ -117,13 +111,14 @@ export async function GET(request: NextRequest) {
       return sum + mensual;
     }, 0) || 0;
 
+    // Calcular meses en el período
     const mesesEnPeriodo = periodo === 'mes' ? 1 : periodo === '3meses' ? 3 : 6;
     const totalCostosFijos = costosFijosMensuales * mesesEnPeriodo;
 
-    // Total de salidas
+    // Total de salidas incluyendo costos fijos
     const totalSalidas = totalFacturas + totalCostosFijos;
     const salidasPagadas = facturasPagadas;
-    const salidasPendientes = facturasPendientesDelPeriodo + totalCostosFijos;
+    const salidasPendientes = facturasPendientes + totalCostosFijos;
 
     // ========================================
     // GENERAR DATOS HISTÓRICOS POR MES
@@ -138,15 +133,17 @@ export async function GET(request: NextRequest) {
       const mesNombre = meses[mesIndex];
       const año = mesDate.getFullYear();
       
+      // Filtrar ventas del mes
       const ventasMes = ventas?.filter(v => {
         const fecha = new Date(v.sale_date || v.created_at);
         return fecha.getMonth() === mesIndex && fecha.getFullYear() === año;
       }).reduce((sum, v) => sum + (v.total || 0), 0) || 0;
 
-      const facturasMes = facturas.filter(f => {
+      // Filtrar facturas del mes
+      const facturasMes = facturas?.filter(f => {
         const fecha = new Date(f.invoice_date);
         return fecha.getMonth() === mesIndex && fecha.getFullYear() === año;
-      }).reduce((sum, f) => sum + (f.total_amount || 0), 0);
+      }).reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
 
       datosHistoricos.push({
         periodo: mesNombre,
@@ -157,28 +154,34 @@ export async function GET(request: NextRequest) {
 
     // ========================================
     // PRÓXIMOS COBROS (VENTAS PENDIENTES)
+    // Usando payment_due_date correctamente
     // ========================================
     const ahora = new Date();
     const en30Dias = new Date(ahora);
     en30Dias.setDate(ahora.getDate() + 30);
-    const en60Dias = new Date(ahora);
-    en60Dias.setDate(ahora.getDate() + 60);
 
+    // Ventas pendientes de cobro en los próximos 30 días
     const proximosCobros = ventas
       ?.filter(v => {
+        // Solo ventas NO pagadas
         if (v.payment_status === 'paid') return false;
+        
+        // Si tiene fecha de vencimiento, verificar que esté en el rango
         if (v.payment_due_date) {
           const vencimiento = new Date(v.payment_due_date);
-          return vencimiento <= en60Dias;
+          return vencimiento <= en30Dias;
         }
+        
+        // Si no tiene fecha de vencimiento, incluir todas las pendientes
         return true;
       })
       .sort((a, b) => {
+        // Ordenar por fecha de vencimiento (las más próximas primero)
         const dateA = a.payment_due_date ? new Date(a.payment_due_date).getTime() : new Date(a.sale_date || a.created_at).getTime();
         const dateB = b.payment_due_date ? new Date(b.payment_due_date).getTime() : new Date(b.sale_date || b.created_at).getTime();
         return dateA - dateB;
       })
-      .slice(0, 10) // ⭐ Aumentado de 5 a 10
+      .slice(0, 5)
       .map(v => ({
         id: String(v.id),
         concepto: v.customer_name || 'Venta pendiente',
@@ -188,93 +191,45 @@ export async function GET(request: NextRequest) {
 
     // ========================================
     // PRÓXIMOS PAGOS (FACTURAS PENDIENTES)
-    // ⭐ CORREGIDO: Usar facturas pendientes GLOBALES, no solo del período
-    // ⭐ CORREGIDO: Aumentar límite de 3 a 10
     // ========================================
-    
-    // Calcular fecha de vencimiento para facturas sin payment_due_date
-    const calcularVencimiento = (factura: any): Date => {
-      // Si tiene fecha de vencimiento, usarla
-      if (factura.payment_due_date) {
-        return new Date(factura.payment_due_date);
-      }
-      
-      // Si no tiene, calcular basándose en payment_terms
-      const fechaFactura = new Date(factura.invoice_date);
-      const terms = factura.payment_terms || 'immediate';
-      
-      switch (terms) {
-        case '30_days':
-          fechaFactura.setDate(fechaFactura.getDate() + 30);
-          break;
-        case '45_days':
-          fechaFactura.setDate(fechaFactura.getDate() + 45);
-          break;
-        case '60_days':
-          fechaFactura.setDate(fechaFactura.getDate() + 60);
-          break;
-        case '90_days':
-          fechaFactura.setDate(fechaFactura.getDate() + 90);
-          break;
-        default: // immediate
-          // La fecha de vencimiento es la fecha de la factura
-          break;
-      }
-      
-      return fechaFactura;
-    };
-
-    const facturasProximasAPagar = (facturasPendientesGlobal || [])
-      .filter(f => {
+    const facturasProximasAPagar = facturas
+      ?.filter(f => {
         // Solo facturas NO pagadas
         if (f.payment_status === 'paid') return false;
+        
+        // Si tiene fecha de vencimiento, verificar que esté en el rango
+        if (f.payment_due_date) {
+          const vencimiento = new Date(f.payment_due_date);
+          return vencimiento <= en30Dias;
+        }
+        
+        // Si no tiene fecha de vencimiento pero está pendiente, incluirla
         return true;
       })
-      .map(f => ({
-        ...f,
-        fechaVencimientoCalculada: calcularVencimiento(f)
-      }))
       .sort((a, b) => {
-        // Ordenar por fecha de vencimiento calculada
-        return a.fechaVencimientoCalculada.getTime() - b.fechaVencimientoCalculada.getTime();
+        // Ordenar por fecha de vencimiento (las más próximas primero)
+        const dateA = a.payment_due_date ? new Date(a.payment_due_date).getTime() : new Date(a.invoice_date).getTime();
+        const dateB = b.payment_due_date ? new Date(b.payment_due_date).getTime() : new Date(b.invoice_date).getTime();
+        return dateA - dateB;
       })
-      .slice(0, 10) // ⭐ Aumentado de 3 a 10
+      .slice(0, 3)
       .map(f => ({
         id: String(f.id),
-        concepto: f.supplier || f.category || 'Factura pendiente',
+        concepto: f.supplier || `Factura ${f.category || 'compra'}`,
         monto: f.total_amount || 0,
-        fecha: f.payment_due_date || f.fechaVencimientoCalculada.toISOString(),
-        // ⭐ NUEVO: Información adicional útil
-        categoria: f.category,
-        metodoPago: f.payment_method,
-        vencida: f.fechaVencimientoCalculada < ahora
-      }));
+        fecha: f.payment_due_date || f.invoice_date
+      })) || [];
 
-    // Agregar costos fijos como próximos pagos (próximo mes)
-    const proximoMes = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    const costosFijosComoProximosPagos = (costosFijos || [])
-      .slice(0, 3)
-      .map(c => ({
+    // Combinar facturas pendientes + costos fijos del próximo mes
+    const proximosPagos = [
+      ...facturasProximasAPagar,
+      ...(costosFijos?.slice(0, 2).map(c => ({
         id: `fixed-${c.id}`,
         concepto: c.name || 'Costo fijo mensual',
         monto: c.amount || 0,
-        fecha: proximoMes.toISOString(),
-        categoria: 'Costo Fijo',
-        metodoPago: 'recurring',
-        vencida: false
-      }));
-
-    // Combinar y ordenar todos los próximos pagos
-    const proximosPagos = [...facturasProximasAPagar, ...costosFijosComoProximosPagos]
-      .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())
-      .slice(0, 10); // ⭐ Máximo 10 próximos pagos
-
-    // ========================================
-    // ⭐ NUEVO: Calcular totales de próximos pagos
-    // ========================================
-    const totalProximosPagos = proximosPagos.reduce((sum, p) => sum + p.monto, 0);
-    const pagosVencidos = facturasProximasAPagar.filter(f => f.vencida);
-    const totalPagosVencidos = pagosVencidos.reduce((sum, p) => sum + p.monto, 0);
+        fecha: new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString()
+      })) || [])
+    ].slice(0, 5);
 
     // ========================================
     // RESPUESTA
@@ -294,14 +249,7 @@ export async function GET(request: NextRequest) {
       balance: totalVentas - totalSalidas,
       proximosCobros,
       proximosPagos,
-      datosHistoricos,
-      // ⭐ NUEVO: Resumen de pagos pendientes
-      resumenPagos: {
-        totalProximosPagos,
-        totalPagosVencidos,
-        cantidadPagosVencidos: pagosVencidos.length,
-        cantidadPagosPendientes: proximosPagos.length
-      }
+      datosHistoricos
     });
 
   } catch (error) {

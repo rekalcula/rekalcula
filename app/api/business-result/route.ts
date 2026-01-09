@@ -46,7 +46,7 @@ export interface BusinessResultData {
   pendientePago: number
   diasCobertura: number
   
-  // Configuración fiscal aplicada
+  // Configuracion fiscal aplicada
   configFiscal: {
     tipoEntidad: string
     regimenFiscal: string
@@ -55,21 +55,13 @@ export interface BusinessResultData {
     porcentajeIS: number
   }
   
-  // Datos para gráfico waterfall
+  // Datos para grafico waterfall
   waterfallData: Array<{
     name: string
     value: number
     type: 'income' | 'expense' | 'subtotal' | 'total'
     cumulative: number
   }>
-  
-  // ⭐ NUEVO: Desglose detallado de costos para el frontend
-  desgloseCostos: {
-    comprasProductos: number      // Facturas de productos/materiales
-    serviciosExternos: number     // Facturas de servicios
-    costosFijosOperativos: number // Costos fijos mensuales
-    otrosGastos: number           // Otros
-  }
 }
 
 export async function GET(request: NextRequest) {
@@ -83,45 +75,15 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const periodoParam = searchParams.get('periodo') || 'mes'
 
-    // ========================================
-    // CALCULAR FECHAS DEL PERÍODO
-    // ========================================
+    // Calcular fechas del periodo
     const now = new Date()
-    let startDate: Date
-    let endDate: Date
-    let mesesEnPeriodo = 1
+    const startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+    const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
     
-    switch (periodoParam) {
-      case '3meses':
-        startDate = new Date(now.getFullYear(), now.getMonth() - 2, 1)
-        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-        mesesEnPeriodo = 3
-        break
-      case '6meses':
-        startDate = new Date(now.getFullYear(), now.getMonth() - 5, 1)
-        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-        mesesEnPeriodo = 6
-        break
-      case 'año':
-      case 'anual':
-        startDate = new Date(now.getFullYear(), 0, 1)
-        endDate = new Date(now.getFullYear(), 11, 31)
-        mesesEnPeriodo = 12
-        break
-      default: // mes actual
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1)
-        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-        mesesEnPeriodo = 1
-    }
-    
-    const periodoLabel = periodoParam === 'mes' 
-      ? now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
-      : `Últimos ${mesesEnPeriodo} meses`
-
-    console.log(`[business-result] Período: ${periodoLabel}, desde ${startDate.toISOString().split('T')[0]} hasta ${endDate.toISOString().split('T')[0]}`)
+    const periodoLabel = now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
 
     // ========================================
-    // 1. OBTENER CONFIGURACIÓN FISCAL
+    // 1. OBTENER CONFIGURACION FISCAL
     // ========================================
     const { data: fiscalConfig } = await supabase
       .from('fiscal_config')
@@ -138,7 +100,7 @@ export async function GET(request: NextRequest) {
     }
 
     // ========================================
-    // 2. OBTENER VENTAS + ITEMS (Ingresos + Costos Variables)
+    // 2. OBTENER VENTAS + ITEMS (Ingresos)
     // ========================================
     const { data: sales } = await supabase
       .from('sales')
@@ -154,46 +116,49 @@ export async function GET(request: NextRequest) {
     const baseImponibleIngresos = ingresosBrutos / (1 + config.porcentajeIva / 100)
     const ivaRepercutido = ingresosBrutos - baseImponibleIngresos
 
-    // Calcular costos variables (cost_price * quantity de sale_items)
-    // Esto representa el COSTO DE VENTAS (COGS)
-    const costosVariablesCOGS = (sales || []).reduce((sum, sale) => {
-      return sum + (sale.sale_items || []).reduce((itemSum: number, item: any) =>
-        itemSum + ((item.cost_price || 0) * (item.quantity || 0)), 0)
-    }, 0)
-
-    // Ventas cobradas vs pendientes
+    // Ventas cobradas vs pendientes (usando payment_status)
     const ventasCobradas = (sales || [])
       .filter(s => s.payment_status === 'paid')
       .reduce((sum, s) => sum + (s.total || 0), 0)
     const ventasPendientes = ingresosBrutos - ventasCobradas
 
-    console.log(`[business-result] Ventas: ${ingresosBrutos}€, COGS: ${costosVariablesCOGS}€`)
-
     // ========================================
     // 3. OBTENER COSTOS FIJOS
-    // ⭐ CORREGIDO: Multiplicar por meses del período
+    // CORREGIDO: Filtro mas flexible para active
     // ========================================
-    const { data: fixedCosts } = await supabase
+    const { data: fixedCosts, error: fixedCostsError } = await supabase
       .from('fixed_costs')
       .select('*')
       .eq('user_id', userId)
-      .eq('active', true)
 
-    // Calcular costo fijo MENSUAL
-    const costosFijosMensuales = (fixedCosts || []).reduce((sum, cost) => {
+    // Log para depuracion
+    console.log('[business-result] Fixed costs raw:', fixedCosts?.length, 'registros')
+    if (fixedCostsError) {
+      console.error('[business-result] Error obteniendo costos fijos:', fixedCostsError)
+    }
+
+    // CORREGIDO: Filtrar en JavaScript para mayor flexibilidad
+    // Aceptar active = true, active = 'true', o active no definido (null/undefined)
+    const activeCosts = (fixedCosts || []).filter(cost => {
+      // Si active es explicitamente false, excluir
+      if (cost.active === false || cost.active === 'false') return false
+      // En cualquier otro caso (true, 'true', null, undefined), incluir
+      return true
+    })
+
+    console.log('[business-result] Active costs:', activeCosts.length, 'registros')
+
+    const costosFijos = activeCosts.reduce((sum, cost) => {
       let monthly = cost.amount || 0
       if (cost.frequency === 'quarterly') monthly = monthly / 3
       if (cost.frequency === 'yearly' || cost.frequency === 'annual') monthly = monthly / 12
       return sum + monthly
     }, 0)
 
-    // ⭐ IMPORTANTE: Multiplicar por los meses del período
-    const costosFijos = costosFijosMensuales * mesesEnPeriodo
-
-    console.log(`[business-result] Costos fijos mensuales: ${costosFijosMensuales}€ x ${mesesEnPeriodo} meses = ${costosFijos}€`)
+    console.log('[business-result] Costos fijos calculados:', costosFijos)
 
     // ========================================
-    // 4. OBTENER FACTURAS/GASTOS (COMPRAS)
+    // 4. OBTENER FACTURAS/GASTOS (Compras)
     // ========================================
     const { data: invoices } = await supabase
       .from('invoices')
@@ -202,7 +167,7 @@ export async function GET(request: NextRequest) {
       .gte('invoice_date', startDate.toISOString().split('T')[0])
       .lte('invoice_date', endDate.toISOString().split('T')[0])
 
-    // Total de facturas de compra
+    // Gastos de facturas (compras variables)
     const gastosFacturas = (invoices || []).reduce((sum, inv) => sum + (inv.total_amount || 0), 0)
     
     // Calcular IVA soportado de las facturas
@@ -215,42 +180,20 @@ export async function GET(request: NextRequest) {
       .reduce((sum, i) => sum + (i.total_amount || 0), 0)
     const facturasPendientes = gastosFacturas - facturasPagadas
 
-    console.log(`[business-result] Facturas: ${gastosFacturas}€ (pagadas: ${facturasPagadas}€, pendientes: ${facturasPendientes}€)`)
-
-    // ========================================
-    // ⭐ DESGLOSE DE COSTOS POR CATEGORÍA
-    // ========================================
-    const categoriasProductos = ['Productos', 'Materiales', 'Suministros', 'Inventario', 'Mercancías']
-    const categoriasServicios = ['Servicios', 'Marketing', 'Publicidad', 'Profesionales', 'Asesoría']
-    
-    const comprasProductos = (invoices || [])
-      .filter(inv => categoriasProductos.some(cat => 
-        (inv.category || '').toLowerCase().includes(cat.toLowerCase())
-      ))
-      .reduce((sum, inv) => sum + (inv.total_amount || 0), 0)
-
-    const serviciosExternos = (invoices || [])
-      .filter(inv => categoriasServicios.some(cat => 
-        (inv.category || '').toLowerCase().includes(cat.toLowerCase())
-      ))
-      .reduce((sum, inv) => sum + (inv.total_amount || 0), 0)
-
-    const otrosGastos = gastosFacturas - comprasProductos - serviciosExternos
-
     // ========================================
     // 5. CALCULAR RESULTADOS
-    // ⭐ CORREGIDO: Incluir costos fijos correctamente
+    // CORREGIDO: Usar gastosFacturas como costosVariables
+    // (Las facturas de compra son costes variables del negocio)
     // ========================================
     
-    // Total de costos = COGS + Costos Fijos + Compras/Facturas
-    const totalCostos = costosVariablesCOGS + costosFijos + gastosFacturas
+    // Costos variables = Facturas de compra (materias primas, productos, servicios)
+    const costosVariables = gastosFacturas
     
-    // ⭐ Para el cálculo del margen, usamos las compras como costos variables
-    // ya que representan los gastos directamente relacionados con la operación
-    const costosVariablesTotal = costosVariablesCOGS + gastosFacturas
+    // Total costos = Variables + Fijos
+    const totalCostos = costosVariables + costosFijos
     
-    // Margen Bruto = Ingresos - Costos Variables (COGS + Compras)
-    const margenBruto = ingresosBrutos - costosVariablesTotal
+    // Margen Bruto = Ingresos - Costos Variables (compras)
+    const margenBruto = ingresosBrutos - costosVariables
     const margenBrutoPorcentaje = ingresosBrutos > 0 
       ? (margenBruto / ingresosBrutos) * 100 
       : 0
@@ -258,7 +201,14 @@ export async function GET(request: NextRequest) {
     // Beneficio Operativo = Margen Bruto - Costos Fijos
     const beneficioOperativo = margenBruto - costosFijos
 
-    console.log(`[business-result] Margen Bruto: ${margenBruto}€, Beneficio Operativo: ${beneficioOperativo}€`)
+    console.log('[business-result] Calculo:', {
+      ingresosBrutos,
+      costosVariables,
+      costosFijos,
+      totalCostos,
+      margenBruto,
+      beneficioOperativo
+    })
 
     // ========================================
     // 6. CALCULAR CARGA FISCAL
@@ -267,12 +217,12 @@ export async function GET(request: NextRequest) {
     // IVA a ingresar = IVA Repercutido - IVA Soportado
     const ivaAIngresar = Math.max(0, ivaRepercutido - ivaSoportado)
     
-    // IRPF estimado (solo para autónomos, sobre beneficio positivo)
+    // IRPF estimado (solo para autonomos, sobre beneficio positivo)
     const irpfEstimado = config.tipoEntidad === 'autonomo' && beneficioOperativo > 0
       ? beneficioOperativo * (config.porcentajeIrpf / 100)
       : 0
     
-    // Impuesto de Sociedades (para SL/SA, sobre beneficio positivo)
+    // Impuesto de Sociedades (para SL/SA)
     const impuestoSociedadesEstimado = 
       (config.tipoEntidad === 'sl' || config.tipoEntidad === 'sa') && beneficioOperativo > 0
         ? beneficioOperativo * (config.porcentajeIS / 100)
@@ -280,7 +230,7 @@ export async function GET(request: NextRequest) {
 
     const totalCargaFiscal = ivaAIngresar + irpfEstimado + impuestoSociedadesEstimado
     
-    // Reserva fiscal recomendada (con margen de seguridad)
+    // Reserva fiscal recomendada (un poco mas para seguridad)
     const reservaFiscalRecomendada = totalCargaFiscal * 1.1
 
     // ========================================
@@ -295,20 +245,19 @@ export async function GET(request: NextRequest) {
     // 8. LIQUIDEZ / CASH FLOW
     // ========================================
     const cobradoReal = ventasCobradas
-    // ⭐ CORREGIDO: Incluir costos fijos en lo pagado
-    const pagadoReal = facturasPagadas + costosFijos
+    const pagadoReal = facturasPagadas + costosFijos // Asumimos costos fijos pagados
     const balanceCaja = cobradoReal - pagadoReal
     const pendienteCobro = ventasPendientes
     const pendientePago = facturasPendientes
 
-    // Días de cobertura
-    const gastosDiarios = totalCostos / (30 * mesesEnPeriodo)
+    // Dias de cobertura = Liquidez / (Gastos diarios promedio)
+    const gastosDiarios = totalCostos / 30
     const diasCobertura = gastosDiarios > 0 
       ? Math.round(Math.max(0, balanceCaja) / gastosDiarios)
       : 999
 
     // ========================================
-    // 9. DATOS PARA GRÁFICO WATERFALL
+    // 9. DATOS PARA GRAFICO WATERFALL
     // ========================================
     let cumulative = 0
     const waterfallData: BusinessResultData['waterfallData'] = []
@@ -322,23 +271,12 @@ export async function GET(request: NextRequest) {
       cumulative
     })
 
-    // Costos Variables (COGS)
-    if (costosVariablesCOGS > 0) {
-      cumulative -= costosVariablesCOGS
-      waterfallData.push({
-        name: 'Costo de Ventas',
-        value: -costosVariablesCOGS,
-        type: 'expense',
-        cumulative
-      })
-    }
-
-    // Compras / Facturas
-    if (gastosFacturas > 0) {
-      cumulative -= gastosFacturas
+    // Costos Variables (Compras)
+    if (costosVariables > 0) {
+      cumulative -= costosVariables
       waterfallData.push({
         name: 'Compras',
-        value: -gastosFacturas,
+        value: -costosVariables,
         type: 'expense',
         cumulative
       })
@@ -420,8 +358,7 @@ export async function GET(request: NextRequest) {
       ivaRepercutido,
       baseImponibleIngresos,
       
-      // ⭐ costosVariables ahora incluye COGS + Compras
-      costosVariables: costosVariablesTotal,
+      costosVariables,
       costosFijos,
       gastosFacturas,
       ivaSoportado,
@@ -448,15 +385,7 @@ export async function GET(request: NextRequest) {
       diasCobertura,
       
       configFiscal: config,
-      waterfallData,
-      
-      // ⭐ NUEVO: Desglose detallado
-      desgloseCostos: {
-        comprasProductos,
-        serviciosExternos,
-        costosFijosOperativos: costosFijos,
-        otrosGastos
-      }
+      waterfallData
     }
 
     return NextResponse.json({ success: true, data: result })
