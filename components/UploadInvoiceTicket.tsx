@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { IconCamera, IconFolder, IconFolderOpen, IconCheckCircle, IconDocument, IconTarget, IconTrash, IconInfoCircle, IconLoader, IconRocket, IconZap, IconMoney, IconCalendar, IconXCircle, IconBarChart } from './Icons'
 import PaymentMethodModal, { PaymentData } from './PaymentMethodModal'
 
-// Extender tipos de input para soportar webkitdirectory
 declare module 'react' {
   interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
     webkitdirectory?: string
@@ -20,6 +19,17 @@ interface FileWithPreview {
   id: string
 }
 
+// Datos pendientes de una factura analizada pero no guardada
+interface PendingInvoiceData {
+  analysis: any
+  fileData: {
+    filePath: string
+    fileName: string
+    fileSize: number
+  }
+  originalFile: File
+}
+
 export default function UploadInvoiceTicket() {
   const router = useRouter()
   const [dragActive, setDragActive] = useState(false)
@@ -30,10 +40,10 @@ export default function UploadInvoiceTicket() {
   const [results, setResults] = useState<any[]>([])
   const [mode, setMode] = useState<'select' | 'folder' | null>(null)
 
-  // ⭐ NUEVO: Estados para el modal de forma de pago
+  // ⭐ Estados para el flujo de 2 pasos
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [pendingInvoice, setPendingInvoice] = useState<any>(null)
-  const [paymentResolve, setPaymentResolve] = useState<((value: boolean) => void) | null>(null)
+  const [pendingInvoiceData, setPendingInvoiceData] = useState<PendingInvoiceData | null>(null)
+  const [paymentResolve, setPaymentResolve] = useState<((value: PaymentData | null) => void) | null>(null)
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -135,69 +145,82 @@ export default function UploadInvoiceTicket() {
     setMode(null)
   }
 
-  // ⭐ NUEVO: Función para esperar confirmación de pago
-  const waitForPaymentConfirmation = (invoice: any): Promise<boolean> => {
+  // ⭐ PASO 1: Esperar que el usuario seleccione forma de pago
+  const waitForPaymentSelection = (pendingData: PendingInvoiceData): Promise<PaymentData | null> => {
     return new Promise((resolve) => {
-      setPendingInvoice(invoice)
+      setPendingInvoiceData(pendingData)
       setIsModalOpen(true)
       setPaymentResolve(() => resolve)
     })
   }
 
-  // ⭐ NUEVO: Función para confirmar forma de pago
+  // ⭐ PASO 2: Guardar factura con forma de pago
+  const saveInvoiceWithPayment = async (
+    pendingData: PendingInvoiceData, 
+    paymentData: PaymentData
+  ): Promise<any> => {
+    const response = await fetch('/api/save-invoice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        analysis: pendingData.analysis,
+        fileData: pendingData.fileData,
+        paymentMethod: paymentData.paymentMethod,
+        paymentTerms: paymentData.paymentTerms,
+        paymentDueDate: paymentData.paymentDueDate
+      })
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Error al guardar la factura')
+    }
+
+    return data
+  }
+
+  // ⭐ Handler cuando el usuario confirma la forma de pago
   const handlePaymentConfirm = async (paymentData: PaymentData) => {
-    if (!pendingInvoice) return
+    if (!pendingInvoiceData) return
 
     try {
-      // Actualizar la factura con la forma de pago
-      const response = await fetch('/api/invoices/payment-status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          invoiceId: pendingInvoice.id,
-          paymentMethod: paymentData.paymentMethod,
-          paymentTerms: paymentData.paymentTerms,
-          paymentDueDate: paymentData.paymentDueDate
-        })
-      })
-
-      const data = await response.json()
-
-      if (!data.success) {
-        throw new Error(data.error || 'Error al actualizar forma de pago')
-      }
-
-      // ✅ Forma de pago confirmada
-      console.log('✅ Forma de pago confirmada para factura:', pendingInvoice.id)
+      // Guardar la factura con la forma de pago
+      await saveInvoiceWithPayment(pendingInvoiceData, paymentData)
+      
+      console.log('✅ Factura guardada con forma de pago:', paymentData.paymentMethod)
 
       // Cerrar modal
       setIsModalOpen(false)
-      setPendingInvoice(null)
+      setPendingInvoiceData(null)
 
-      // Resolver la promesa para continuar con el siguiente archivo
+      // Resolver la promesa para continuar
       if (paymentResolve) {
-        paymentResolve(true)
+        paymentResolve(paymentData)
         setPaymentResolve(null)
       }
 
     } catch (err) {
-      console.error('Error confirmando pago:', err)
-      throw err // Propagar error al modal
+      console.error('Error guardando factura:', err)
+      throw err
     }
   }
 
-  // ⭐ MODIFICADO: Función para cerrar modal (cancelar)
+  // ⭐ Handler para cerrar modal (NOTA: El modal NO debería permitir cerrar sin confirmar)
+  // Pero lo dejamos por si acaso, para manejar el caso de error
   const handleModalClose = () => {
+    // Si el usuario cierra sin confirmar, la factura NO se guarda
+    // El archivo subido quedará huérfano pero no habrá datos incorrectos en BD
     setIsModalOpen(false)
-    setPendingInvoice(null)
+    setPendingInvoiceData(null)
     
-    // Resolver con false para indicar cancelación
     if (paymentResolve) {
-      paymentResolve(false)
+      paymentResolve(null) // null indica cancelación
       setPaymentResolve(null)
     }
   }
 
+  // ⭐ PROCESO PRINCIPAL
   const processFiles = async () => {
     const filesToProcess = mode === 'folder'
       ? files
@@ -221,38 +244,52 @@ export default function UploadInvoiceTicket() {
       const fileItem = filesToProcess[i]
       
       try {
+        // ========================================
+        // PASO 1: ANALIZAR (sin guardar)
+        // ========================================
         const formData = new FormData()
         formData.append('file', fileItem.file)
 
-        const response = await fetch('/api/process-invoice', {
+        const analyzeResponse = await fetch('/api/analyze-invoice', {
           method: 'POST',
           body: formData
         })
 
-        const data = await response.json()
+        const analyzeData = await analyzeResponse.json()
 
-        if (!response.ok) {
-          throw new Error(data.error || 'Error al procesar la factura')
+        if (!analyzeResponse.ok) {
+          throw new Error(analyzeData.error || 'Error al analizar la factura')
         }
 
-        // ⭐ NUEVO: Verificar si requiere confirmación de forma de pago
-        if (data.requiresPaymentConfirmation && data.data?.invoice) {
-          console.log('⚠️ Requiere confirmación de forma de pago')
-          
-          // Abrir modal y esperar confirmación
-          const confirmed = await waitForPaymentConfirmation(data.data.invoice)
-          
-          if (!confirmed) {
-            // Usuario canceló
-            throw new Error('Confirmación de forma de pago cancelada')
-          }
+        // ========================================
+        // PASO 2: PEDIR FORMA DE PAGO (OBLIGATORIO)
+        // ========================================
+        const pendingData: PendingInvoiceData = {
+          analysis: analyzeData.analysis,
+          fileData: analyzeData.fileData,
+          originalFile: fileItem.file
         }
 
-        // Guardar resultado exitoso
+        // Mostrar modal y esperar confirmación
+        const paymentData = await waitForPaymentSelection(pendingData)
+
+        if (!paymentData) {
+          // Usuario canceló - NO guardamos la factura
+          throw new Error('Debes seleccionar una forma de pago para guardar la factura')
+        }
+
+        // ========================================
+        // PASO 3: La factura ya se guardó en handlePaymentConfirm
+        // ========================================
+        
         newResults.push({
           fileName: fileItem.file.name,
           success: true,
-          data: data.data?.invoice
+          data: {
+            total_amount: analyzeData.analysis.total_amount,
+            invoice_date: analyzeData.analysis.invoice_date,
+            payment_method: paymentData.paymentMethod
+          }
         })
         successCount++
 
@@ -278,7 +315,7 @@ export default function UploadInvoiceTicket() {
       }, 3000)
     }
 
-    if (errorCount > 0) {
+    if (errorCount > 0 && successCount === 0) {
       setError(`${errorCount} factura(s) con errores`)
     }
   }
@@ -409,6 +446,14 @@ export default function UploadInvoiceTicket() {
                   </p>
                 </div>
               )}
+
+              {/* ⭐ AVISO IMPORTANTE sobre forma de pago */}
+              <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-3 mt-3 flex items-center gap-2">
+                <IconInfoCircle size={18} color="#D97706" />
+                <p className="text-sm text-yellow-800">
+                  <strong>Importante:</strong> Para cada factura deberás seleccionar la forma de pago antes de guardarla.
+                </p>
+              </div>
 
               {mode === 'select' && (
                 <div className="flex gap-2 mt-3">
@@ -576,16 +621,16 @@ export default function UploadInvoiceTicket() {
         )}
       </div>
 
-      {/* ⭐ NUEVO: Modal de forma de pago */}
-      {pendingInvoice && (
+      {/* ⭐ Modal de forma de pago (OBLIGATORIO) */}
+      {pendingInvoiceData && (
         <PaymentMethodModal
           isOpen={isModalOpen}
           onClose={handleModalClose}
           onConfirm={handlePaymentConfirm}
           invoiceData={{
-            supplierName: pendingInvoice.supplier_name || 'Proveedor',
-            totalAmount: pendingInvoice.total_amount || 0,
-            invoiceDate: pendingInvoice.invoice_date || new Date().toISOString().split('T')[0]
+            supplierName: pendingInvoiceData.analysis.supplier || 'Proveedor',
+            totalAmount: pendingInvoiceData.analysis.total_amount || 0,
+            invoiceDate: pendingInvoiceData.analysis.invoice_date || new Date().toISOString().split('T')[0]
           }}
         />
       )}
