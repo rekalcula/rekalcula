@@ -19,6 +19,9 @@ export default async function AnalyticsPage() {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]
 
+  // ========================================
+  // 1. OBTENER VENTAS
+  // ========================================
   const { data: sales } = await supabase
     .from('sales')
     .select('*, sale_items(*)')
@@ -26,33 +29,53 @@ export default async function AnalyticsPage() {
     .gte('sale_date', startOfMonth)
     .lte('sale_date', endOfMonth)
 
+  // ========================================
+  // 2. OBTENER COSTES FIJOS
+  // ========================================
   const { data: fixedCosts } = await supabase
     .from('fixed_costs')
     .select('*, fixed_cost_categories(*)')
     .eq('user_id', userId)
-    .eq('is_active', true)
 
+  // CORREGIDO: Filtrar en JavaScript para mayor flexibilidad
+  const activeFixedCosts = (fixedCosts || []).filter(cost => {
+    if (cost.is_active === false || cost.is_active === 'false') return false
+    if (cost.active === false || cost.active === 'false') return false
+    return true
+  })
+
+  // ========================================
+  // 3. OBTENER FACTURAS DE COMPRA (COSTES VARIABLES)
+  // ========================================
+  const { data: invoices } = await supabase
+    .from('invoices')
+    .select('*')
+    .eq('user_id', userId)
+    .gte('invoice_date', startOfMonth)
+    .lte('invoice_date', endOfMonth)
+
+  // ========================================
+  // 4. CALCULAR TOTALES
+  // ========================================
   const totalSales = (sales || []).reduce((sum, sale) => sum + (sale.total || 0), 0)
   
-  const totalVariableCosts = (sales || []).reduce((sum, sale) => {
-    return sum + (sale.sale_items || []).reduce((itemSum: number, item: any) =>
-      itemSum + ((item.cost_price || 0) * (item.quantity || 0)), 0)
-  }, 0)
+  // CORREGIDO: Costes variables = Facturas de compra (materia prima, productos, etc.)
+  const totalVariableCosts = (invoices || []).reduce((sum, inv) => sum + (inv.total_amount || 0), 0)
 
   let rentCosts = 0
   let laborCosts = 0
   let otherFixedCosts = 0
 
-  const totalFixedCosts = (fixedCosts || []).reduce((sum, cost) => {
-    let monthly = cost.amount
-    if (cost.frequency === 'quarterly') monthly = cost.amount / 3
-    if (cost.frequency === 'yearly') monthly = cost.amount / 12
+  const totalFixedCosts = activeFixedCosts.reduce((sum, cost) => {
+    let monthly = cost.amount || 0
+    if (cost.frequency === 'quarterly') monthly = monthly / 3
+    if (cost.frequency === 'yearly' || cost.frequency === 'annual') monthly = monthly / 12
 
-    const categoryName = cost.fixed_cost_categories?.name?.toLowerCase() || ''
+    const categoryName = cost.fixed_cost_categories?.name?.toLowerCase() || cost.category?.toLowerCase() || ''
     
-    if (categoryName.includes('alquiler') || categoryName.includes('hipoteca')) {
+    if (categoryName.includes('alquiler') || categoryName.includes('hipoteca') || categoryName.includes('local')) {
       rentCosts += monthly
-    } else if (categoryName.includes('personal') || categoryName.includes('salario')) {
+    } else if (categoryName.includes('personal') || categoryName.includes('salario') || categoryName.includes('nomina') || categoryName.includes('laboral')) {
       laborCosts += monthly
     } else {
       otherFixedCosts += monthly
@@ -61,8 +84,14 @@ export default async function AnalyticsPage() {
     return sum + monthly
   }, 0)
 
+  // ========================================
+  // 5. CALCULAR METRICAS FINANCIERAS
+  // ========================================
+  const grossProfit = totalSales - totalVariableCosts
+  const netProfit = grossProfit - totalFixedCosts
+  
   const contributionMargin = totalSales > 0
-    ? (totalSales - totalVariableCosts) / totalSales
+    ? grossProfit / totalSales
     : 0
 
   const breakEvenPoint = contributionMargin > 0
@@ -73,8 +102,8 @@ export default async function AnalyticsPage() {
     totalSales,
     totalVariableCosts,
     totalFixedCosts,
-    grossProfit: totalSales - totalVariableCosts,
-    netProfit: totalSales - totalVariableCosts - totalFixedCosts,
+    grossProfit,
+    netProfit,
     contributionMargin: contributionMargin * 100,
     breakEvenPoint,
     salesAboveBreakEven: totalSales - breakEvenPoint
@@ -86,8 +115,8 @@ export default async function AnalyticsPage() {
     totalFixedCosts,
     rentCosts,
     laborCosts,
-    grossProfit: totalSales - totalVariableCosts,
-    netProfit: totalSales - totalVariableCosts - totalFixedCosts
+    grossProfit,
+    netProfit
   }
 
   const periodo = now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
@@ -98,7 +127,7 @@ export default async function AnalyticsPage() {
       <div className="min-h-screen bg-[#262626]">
         <div className="max-w-6xl mx-auto px-4 py-8">
           {/* ========================================
-              HEADER - Móvil: vertical / Desktop: horizontal
+              HEADER - Movil: vertical / Desktop: horizontal
               ======================================== */}
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 md:gap-0 mb-8">
             <div>
