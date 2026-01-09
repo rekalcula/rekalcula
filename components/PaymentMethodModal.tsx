@@ -2,7 +2,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, AlertCircle, Calendar, CreditCard, Banknote, FileText } from 'lucide-react'
+import { AlertCircle, Calendar, CreditCard, Banknote, FileText, Building } from 'lucide-react'
 
 interface PaymentMethodModalProps {
   isOpen: boolean
@@ -25,6 +25,7 @@ const PAYMENT_METHODS = [
   { value: 'cash', label: 'Efectivo', icon: Banknote, description: 'Pago inmediato en efectivo' },
   { value: 'card', label: 'Tarjeta', icon: CreditCard, description: 'Pago inmediato con tarjeta' },
   { value: 'transfer', label: 'Transferencia', icon: FileText, description: 'Transferencia bancaria' },
+  { value: 'direct_debit', label: 'Domiciliación', icon: Building, description: 'Domiciliación bancaria' },
   { value: 'check', label: 'Cheque', icon: FileText, description: 'Pago con cheque' },
   { value: 'deferred', label: 'Aplazado', icon: Calendar, description: 'Pago aplazado' }
 ]
@@ -110,11 +111,28 @@ export default function PaymentMethodModal({
       }
 
       await onConfirm(paymentData)
-      onClose()
+      // El modal se cierra desde el componente padre después de guardar
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al confirmar forma de pago')
-    } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  // ⭐ Manejar intento de cerrar - mostrar advertencia
+  const handleCloseAttempt = () => {
+    if (isSubmitting) return
+    
+    // Mostrar advertencia de que es obligatorio
+    setError('⚠️ Debes seleccionar una forma de pago para guardar la factura. Si cancelas, la factura no se guardará.')
+    
+    // Llamar onClose después de un momento si el usuario realmente quiere cancelar
+    // Esto permite que el usuario vea la advertencia primero
+  }
+
+  // ⭐ Cancelar realmente (sin guardar la factura)
+  const handleCancel = () => {
+    if (window.confirm('¿Estás seguro? Si cancelas, esta factura NO se guardará y deberás subirla de nuevo.')) {
+      onClose()
     }
   }
 
@@ -130,26 +148,17 @@ export default function PaymentMethodModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
       <div className="bg-[#1a1a1a] border border-[#d98c21] rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="sticky top-0 bg-[#1a1a1a] border-b border-[#d98c21]/30 p-6 flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <AlertCircle className="w-6 h-6 text-[#d98c21]" />
-              <h2 className="text-2xl font-bold text-white">
-                Forma de pago requerida
-              </h2>
-            </div>
-            <p className="text-gray-400 text-sm">
-              Para analizar correctamente tu flujo de caja (cash flow), necesitamos saber cómo pagaste esta factura.
-            </p>
+        {/* Header - SIN botón X de cerrar */}
+        <div className="sticky top-0 bg-[#1a1a1a] border-b border-[#d98c21]/30 p-6">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertCircle className="w-6 h-6 text-[#d98c21]" />
+            <h2 className="text-2xl font-bold text-white">
+              Forma de pago requerida
+            </h2>
           </div>
-          <button
-            onClick={onClose}
-            disabled={isSubmitting}
-            className="text-gray-400 hover:text-white transition disabled:opacity-50"
-          >
-            <X className="w-6 h-6" />
-          </button>
+          <p className="text-gray-400 text-sm">
+            <strong className="text-[#d98c21]">Paso obligatorio:</strong> Selecciona cómo pagaste o pagarás esta factura para que podamos calcular correctamente tu cash flow.
+          </p>
         </div>
 
         {/* Información de la factura */}
@@ -179,7 +188,7 @@ export default function PaymentMethodModal({
           {/* Selección de método de pago */}
           <div>
             <label className="block text-white font-medium mb-3">
-              ¿Cómo pagaste/pagarás esta factura?
+              ¿Cómo pagaste/pagarás esta factura? <span className="text-red-400">*</span>
             </label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {PAYMENT_METHODS.map((method) => {
@@ -215,7 +224,7 @@ export default function PaymentMethodModal({
           {selectedMethod && (
             <div>
               <label className="block text-white font-medium mb-3">
-                Plazo de pago
+                Plazo de pago <span className="text-red-400">*</span>
               </label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {PAYMENT_TERMS.map((term) => (
@@ -247,7 +256,7 @@ export default function PaymentMethodModal({
           {selectedTerms === 'custom' && (
             <div>
               <label className="block text-white font-medium mb-2">
-                Fecha de vencimiento
+                Fecha de vencimiento <span className="text-red-400">*</span>
               </label>
               <input
                 type="date"
@@ -270,27 +279,29 @@ export default function PaymentMethodModal({
           {/* Información importante */}
           <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
             <p className="text-blue-300 text-sm">
-              ℹ️ Una vez confirmado, guardaremos solo los datos económicos necesarios para tus análisis, 
-              eliminando la información personal del proveedor según nuestra política de privacidad.
+              ℹ️ Esta información es necesaria para calcular tu flujo de caja (cash flow) y el resultado de tu empresa de forma precisa.
             </p>
           </div>
         </div>
 
         {/* Footer */}
         <div className="sticky bottom-0 bg-[#1a1a1a] border-t border-[#d98c21]/30 p-6 flex gap-3">
+          {/* Botón cancelar con advertencia */}
           <button
-            onClick={onClose}
+            onClick={handleCancel}
             disabled={isSubmitting}
             className="flex-1 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition disabled:opacity-50"
           >
-            Cancelar
+            Cancelar (no guardar)
           </button>
+          
+          {/* Botón confirmar */}
           <button
             onClick={handleConfirm}
             disabled={isSubmitting || !selectedMethod || !selectedTerms}
             className="flex-1 px-6 py-3 bg-[#d98c21] hover:bg-[#c17a1a] text-white rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? 'Confirmando...' : 'Confirmar y continuar →'}
+            {isSubmitting ? 'Guardando...' : 'Confirmar y guardar →'}
           </button>
         </div>
       </div>
