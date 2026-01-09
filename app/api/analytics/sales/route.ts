@@ -84,6 +84,9 @@ export async function GET(request: NextRequest) {
     let totalRevenue = 0
 
     for (const sale of currentSales || []) {
+      // Sumar el total de la venta directamente
+      totalRevenue += sale.total || 0
+      
       for (const item of sale.sale_items || []) {
         const productName = item.product_name || 'Otros'
         const normalizedName = normalizeProductName(productName)
@@ -95,7 +98,6 @@ export async function GET(request: NextRequest) {
         productStats[normalizedName].quantity += item.quantity || 1
         productStats[normalizedName].revenue += item.total || 0
         totalQuantity += item.quantity || 1
-        totalRevenue += item.total || 0
       }
     }
 
