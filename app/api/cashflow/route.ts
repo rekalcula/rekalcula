@@ -132,17 +132,17 @@ export async function GET(request: NextRequest) {
     if (errorFacturas) console.error('Error obteniendo facturas:', errorFacturas);
 
     // ========================================
-    // OBTENER COSTOS FIJOS
+    // OBTENER COSTOS FIJOS - ✅ CORREGIDO
     // ========================================
     const { data: costosFijos, error: errorCostos } = await supabase
       .from('fixed_costs')
-      .select('id, name, amount, frequency, active')
+      .select('id, name, amount, frequency, is_active')
       .eq('user_id', userId);
 
     if (errorCostos) console.error('Error obteniendo costos fijos:', errorCostos);
 
     const activeCosts = (costosFijos || []).filter(cost => {
-      if (cost.active === false || cost.active === 'false') return false;
+      if (cost.is_active === false || cost.is_active === 'false') return false;
       return true;
     });
 
