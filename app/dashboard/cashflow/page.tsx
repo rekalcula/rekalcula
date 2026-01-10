@@ -11,7 +11,9 @@ import {
   RefreshCw,
   AlertCircle,
   CheckCircle2,
-  Clock
+  Clock,
+  Receipt,
+  Building2
 } from 'lucide-react';
 import CashFlowChart from '@/components/CashFlowChart';
 
@@ -25,7 +27,13 @@ interface CashFlowData {
     total: number;
     pagado: number;
     pendiente: number;
-    costosFijos: number;
+    desglose?: {
+      facturas: number;
+      facturasPagadas: number;
+      facturasPendientes: number;
+      costosFijos: number;
+      costosFijosMensuales: number;
+    };
   };
   balance: number;
   proximosCobros: Array<{
@@ -47,13 +55,21 @@ interface CashFlowData {
   }>;
   mesesEnPeriodo?: number;
   costosFijosMensuales?: number;
+  resumen?: {
+    periodoMeses: number;
+    ventasTotales: number;
+    comprasTotales: number;
+    costosFijosTotales: number;
+    gastosTotales: number;
+    beneficioBruto: number;
+  };
 }
 
 type PeriodoTipo = 'mes' | '3meses' | '6meses' | 'all';
 
 export default function CashFlowPage() {
   const { user } = useUser();
-  const [periodo, setPeriodo] = useState<PeriodoTipo>('all'); // CAMBIADO: Por defecto "all"
+  const [periodo, setPeriodo] = useState<PeriodoTipo>('all');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState<CashFlowData | null>(null);
@@ -73,8 +89,8 @@ export default function CashFlowPage() {
       setError('No se pudieron cargar los datos del Cash Flow');
       setData({
         entradas: { total: 0, cobrado: 0, pendiente: 0 },
-        salidas: { total: 6000, pagado: 0, pendiente: 6000, costosFijos: 6000 },
-        balance: -6000,
+        salidas: { total: 0, pagado: 0, pendiente: 0 },
+        balance: 0,
         proximosCobros: [],
         proximosPagos: [],
         datosHistoricos: []
@@ -128,6 +144,11 @@ export default function CashFlowPage() {
   const balancePositivo = balance >= 0;
   const mesesEnPeriodo = data?.mesesEnPeriodo || 1;
 
+  // Desglose de salidas
+  const facturasCompra = data?.salidas.desglose?.facturas || 0;
+  const costosFijosPeriodo = data?.salidas.desglose?.costosFijos || 0;
+  const costosFijosMensuales = data?.salidas.desglose?.costosFijosMensuales || data?.costosFijosMensuales || 0;
+
   return (
     <div className="min-h-screen bg-[#262626]">
       <div className="max-w-6xl mx-auto px-4 py-8">
@@ -139,7 +160,6 @@ export default function CashFlowPage() {
               <p className="mt-2 text-[#FFFCFF] text-[20px]">
                 Controla tus cobros y pagos en tiempo real
               </p>
-              {/* Mostrar período analizado */}
               {periodo === 'all' && mesesEnPeriodo > 1 && (
                 <p className="mt-1 text-gray-400 text-sm">
                   Período analizado: {Math.round(mesesEnPeriodo * 10) / 10} meses
@@ -148,7 +168,7 @@ export default function CashFlowPage() {
             </div>
             
             <div className="flex items-center gap-2">
-              {/* Selector de período - AÑADIDA OPCIÓN "Todo" */}
+              {/* Selector de período */}
               <div className="flex bg-[#1a1a1a] rounded-lg p-1 border border-gray-700">
                 {[
                   { value: 'all', label: 'Todo' },
@@ -169,7 +189,6 @@ export default function CashFlowPage() {
                 ))}
               </div>
               
-              {/* Botón refrescar */}
               <button
                 onClick={handleRefresh}
                 disabled={refreshing}
@@ -204,7 +223,7 @@ export default function CashFlowPage() {
                 pendienteCobro={data?.entradas.pendiente || 0}
                 pagado={data?.salidas.pagado || 0}
                 pendientePago={data?.salidas.pendiente || 0}
-                costosFijos={data?.salidas.costosFijos || 0}
+                costosFijos={costosFijosPeriodo}
                 periodo={periodo}
                 datosHistoricos={data?.datosHistoricos}
               />
@@ -214,10 +233,11 @@ export default function CashFlowPage() {
             <div className="space-y-4">
               {/* Tarjetas de Entradas, Salidas, Balance */}
               <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3 gap-4">
-                {/* Entradas (Cobros) */}
+                
+                {/* ENTRADAS (Cobros) */}
                 <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-emerald-700 text-sm font-medium">Entradas (Cobros)</span>
+                    <span className="text-emerald-700 text-sm font-medium">Entradas (Ventas)</span>
                     <ArrowDownCircle className="w-5 h-5 text-emerald-500" />
                   </div>
                   <p className="text-2xl font-bold text-emerald-800">
@@ -235,30 +255,30 @@ export default function CashFlowPage() {
                   </div>
                 </div>
 
-                {/* Salidas (Pagos) */}
+                {/* SALIDAS (Pagos) - CON DESGLOSE COMPLETO */}
                 <div className="bg-red-50 rounded-xl p-4 border border-red-100">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-red-700 text-sm font-medium">Salidas (Pagos)</span>
+                    <span className="text-red-700 text-sm font-medium">Salidas (Gastos)</span>
                     <ArrowUpCircle className="w-5 h-5 text-red-500" />
                   </div>
                   <p className="text-2xl font-bold text-red-800">
                     {formatCurrency(salidas)}
                   </p>
-                  <div className="mt-3 space-y-1 text-xs">
+                  <div className="mt-3 space-y-1.5 text-xs">
+                    {/* Desglose: Facturas de compra */}
                     <div className="flex items-center gap-1.5 text-red-700">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Pagado: {formatCurrency(data?.salidas.pagado || 0)}</span>
+                      <Receipt className="w-3.5 h-3.5" />
+                      <span>Compras: {formatCurrency(facturasCompra)}</span>
                     </div>
+                    {/* Desglose: Costos fijos */}
                     <div className="flex items-center gap-1.5 text-red-600">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>Pendiente: {formatCurrency(data?.salidas.pendiente || 0)}</span>
+                      <Building2 className="w-3.5 h-3.5" />
+                      <span>Costos fijos: {formatCurrency(costosFijosPeriodo)}</span>
                     </div>
-                    {(data?.salidas.costosFijos || 0) > 0 && (
-                      <p className="text-red-500 mt-1 pt-1 border-t border-red-200">
-                        {periodo === 'all' && mesesEnPeriodo > 1 
-                          ? `Incluye ${formatCurrency(data?.costosFijosMensuales || 0)}/mes × ${Math.round(mesesEnPeriodo * 10) / 10} meses`
-                          : `Incluye ${formatCurrency(data?.salidas.costosFijos || 0)} en costos fijos`
-                        }
+                    {/* Info adicional de costos fijos */}
+                    {periodo === 'all' && mesesEnPeriodo > 1 && costosFijosMensuales > 0 && (
+                      <p className="text-red-500 mt-1 pt-1 border-t border-red-200 text-[10px]">
+                        ({formatCurrency(costosFijosMensuales)}/mes × {Math.round(mesesEnPeriodo * 10) / 10} meses)
                       </p>
                     )}
                   </div>
@@ -296,6 +316,39 @@ export default function CashFlowPage() {
                   </p>
                 </div>
               </div>
+
+              {/* RESUMEN DETALLADO DEL PERÍODO */}
+              {data?.resumen && (
+                <div className="bg-[#1a1a1a] rounded-xl p-4 border border-[#3a3a3a]">
+                  <h3 className="text-sm font-semibold text-[#d98c21] mb-3 flex items-center gap-2">
+                    📊 Resumen del Período ({Math.round(mesesEnPeriodo * 10) / 10} meses)
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Ventas:</span>
+                      <span className="text-emerald-400 font-medium">{formatCurrency(data.resumen.ventasTotales)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Compras:</span>
+                      <span className="text-red-400 font-medium">{formatCurrency(data.resumen.comprasTotales)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Costos fijos:</span>
+                      <span className="text-red-400 font-medium">{formatCurrency(data.resumen.costosFijosTotales)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Total gastos:</span>
+                      <span className="text-red-400 font-medium">{formatCurrency(data.resumen.gastosTotales)}</span>
+                    </div>
+                    <div className="col-span-2 pt-2 mt-2 border-t border-[#3a3a3a] flex justify-between">
+                      <span className="text-white font-medium">Beneficio bruto:</span>
+                      <span className={`font-bold ${data.resumen.beneficioBruto >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {formatCurrency(data.resumen.beneficioBruto)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Próximos cobros y pagos */}
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
