@@ -26,16 +26,27 @@ const METODOS_PAGO_CONTADO = [
   'paypal'
 ];
 
+// ========================================
 // Función para verificar si una venta está cobrada
+// LÓGICA MEJORADA:
+// 1. payment_status = 'paid' → cobrada
+// 2. source = 'ticket' → cobrada (tickets de caja siempre se pagan al momento)
+// 3. payment_method es al contado → cobrada
+// 4. actual_payment_date existe → cobrada
+// ========================================
 function ventaEstaCobrada(venta: any): boolean {
   // 1. Si tiene payment_status = 'paid', está cobrada
   if (venta.payment_status === 'paid') return true;
   
-  // 2. Si el método de pago es al contado, está cobrada automáticamente
+  // 2. NUEVO: Si es un ticket de caja, está cobrada automáticamente
+  // Los tickets de venta (source = 'ticket') siempre se pagan en el momento
+  if (venta.source === 'ticket') return true;
+  
+  // 3. Si el método de pago es al contado, está cobrada automáticamente
   const metodoPago = (venta.payment_method || '').toLowerCase().trim();
   if (metodoPago && METODOS_PAGO_CONTADO.includes(metodoPago)) return true;
   
-  // 3. Si tiene actual_payment_date, está cobrada
+  // 4. Si tiene actual_payment_date, está cobrada
   if (venta.actual_payment_date) return true;
   
   return false;
@@ -49,12 +60,9 @@ function facturaEstaPagada(factura: any): boolean {
   // 2. Si payment_confirmed es true, está pagada
   if (factura.payment_confirmed === true) return true;
   
-  // 3. Si el método de pago es al contado y tiene fecha, está pagada
+  // 3. Si el método de pago es al contado, está pagada
   const metodoPago = (factura.payment_method || '').toLowerCase().trim();
-  if (metodoPago && METODOS_PAGO_CONTADO.includes(metodoPago)) {
-    // Si tiene método de pago al contado, asumimos que está pagada
-    return true;
-  }
+  if (metodoPago && METODOS_PAGO_CONTADO.includes(metodoPago)) return true;
   
   // 4. Si tiene actual_payment_date, está pagada
   if (factura.actual_payment_date) return true;
@@ -138,11 +146,11 @@ export async function GET(request: NextRequest) {
 
     // ========================================
     // OBTENER VENTAS (ENTRADAS/COBROS)
-    // Incluimos payment_method para detectar pagos al contado
+    // Incluimos 'source' para detectar tickets
     // ========================================
     const { data: ventas, error: errorVentas } = await supabase
       .from('sales')
-      .select('id, total, payment_status, payment_method, payment_due_date, actual_payment_date, customer_name, sale_date, created_at')
+      .select('id, total, payment_status, payment_method, payment_due_date, actual_payment_date, customer_name, sale_date, created_at, source')
       .eq('user_id', userId)
       .gte('sale_date', startDate.toISOString().split('T')[0])
       .lte('sale_date', now.toISOString().split('T')[0]);
@@ -185,11 +193,10 @@ export async function GET(request: NextRequest) {
 
     // ========================================
     // CALCULAR TOTALES DE ENTRADAS (VENTAS)
-    // CORREGIDO: Usar función que detecta pagos al contado
     // ========================================
     const totalVentas = ventas?.reduce((sum, v) => sum + (v.total || 0), 0) || 0;
     
-    // CORREGIDO: Ventas cobradas incluyen las pagadas al contado
+    // Ventas cobradas (usando la función mejorada)
     const ventasCobradas = ventas
       ?.filter(v => ventaEstaCobrada(v))
       .reduce((sum, v) => sum + (v.total || 0), 0) || 0;
@@ -198,11 +205,10 @@ export async function GET(request: NextRequest) {
 
     // ========================================
     // CALCULAR TOTALES DE SALIDAS (FACTURAS)
-    // CORREGIDO: Usar función que detecta pagos al contado
     // ========================================
     const totalFacturas = facturas?.reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
     
-    // CORREGIDO: Facturas pagadas incluyen las pagadas al contado
+    // Facturas pagadas (usando la función mejorada)
     const facturasPagadas = facturas
       ?.filter(f => facturaEstaPagada(f))
       .reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
@@ -263,32 +269,29 @@ export async function GET(request: NextRequest) {
     }
 
     // ========================================
-    // PRÓXIMOS COBROS (VENTAS PENDIENTES)
-    // CORREGIDO: Excluir ventas al contado
+    // PRÓXIMOS COBROS (SOLO VENTAS REALMENTE PENDIENTES)
     // ========================================
     const ahora = new Date();
     const en30Dias = new Date(ahora);
     en30Dias.setDate(ahora.getDate() + 30);
 
-    // CORREGIDO: Solo mostrar ventas que realmente están pendientes
-    // (excluir las pagadas al contado)
+    // Solo mostrar ventas que NO están cobradas
     const proximosCobros = ventas
       ?.filter(v => {
-        // Si ya está cobrada (incluye pagos al contado), no mostrar
+        // Si está cobrada (ticket, pago al contado, etc.), NO mostrar
         if (ventaEstaCobrada(v)) return false;
         
-        // Si tiene fecha de vencimiento, verificar que sea en los próximos 30 días
+        // Si tiene fecha de vencimiento futura, mostrar
         if (v.payment_due_date) {
           const vencimiento = new Date(v.payment_due_date);
-          return vencimiento <= en30Dias;
+          return vencimiento >= ahora && vencimiento <= en30Dias;
         }
         
-        // Si no tiene fecha de vencimiento pero está pendiente, mostrar
-        return true;
+        return false; // Si no tiene fecha de vencimiento y no está cobrada, no mostrar
       })
       .sort((a, b) => {
-        const dateA = a.payment_due_date ? new Date(a.payment_due_date).getTime() : new Date(a.sale_date || a.created_at).getTime();
-        const dateB = b.payment_due_date ? new Date(b.payment_due_date).getTime() : new Date(b.sale_date || b.created_at).getTime();
+        const dateA = a.payment_due_date ? new Date(a.payment_due_date).getTime() : 0;
+        const dateB = b.payment_due_date ? new Date(b.payment_due_date).getTime() : 0;
         return dateA - dateB;
       })
       .slice(0, 5)
@@ -300,40 +303,33 @@ export async function GET(request: NextRequest) {
       })) || [];
 
     // ========================================
-    // PRÓXIMOS PAGOS (FACTURAS PENDIENTES)
-    // CORREGIDO: Excluir facturas al contado
+    // PRÓXIMOS PAGOS (SOLO FACTURAS REALMENTE PENDIENTES)
     // ========================================
-    const facturasProximasAPagar = facturas
+    const proximosPagos = facturas
       ?.filter(f => {
-        // Si ya está pagada (incluye pagos al contado), no mostrar
+        // Si está pagada, NO mostrar
         if (facturaEstaPagada(f)) return false;
         
-        // Si tiene fecha de vencimiento, verificar que sea en los próximos 30 días
+        // Si tiene fecha de vencimiento futura, mostrar
         if (f.payment_due_date) {
           const vencimiento = new Date(f.payment_due_date);
-          return vencimiento <= en30Dias;
+          return vencimiento >= ahora && vencimiento <= en30Dias;
         }
         
-        // Si no tiene fecha de vencimiento pero está pendiente, mostrar
-        return true;
+        return false; // Si no tiene fecha de vencimiento y no está pagada, no mostrar
       })
       .sort((a, b) => {
-        const dateA = a.payment_due_date ? new Date(a.payment_due_date).getTime() : new Date(a.invoice_date).getTime();
-        const dateB = b.payment_due_date ? new Date(b.payment_due_date).getTime() : new Date(b.invoice_date).getTime();
+        const dateA = a.payment_due_date ? new Date(a.payment_due_date).getTime() : 0;
+        const dateB = b.payment_due_date ? new Date(b.payment_due_date).getTime() : 0;
         return dateA - dateB;
       })
-      .slice(0, 3)
+      .slice(0, 5)
       .map(f => ({
         id: String(f.id),
         concepto: f.supplier || `Factura ${f.category || 'compra'}`,
         monto: f.total_amount || 0,
         fecha: f.payment_due_date || f.invoice_date
       })) || [];
-
-    // Solo añadir costos fijos a próximos pagos si no hay facturas pendientes suficientes
-    const proximosPagos = facturasProximasAPagar.length > 0 
-      ? facturasProximasAPagar.slice(0, 5)
-      : [];
 
     // ========================================
     // RESPUESTA
