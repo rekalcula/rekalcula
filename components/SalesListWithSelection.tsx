@@ -9,6 +9,7 @@ interface Sale {
   id: string
   sale_date: string | null
   total: number | null
+  subtotal: number | null  // ⭐ AÑADIDO: campo subtotal
   source: string | null
   payment_method: string | null
   notes: string | null
@@ -144,6 +145,11 @@ export default function SalesListWithSelection({
     }
   }
 
+  // ⭐ HELPER: Obtener base imponible (subtotal o total como fallback)
+  const getBaseAmount = (sale: Sale): number => {
+    return sale.subtotal || sale.total || 0
+  }
+
   return (
     <>
       {/* Barra de selección */}
@@ -198,7 +204,8 @@ export default function SalesListWithSelection({
           <>
             {sortedDates.map((date) => {
               const dateSales = salesByDate[date]
-              const dateTotal = dateSales.reduce((sum: number, s: any) => sum + (s.total || 0), 0)
+              // ⭐ CORRECCIÓN: Usar subtotal (base imponible) en vez de total
+              const dateTotal = dateSales.reduce((sum: number, s: any) => sum + getBaseAmount(s), 0)
               const formattedDate = date !== 'sin-fecha'
                 ? new Date(date).toLocaleDateString('es-ES', {
                     weekday: 'long',
@@ -269,8 +276,9 @@ export default function SalesListWithSelection({
                             </div>
 
                             <div className="text-right ml-4">
+                              {/* ⭐ CORRECCIÓN: Mostrar base imponible (subtotal) */}
                               <p className="text-lg font-bold text-gray-900">
-                                €{sale.total?.toFixed(2) || '0.00'}
+                                €{getBaseAmount(sale).toFixed(2)}
                               </p>
                             </div>
                           </div>

@@ -1,4 +1,5 @@
-// Updated: 2026-01-10 - CORRECCIÓN CONTABLE: Mostrar Base Imponible
+// app/dashboard/sales/[id]/page.tsx
+// CORREGIDO: 2026-01-10 - Usar subtotal como base imponible
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
@@ -21,7 +22,6 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
 
   const { id } = await params
 
-  // Obtener la venta con sus items
   const { data: sale, error } = await supabase
     .from('sales')
     .select('*, sale_items(*)')
@@ -50,7 +50,6 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
     minute: '2-digit'
   })
 
-  // Extraer nombre de archivo de la URL
   const getFileName = (url: string) => {
     if (!url) return 'ticket'
     const parts = url.split('/')
@@ -58,19 +57,21 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
   }
 
   // ========================================
-  // ⭐ CÁLCULO CONTABLE
-  // Determinar si mostrar desglose de IVA
+  // ⭐ CÁLCULO CONTABLE CORREGIDO
+  // La base imponible está en SUBTOTAL, no en total
   // ========================================
-  const hasVatBreakdown = sale.tax_amount && sale.tax_amount > 0
-  const grossTotal = sale.gross_total || (sale.total + (sale.tax_amount || 0))
-  const baseAmount = sale.total // El campo total ahora es la base imponible
+  const taxAmount = sale.tax_amount || 0
+  const hasVatBreakdown = taxAmount > 0
+  
+  // ⭐ CORRECCIÓN: Usar subtotal como base imponible
+  const baseAmount = sale.subtotal || sale.total
+  const grossTotal = sale.gross_total || sale.total
 
   return (
     <>
       <DashboardNav />
       <div className="min-h-screen bg-[#262626]">
         <div className="max-w-6xl mx-auto px-4 py-8">
-          {/* Boton volver */}
           <Link
             href="/dashboard/sales"
             className="text-[#ACACAC] hover:text-white font-medium text-xl mb-4 inline-block"
@@ -79,9 +80,7 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
           </Link>
 
           <div className="grid lg:grid-cols-2 gap-8">
-            {/* Columna izquierda - Detalles */}
             <div className="space-y-6">
-              {/* Info principal */}
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <div className="flex items-center space-x-2 mb-4">
                   <span className={`text-xs px-2 py-1 rounded-full ${
@@ -107,10 +106,7 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
                   </>
                 )}
 
-                {/* ========================================
-                    ⭐ SECCIÓN CONTABLE CORREGIDA
-                    Mostrar Base Imponible como valor principal
-                    ======================================== */}
+                {/* ⭐ SECCIÓN CONTABLE - Usa baseAmount (subtotal) */}
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
                   <p className="text-sm text-green-700 font-medium">Base Imponible (Contable)</p>
                   <p className="text-3xl font-bold text-green-600">
@@ -121,7 +117,6 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
                   </p>
                 </div>
 
-                {/* Desglose de IVA si existe */}
                 {hasVatBreakdown && (
                   <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
                     <p className="text-sm text-gray-500 font-medium mb-2">Desglose fiscal:</p>
@@ -132,7 +127,7 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">IVA:</span>
-                        <span className="font-medium">€{sale.tax_amount?.toFixed(2)}</span>
+                        <span className="font-medium">€{taxAmount?.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between pt-1 border-t border-gray-300">
                         <span className="text-gray-700 font-medium">Total bruto (con IVA):</span>
@@ -161,7 +156,6 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
                 </div>
               </div>
 
-              {/* Items */}
               {sale.sale_items && sale.sale_items.length > 0 && (
                 <div className="bg-white rounded-xl shadow-sm p-6">
                   <h2 className="text-lg font-bold text-gray-900 mb-4">
@@ -183,7 +177,6 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
                     ))}
                   </div>
 
-                  {/* Resumen corregido */}
                   <div className="mt-4 pt-4 border-t">
                     <div className="flex justify-between text-sm mb-2">
                       <span className="text-gray-500">Base imponible</span>
@@ -193,7 +186,7 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
                       <>
                         <div className="flex justify-between text-sm mb-2">
                           <span className="text-gray-500">IVA</span>
-                          <span className="text-gray-900">€{sale.tax_amount?.toFixed(2)}</span>
+                          <span className="text-gray-900">€{taxAmount?.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-sm mb-2">
                           <span className="text-gray-500">Total bruto</span>
@@ -210,9 +203,7 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
               )}
             </div>
 
-            {/* Columna derecha - Imagen y Acciones */}
             <div className="space-y-6">
-              {/* Imagen del ticket */}
               {sale.file_url && (
                 <div className="bg-white rounded-xl shadow-sm p-6">
                   <h2 className="text-lg font-bold text-gray-900 mb-4">Ticket</h2>
@@ -224,7 +215,6 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
                 </div>
               )}
 
-              {/* Acciones */}
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h2 className="text-lg font-bold text-gray-900 mb-4">Acciones</h2>
                 <DeleteSaleButton saleId={id} />
