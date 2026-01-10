@@ -9,64 +9,30 @@ const supabase = createClient(
 
 // ========================================
 // MÉTODOS DE PAGO AL CONTADO
-// (estas ventas se consideran cobradas automáticamente)
 // ========================================
 const METODOS_PAGO_CONTADO = [
-  'efectivo',
-  'cash',
-  'tarjeta',
-  'tarjeta_credito',
-  'tarjeta_debito',
-  'card',
-  'credit_card',
-  'debit_card',
-  'transferencia',
-  'transfer',
-  'bizum',
-  'paypal'
+  'efectivo', 'cash', 'tarjeta', 'tarjeta_credito', 'tarjeta_debito',
+  'card', 'credit_card', 'debit_card', 'transferencia', 'transfer',
+  'bizum', 'paypal'
 ];
 
-// ========================================
 // Función para verificar si una venta está cobrada
-// LÓGICA MEJORADA:
-// 1. payment_status = 'paid' → cobrada
-// 2. source = 'ticket' → cobrada (tickets de caja siempre se pagan al momento)
-// 3. payment_method es al contado → cobrada
-// 4. actual_payment_date existe → cobrada
-// ========================================
 function ventaEstaCobrada(venta: any): boolean {
-  // 1. Si tiene payment_status = 'paid', está cobrada
   if (venta.payment_status === 'paid') return true;
-  
-  // 2. NUEVO: Si es un ticket de caja, está cobrada automáticamente
-  // Los tickets de venta (source = 'ticket') siempre se pagan en el momento
   if (venta.source === 'ticket') return true;
-  
-  // 3. Si el método de pago es al contado, está cobrada automáticamente
   const metodoPago = (venta.payment_method || '').toLowerCase().trim();
   if (metodoPago && METODOS_PAGO_CONTADO.includes(metodoPago)) return true;
-  
-  // 4. Si tiene actual_payment_date, está cobrada
   if (venta.actual_payment_date) return true;
-  
   return false;
 }
 
 // Función para verificar si una factura está pagada
 function facturaEstaPagada(factura: any): boolean {
-  // 1. Si tiene payment_status = 'paid', está pagada
   if (factura.payment_status === 'paid') return true;
-  
-  // 2. Si payment_confirmed es true, está pagada
   if (factura.payment_confirmed === true) return true;
-  
-  // 3. Si el método de pago es al contado, está pagada
   const metodoPago = (factura.payment_method || '').toLowerCase().trim();
   if (metodoPago && METODOS_PAGO_CONTADO.includes(metodoPago)) return true;
-  
-  // 4. Si tiene actual_payment_date, está pagada
   if (factura.actual_payment_date) return true;
-  
   return false;
 }
 
@@ -90,7 +56,6 @@ export async function GET(request: NextRequest) {
     // ========================================
     
     if (periodo === 'all') {
-      // Detectar todo el rango de datos
       const { data: oldestSale } = await supabase
         .from('sales')
         .select('sale_date')
@@ -107,7 +72,6 @@ export async function GET(request: NextRequest) {
         .limit(1)
         .single();
 
-      // Usar la fecha más antigua
       if (oldestSale?.sale_date && oldestInvoice?.invoice_date) {
         startDate = new Date(oldestSale.sale_date < oldestInvoice.invoice_date 
           ? oldestSale.sale_date 
@@ -120,7 +84,6 @@ export async function GET(request: NextRequest) {
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
       }
 
-      // Calcular meses en el período
       const monthsDiff = (now.getFullYear() - startDate.getFullYear()) * 12 + 
                          (now.getMonth() - startDate.getMonth()) + 
                          (now.getDate() / 30);
@@ -138,15 +101,14 @@ export async function GET(request: NextRequest) {
           startDate.setMonth(now.getMonth() - 6);
           mesesEnPeriodo = 6;
           break;
-        default: // mes
+        default:
           startDate = new Date(now.getFullYear(), now.getMonth(), 1);
           mesesEnPeriodo = 1;
       }
     }
 
     // ========================================
-    // OBTENER VENTAS (ENTRADAS/COBROS)
-    // Incluimos 'source' para detectar tickets
+    // OBTENER VENTAS
     // ========================================
     const { data: ventas, error: errorVentas } = await supabase
       .from('sales')
@@ -155,12 +117,10 @@ export async function GET(request: NextRequest) {
       .gte('sale_date', startDate.toISOString().split('T')[0])
       .lte('sale_date', now.toISOString().split('T')[0]);
 
-    if (errorVentas) {
-      console.error('Error obteniendo ventas:', errorVentas);
-    }
+    if (errorVentas) console.error('Error obteniendo ventas:', errorVentas);
 
     // ========================================
-    // OBTENER FACTURAS (SALIDAS/PAGOS)
+    // OBTENER FACTURAS
     // ========================================
     const { data: facturas, error: errorFacturas } = await supabase
       .from('invoices')
@@ -169,9 +129,7 @@ export async function GET(request: NextRequest) {
       .gte('invoice_date', startDate.toISOString().split('T')[0])
       .lte('invoice_date', now.toISOString().split('T')[0]);
 
-    if (errorFacturas) {
-      console.error('Error obteniendo facturas:', errorFacturas);
-    }
+    if (errorFacturas) console.error('Error obteniendo facturas:', errorFacturas);
 
     // ========================================
     // OBTENER COSTOS FIJOS
@@ -181,38 +139,29 @@ export async function GET(request: NextRequest) {
       .select('id, name, amount, frequency, active')
       .eq('user_id', userId);
 
-    if (errorCostos) {
-      console.error('Error obteniendo costos fijos:', errorCostos);
-    }
+    if (errorCostos) console.error('Error obteniendo costos fijos:', errorCostos);
 
-    // Filtrar costos activos
     const activeCosts = (costosFijos || []).filter(cost => {
       if (cost.active === false || cost.active === 'false') return false;
       return true;
     });
 
     // ========================================
-    // CALCULAR TOTALES DE ENTRADAS (VENTAS)
+    // CALCULAR ENTRADAS (VENTAS)
     // ========================================
     const totalVentas = ventas?.reduce((sum, v) => sum + (v.total || 0), 0) || 0;
-    
-    // Ventas cobradas (usando la función mejorada)
     const ventasCobradas = ventas
       ?.filter(v => ventaEstaCobrada(v))
       .reduce((sum, v) => sum + (v.total || 0), 0) || 0;
-    
     const ventasPendientes = totalVentas - ventasCobradas;
 
     // ========================================
-    // CALCULAR TOTALES DE SALIDAS (FACTURAS)
+    // CALCULAR FACTURAS DE COMPRA
     // ========================================
     const totalFacturas = facturas?.reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
-    
-    // Facturas pagadas (usando la función mejorada)
     const facturasPagadas = facturas
       ?.filter(f => facturaEstaPagada(f))
       .reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
-    
     const facturasPendientes = totalFacturas - facturasPagadas;
 
     // ========================================
@@ -225,21 +174,27 @@ export async function GET(request: NextRequest) {
       return sum + mensual;
     }, 0);
 
-    // Multiplicar por los meses del período
+    // Total costos fijos del período (proporcional a los meses)
     const totalCostosFijos = costosFijosMensuales * mesesEnPeriodo;
 
-    // Total de salidas incluyendo costos fijos
+    // ========================================
+    // CALCULAR SALIDAS TOTALES
+    // Los costos fijos son gastos recurrentes que se pagan regularmente
+    // Por lo tanto, se consideran como "pagados" para el período analizado
+    // ========================================
     const totalSalidas = totalFacturas + totalCostosFijos;
-    const salidasPagadas = facturasPagadas;
-    const salidasPendientes = facturasPendientes + totalCostosFijos;
+    
+    // Pagado = facturas pagadas + costos fijos del período (ya ocurrieron)
+    const salidasPagadas = facturasPagadas + totalCostosFijos;
+    
+    // Pendiente = solo facturas de compra pendientes de pago
+    const salidasPendientes = facturasPendientes;
 
     // ========================================
     // GENERAR DATOS HISTÓRICOS POR MES
     // ========================================
     const datosHistoricos: Array<{ periodo: string; entradas: number; salidas: number }> = [];
     const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    
-    // Determinar cuántos meses mostrar (máximo 12)
     const mesesAMostrar = Math.min(Math.ceil(mesesEnPeriodo), 12);
     
     for (let i = mesesAMostrar - 1; i >= 0; i--) {
@@ -249,18 +204,17 @@ export async function GET(request: NextRequest) {
       const mesNombre = meses[mesIndex];
       const año = mesDate.getFullYear();
       
-      // Filtrar ventas del mes
       const ventasMes = ventas?.filter(v => {
         const fecha = new Date(v.sale_date || v.created_at);
         return fecha.getMonth() === mesIndex && fecha.getFullYear() === año;
       }).reduce((sum, v) => sum + (v.total || 0), 0) || 0;
 
-      // Filtrar facturas del mes
       const facturasMes = facturas?.filter(f => {
         const fecha = new Date(f.invoice_date);
         return fecha.getMonth() === mesIndex && fecha.getFullYear() === año;
       }).reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
 
+      // IMPORTANTE: Las salidas incluyen facturas + costos fijos mensuales
       datosHistoricos.push({
         periodo: mesNombre,
         entradas: ventasMes,
@@ -269,25 +223,20 @@ export async function GET(request: NextRequest) {
     }
 
     // ========================================
-    // PRÓXIMOS COBROS (SOLO VENTAS REALMENTE PENDIENTES)
+    // PRÓXIMOS COBROS (solo ventas realmente pendientes)
     // ========================================
     const ahora = new Date();
     const en30Dias = new Date(ahora);
     en30Dias.setDate(ahora.getDate() + 30);
 
-    // Solo mostrar ventas que NO están cobradas
     const proximosCobros = ventas
       ?.filter(v => {
-        // Si está cobrada (ticket, pago al contado, etc.), NO mostrar
         if (ventaEstaCobrada(v)) return false;
-        
-        // Si tiene fecha de vencimiento futura, mostrar
         if (v.payment_due_date) {
           const vencimiento = new Date(v.payment_due_date);
           return vencimiento >= ahora && vencimiento <= en30Dias;
         }
-        
-        return false; // Si no tiene fecha de vencimiento y no está cobrada, no mostrar
+        return false;
       })
       .sort((a, b) => {
         const dateA = a.payment_due_date ? new Date(a.payment_due_date).getTime() : 0;
@@ -303,20 +252,16 @@ export async function GET(request: NextRequest) {
       })) || [];
 
     // ========================================
-    // PRÓXIMOS PAGOS (SOLO FACTURAS REALMENTE PENDIENTES)
+    // PRÓXIMOS PAGOS (facturas pendientes)
     // ========================================
     const proximosPagos = facturas
       ?.filter(f => {
-        // Si está pagada, NO mostrar
         if (facturaEstaPagada(f)) return false;
-        
-        // Si tiene fecha de vencimiento futura, mostrar
         if (f.payment_due_date) {
           const vencimiento = new Date(f.payment_due_date);
           return vencimiento >= ahora && vencimiento <= en30Dias;
         }
-        
-        return false; // Si no tiene fecha de vencimiento y no está pagada, no mostrar
+        return false;
       })
       .sort((a, b) => {
         const dateA = a.payment_due_date ? new Date(a.payment_due_date).getTime() : 0;
@@ -332,7 +277,7 @@ export async function GET(request: NextRequest) {
       })) || [];
 
     // ========================================
-    // RESPUESTA
+    // RESPUESTA CON DESGLOSE COMPLETO
     // ========================================
     return NextResponse.json({
       entradas: {
@@ -344,14 +289,30 @@ export async function GET(request: NextRequest) {
         total: totalSalidas,
         pagado: salidasPagadas,
         pendiente: salidasPendientes,
-        costosFijos: totalCostosFijos
+        // NUEVO: Desglose detallado de salidas
+        desglose: {
+          facturas: totalFacturas,
+          facturasPagadas: facturasPagadas,
+          facturasPendientes: facturasPendientes,
+          costosFijos: totalCostosFijos,
+          costosFijosMensuales: costosFijosMensuales
+        }
       },
       balance: totalVentas - totalSalidas,
       proximosCobros,
       proximosPagos,
       datosHistoricos,
       mesesEnPeriodo: Math.round(mesesEnPeriodo * 10) / 10,
-      costosFijosMensuales
+      costosFijosMensuales,
+      // NUEVO: Resumen para información del usuario
+      resumen: {
+        periodoMeses: Math.round(mesesEnPeriodo * 10) / 10,
+        ventasTotales: totalVentas,
+        comprasTotales: totalFacturas,
+        costosFijosTotales: totalCostosFijos,
+        gastosTotales: totalSalidas,
+        beneficioBruto: totalVentas - totalSalidas
+      }
     });
 
   } catch (error) {
