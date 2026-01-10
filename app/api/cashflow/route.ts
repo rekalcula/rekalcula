@@ -7,6 +7,61 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+// ========================================
+// MÉTODOS DE PAGO AL CONTADO
+// (estas ventas se consideran cobradas automáticamente)
+// ========================================
+const METODOS_PAGO_CONTADO = [
+  'efectivo',
+  'cash',
+  'tarjeta',
+  'tarjeta_credito',
+  'tarjeta_debito',
+  'card',
+  'credit_card',
+  'debit_card',
+  'transferencia',
+  'transfer',
+  'bizum',
+  'paypal'
+];
+
+// Función para verificar si una venta está cobrada
+function ventaEstaCobrada(venta: any): boolean {
+  // 1. Si tiene payment_status = 'paid', está cobrada
+  if (venta.payment_status === 'paid') return true;
+  
+  // 2. Si el método de pago es al contado, está cobrada automáticamente
+  const metodoPago = (venta.payment_method || '').toLowerCase().trim();
+  if (metodoPago && METODOS_PAGO_CONTADO.includes(metodoPago)) return true;
+  
+  // 3. Si tiene actual_payment_date, está cobrada
+  if (venta.actual_payment_date) return true;
+  
+  return false;
+}
+
+// Función para verificar si una factura está pagada
+function facturaEstaPagada(factura: any): boolean {
+  // 1. Si tiene payment_status = 'paid', está pagada
+  if (factura.payment_status === 'paid') return true;
+  
+  // 2. Si payment_confirmed es true, está pagada
+  if (factura.payment_confirmed === true) return true;
+  
+  // 3. Si el método de pago es al contado y tiene fecha, está pagada
+  const metodoPago = (factura.payment_method || '').toLowerCase().trim();
+  if (metodoPago && METODOS_PAGO_CONTADO.includes(metodoPago)) {
+    // Si tiene método de pago al contado, asumimos que está pagada
+    return true;
+  }
+  
+  // 4. Si tiene actual_payment_date, está pagada
+  if (factura.actual_payment_date) return true;
+  
+  return false;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth();
@@ -27,7 +82,7 @@ export async function GET(request: NextRequest) {
     // ========================================
     
     if (periodo === 'all') {
-      // NUEVO: Detectar todo el rango de datos
+      // Detectar todo el rango de datos
       const { data: oldestSale } = await supabase
         .from('sales')
         .select('sale_date')
@@ -83,10 +138,11 @@ export async function GET(request: NextRequest) {
 
     // ========================================
     // OBTENER VENTAS (ENTRADAS/COBROS)
+    // Incluimos payment_method para detectar pagos al contado
     // ========================================
     const { data: ventas, error: errorVentas } = await supabase
       .from('sales')
-      .select('id, total, payment_status, payment_due_date, actual_payment_date, customer_name, sale_date, created_at')
+      .select('id, total, payment_status, payment_method, payment_due_date, actual_payment_date, customer_name, sale_date, created_at')
       .eq('user_id', userId)
       .gte('sale_date', startDate.toISOString().split('T')[0])
       .lte('sale_date', now.toISOString().split('T')[0]);
@@ -129,22 +185,26 @@ export async function GET(request: NextRequest) {
 
     // ========================================
     // CALCULAR TOTALES DE ENTRADAS (VENTAS)
+    // CORREGIDO: Usar función que detecta pagos al contado
     // ========================================
     const totalVentas = ventas?.reduce((sum, v) => sum + (v.total || 0), 0) || 0;
     
+    // CORREGIDO: Ventas cobradas incluyen las pagadas al contado
     const ventasCobradas = ventas
-      ?.filter(v => v.payment_status === 'paid')
+      ?.filter(v => ventaEstaCobrada(v))
       .reduce((sum, v) => sum + (v.total || 0), 0) || 0;
     
     const ventasPendientes = totalVentas - ventasCobradas;
 
     // ========================================
     // CALCULAR TOTALES DE SALIDAS (FACTURAS)
+    // CORREGIDO: Usar función que detecta pagos al contado
     // ========================================
     const totalFacturas = facturas?.reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
     
+    // CORREGIDO: Facturas pagadas incluyen las pagadas al contado
     const facturasPagadas = facturas
-      ?.filter(f => f.payment_status === 'paid')
+      ?.filter(f => facturaEstaPagada(f))
       .reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
     
     const facturasPendientes = totalFacturas - facturasPagadas;
@@ -204,18 +264,26 @@ export async function GET(request: NextRequest) {
 
     // ========================================
     // PRÓXIMOS COBROS (VENTAS PENDIENTES)
+    // CORREGIDO: Excluir ventas al contado
     // ========================================
     const ahora = new Date();
     const en30Dias = new Date(ahora);
     en30Dias.setDate(ahora.getDate() + 30);
 
+    // CORREGIDO: Solo mostrar ventas que realmente están pendientes
+    // (excluir las pagadas al contado)
     const proximosCobros = ventas
       ?.filter(v => {
-        if (v.payment_status === 'paid') return false;
+        // Si ya está cobrada (incluye pagos al contado), no mostrar
+        if (ventaEstaCobrada(v)) return false;
+        
+        // Si tiene fecha de vencimiento, verificar que sea en los próximos 30 días
         if (v.payment_due_date) {
           const vencimiento = new Date(v.payment_due_date);
           return vencimiento <= en30Dias;
         }
+        
+        // Si no tiene fecha de vencimiento pero está pendiente, mostrar
         return true;
       })
       .sort((a, b) => {
@@ -233,14 +301,20 @@ export async function GET(request: NextRequest) {
 
     // ========================================
     // PRÓXIMOS PAGOS (FACTURAS PENDIENTES)
+    // CORREGIDO: Excluir facturas al contado
     // ========================================
     const facturasProximasAPagar = facturas
       ?.filter(f => {
-        if (f.payment_status === 'paid') return false;
+        // Si ya está pagada (incluye pagos al contado), no mostrar
+        if (facturaEstaPagada(f)) return false;
+        
+        // Si tiene fecha de vencimiento, verificar que sea en los próximos 30 días
         if (f.payment_due_date) {
           const vencimiento = new Date(f.payment_due_date);
           return vencimiento <= en30Dias;
         }
+        
+        // Si no tiene fecha de vencimiento pero está pendiente, mostrar
         return true;
       })
       .sort((a, b) => {
@@ -256,15 +330,10 @@ export async function GET(request: NextRequest) {
         fecha: f.payment_due_date || f.invoice_date
       })) || [];
 
-    const proximosPagos = [
-      ...facturasProximasAPagar,
-      ...(activeCosts?.slice(0, 2).map(c => ({
-        id: `fixed-${c.id}`,
-        concepto: c.name || 'Costo fijo mensual',
-        monto: c.amount || 0,
-        fecha: new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString()
-      })) || [])
-    ].slice(0, 5);
+    // Solo añadir costos fijos a próximos pagos si no hay facturas pendientes suficientes
+    const proximosPagos = facturasProximasAPagar.length > 0 
+      ? facturasProximasAPagar.slice(0, 5)
+      : [];
 
     // ========================================
     // RESPUESTA
