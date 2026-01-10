@@ -34,7 +34,7 @@ interface CashFlowChartProps {
   pagado: number;
   pendientePago: number;
   costosFijos: number;
-  periodo: 'mes' | '3meses' | '6meses' | 'all'; // AÑADIDO: 'all'
+  periodo: 'mes' | '3meses' | '6meses' | 'all';
   // Datos históricos opcionales para el gráfico temporal
   datosHistoricos?: {
     periodo: string;
@@ -160,7 +160,6 @@ export default function CashFlowChart({
     }
     
     // Si no hay datos históricos, generar datos de ejemplo basados en los valores actuales
-    // ACTUALIZADO: Manejar 'all' como 12 meses (o usar los datos que vengan)
     const mesesAtras = periodo === 'mes' ? 1 : periodo === '3meses' ? 3 : periodo === '6meses' ? 6 : 12;
     const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     const mesActual = new Date().getMonth();
@@ -330,19 +329,19 @@ export default function CashFlowChart({
       {/* Leyenda */}
       <CustomLegend />
 
-      {/* Resumen rápido */}
+      {/* Resumen rápido - ✅ CORREGIDO: Usar valores totales del período, no sumar chartData */}
       <div className="mt-4 pt-4 border-t border-gray-100">
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="p-2 bg-emerald-50 rounded-lg">
             <p className="text-xs text-emerald-600 font-medium">Total Entradas</p>
             <p className="text-sm sm:text-base font-bold text-emerald-700">
-              {formatCurrency(chartData.reduce((sum, d) => sum + d.entradas, 0))}
+              {formatCurrency(entradas)}
             </p>
           </div>
           <div className="p-2 bg-red-50 rounded-lg">
             <p className="text-xs text-red-600 font-medium">Total Salidas</p>
             <p className="text-sm sm:text-base font-bold text-red-700">
-              {formatCurrency(chartData.reduce((sum, d) => sum + d.salidas, 0))}
+              {formatCurrency(salidas)}
             </p>
           </div>
           <div className={`p-2 rounded-lg ${balanceActual >= 0 ? 'bg-emerald-50' : 'bg-red-50'}`}>
@@ -350,7 +349,7 @@ export default function CashFlowChart({
               Balance Período
             </p>
             <p className={`text-sm sm:text-base font-bold ${balanceActual >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
-              {formatCurrency(chartData.reduce((sum, d) => sum + d.balance, 0))}
+              {formatCurrency(balanceActual)}
             </p>
           </div>
         </div>
