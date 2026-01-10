@@ -190,6 +190,12 @@ Responde SOLO con el JSON, sin texto adicional.`
         .trim()
       
       analysisData = JSON.parse(cleanJson)
+      
+      // ⭐ CÁLCULO CRÍTICO: Base imponible (contable)
+      // El total_amount de la factura incluye IVA
+      // Necesitamos extraer solo la base para contabilidad
+      analysisData.base_amount = analysisData.total_amount - (analysisData.tax_amount || 0)
+      
     } catch (parseError) {
       console.error('[analyze-invoice] Error parseando respuesta:', parseError)
       return NextResponse.json({ error: 'Error procesando el análisis' }, { status: 500 })
