@@ -45,13 +45,15 @@ interface CashFlowData {
     entradas: number;
     salidas: number;
   }>;
+  mesesEnPeriodo?: number;
+  costosFijosMensuales?: number;
 }
 
-type PeriodoTipo = 'mes' | '3meses' | '6meses';
+type PeriodoTipo = 'mes' | '3meses' | '6meses' | 'all';
 
 export default function CashFlowPage() {
   const { user } = useUser();
-  const [periodo, setPeriodo] = useState<PeriodoTipo>('mes');
+  const [periodo, setPeriodo] = useState<PeriodoTipo>('all'); // CAMBIADO: Por defecto "all"
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState<CashFlowData | null>(null);
@@ -69,7 +71,6 @@ export default function CashFlowPage() {
       setError(null);
     } catch (err) {
       setError('No se pudieron cargar los datos del Cash Flow');
-      // Datos de ejemplo en caso de error
       setData({
         entradas: { total: 0, cobrado: 0, pendiente: 0 },
         salidas: { total: 6000, pagado: 0, pendiente: 6000, costosFijos: 6000 },
@@ -110,9 +111,6 @@ export default function CashFlowPage() {
 
   if (loading) {
     return (
-      // ========================================
-      // LOADING STATE - CON FONDO OSCURO
-      // ========================================
       <div className="min-h-screen bg-[#262626]">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="flex flex-col items-center gap-3">
@@ -128,36 +126,32 @@ export default function CashFlowPage() {
   const salidas = data?.salidas.total || 0;
   const balance = data?.balance || entradas - salidas;
   const balancePositivo = balance >= 0;
+  const mesesEnPeriodo = data?.mesesEnPeriodo || 1;
 
   return (
-    // ========================================
-    // WRAPPER PRINCIPAL - FONDO OSCURO #262626
-    // (Igual que Analytics)
-    // ========================================
     <div className="min-h-screen bg-[#262626]">
-      {/* ========================================
-          CONTENEDOR CON MÁRGENES
-          (Igual que Analytics: max-w-6xl)
-          ======================================== */}
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="space-y-6">
-          {/* ========================================
-              HEADER - ESTILO ANALYTICS
-              ======================================== */}
+          {/* HEADER */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              {/* Título en naranja #d98c21 - igual que Analytics */}
               <h1 className="text-3xl font-bold text-[#d98c21]">Cash Flow</h1>
-              {/* Subtítulo en blanco - igual que Analytics */}
               <p className="mt-2 text-[#FFFCFF] text-[20px]">
                 Controla tus cobros y pagos en tiempo real
               </p>
+              {/* Mostrar período analizado */}
+              {periodo === 'all' && mesesEnPeriodo > 1 && (
+                <p className="mt-1 text-gray-400 text-sm">
+                  Período analizado: {Math.round(mesesEnPeriodo * 10) / 10} meses
+                </p>
+              )}
             </div>
             
             <div className="flex items-center gap-2">
-              {/* Selector de período - adaptado para fondo oscuro */}
+              {/* Selector de período - AÑADIDA OPCIÓN "Todo" */}
               <div className="flex bg-[#1a1a1a] rounded-lg p-1 border border-gray-700">
                 {[
+                  { value: 'all', label: 'Todo' },
                   { value: 'mes', label: 'Este mes' },
                   { value: '3meses', label: '3 meses' },
                   { value: '6meses', label: '6 meses' }
@@ -175,7 +169,7 @@ export default function CashFlowPage() {
                 ))}
               </div>
               
-              {/* Botón refrescar - adaptado para fondo oscuro */}
+              {/* Botón refrescar */}
               <button
                 onClick={handleRefresh}
                 disabled={refreshing}
@@ -198,7 +192,7 @@ export default function CashFlowPage() {
             </div>
           )}
 
-          {/* Layout principal: Gráfico a la izquierda, Tarjetas a la derecha */}
+          {/* Layout principal */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
             {/* Columna izquierda: Gráfico */}
@@ -261,7 +255,10 @@ export default function CashFlowPage() {
                     </div>
                     {(data?.salidas.costosFijos || 0) > 0 && (
                       <p className="text-red-500 mt-1 pt-1 border-t border-red-200">
-                        Incluye {formatCurrency(data?.salidas.costosFijos || 0)}/mes en costos fijos
+                        {periodo === 'all' && mesesEnPeriodo > 1 
+                          ? `Incluye ${formatCurrency(data?.costosFijosMensuales || 0)}/mes × ${Math.round(mesesEnPeriodo * 10) / 10} meses`
+                          : `Incluye ${formatCurrency(data?.salidas.costosFijos || 0)} en costos fijos`
+                        }
                       </p>
                     )}
                   </div>

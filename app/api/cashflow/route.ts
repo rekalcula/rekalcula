@@ -18,20 +18,67 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const periodo = searchParams.get('periodo') || 'mes';
 
-    // Calcular fechas según el período
     const now = new Date();
-    const startDate = new Date();
+    let startDate: Date;
+    let mesesEnPeriodo: number;
+
+    // ========================================
+    // CALCULAR FECHAS SEGÚN EL PERÍODO
+    // ========================================
     
-    switch (periodo) {
-      case '3meses':
-        startDate.setMonth(now.getMonth() - 3);
-        break;
-      case '6meses':
-        startDate.setMonth(now.getMonth() - 6);
-        break;
-      default: // mes
-        startDate.setMonth(now.getMonth() - 1);
-        startDate.setDate(1);
+    if (periodo === 'all') {
+      // NUEVO: Detectar todo el rango de datos
+      const { data: oldestSale } = await supabase
+        .from('sales')
+        .select('sale_date')
+        .eq('user_id', userId)
+        .order('sale_date', { ascending: true })
+        .limit(1)
+        .single();
+
+      const { data: oldestInvoice } = await supabase
+        .from('invoices')
+        .select('invoice_date')
+        .eq('user_id', userId)
+        .order('invoice_date', { ascending: true })
+        .limit(1)
+        .single();
+
+      // Usar la fecha más antigua
+      if (oldestSale?.sale_date && oldestInvoice?.invoice_date) {
+        startDate = new Date(oldestSale.sale_date < oldestInvoice.invoice_date 
+          ? oldestSale.sale_date 
+          : oldestInvoice.invoice_date);
+      } else if (oldestSale?.sale_date) {
+        startDate = new Date(oldestSale.sale_date);
+      } else if (oldestInvoice?.invoice_date) {
+        startDate = new Date(oldestInvoice.invoice_date);
+      } else {
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      }
+
+      // Calcular meses en el período
+      const monthsDiff = (now.getFullYear() - startDate.getFullYear()) * 12 + 
+                         (now.getMonth() - startDate.getMonth()) + 
+                         (now.getDate() / 30);
+      mesesEnPeriodo = Math.max(1, monthsDiff);
+      
+    } else {
+      switch (periodo) {
+        case '3meses':
+          startDate = new Date();
+          startDate.setMonth(now.getMonth() - 3);
+          mesesEnPeriodo = 3;
+          break;
+        case '6meses':
+          startDate = new Date();
+          startDate.setMonth(now.getMonth() - 6);
+          mesesEnPeriodo = 6;
+          break;
+        default: // mes
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          mesesEnPeriodo = 1;
+      }
     }
 
     // ========================================
@@ -67,20 +114,24 @@ export async function GET(request: NextRequest) {
     // ========================================
     const { data: costosFijos, error: errorCostos } = await supabase
       .from('fixed_costs')
-      .select('id, name, amount, frequency')
-      .eq('user_id', userId)
-      .eq('active', true);
+      .select('id, name, amount, frequency, active')
+      .eq('user_id', userId);
 
     if (errorCostos) {
       console.error('Error obteniendo costos fijos:', errorCostos);
     }
+
+    // Filtrar costos activos
+    const activeCosts = (costosFijos || []).filter(cost => {
+      if (cost.active === false || cost.active === 'false') return false;
+      return true;
+    });
 
     // ========================================
     // CALCULAR TOTALES DE ENTRADAS (VENTAS)
     // ========================================
     const totalVentas = ventas?.reduce((sum, v) => sum + (v.total || 0), 0) || 0;
     
-    // Ventas cobradas = las que tienen payment_status = 'paid'
     const ventasCobradas = ventas
       ?.filter(v => v.payment_status === 'paid')
       .reduce((sum, v) => sum + (v.total || 0), 0) || 0;
@@ -89,30 +140,26 @@ export async function GET(request: NextRequest) {
 
     // ========================================
     // CALCULAR TOTALES DE SALIDAS (FACTURAS)
-    // Usando payment_status correctamente
     // ========================================
     const totalFacturas = facturas?.reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
     
-    // Facturas pagadas = las que tienen payment_status = 'paid'
     const facturasPagadas = facturas
       ?.filter(f => f.payment_status === 'paid')
       .reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
     
-    // Facturas pendientes = las que tienen payment_status != 'paid'
     const facturasPendientes = totalFacturas - facturasPagadas;
 
     // ========================================
-    // CALCULAR COSTOS FIJOS MENSUALES
+    // CALCULAR COSTOS FIJOS DEL PERÍODO
     // ========================================
-    const costosFijosMensuales = costosFijos?.reduce((sum, c) => {
+    const costosFijosMensuales = activeCosts.reduce((sum, c) => {
       let mensual = c.amount || 0;
       if (c.frequency === 'annual' || c.frequency === 'yearly') mensual = mensual / 12;
       if (c.frequency === 'quarterly') mensual = mensual / 3;
       return sum + mensual;
-    }, 0) || 0;
+    }, 0);
 
-    // Calcular meses en el período
-    const mesesEnPeriodo = periodo === 'mes' ? 1 : periodo === '3meses' ? 3 : 6;
+    // Multiplicar por los meses del período
     const totalCostosFijos = costosFijosMensuales * mesesEnPeriodo;
 
     // Total de salidas incluyendo costos fijos
@@ -126,7 +173,10 @@ export async function GET(request: NextRequest) {
     const datosHistoricos: Array<{ periodo: string; entradas: number; salidas: number }> = [];
     const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     
-    for (let i = mesesEnPeriodo - 1; i >= 0; i--) {
+    // Determinar cuántos meses mostrar (máximo 12)
+    const mesesAMostrar = Math.min(Math.ceil(mesesEnPeriodo), 12);
+    
+    for (let i = mesesAMostrar - 1; i >= 0; i--) {
       const mesDate = new Date();
       mesDate.setMonth(now.getMonth() - i);
       const mesIndex = mesDate.getMonth();
@@ -154,29 +204,21 @@ export async function GET(request: NextRequest) {
 
     // ========================================
     // PRÓXIMOS COBROS (VENTAS PENDIENTES)
-    // Usando payment_due_date correctamente
     // ========================================
     const ahora = new Date();
     const en30Dias = new Date(ahora);
     en30Dias.setDate(ahora.getDate() + 30);
 
-    // Ventas pendientes de cobro en los próximos 30 días
     const proximosCobros = ventas
       ?.filter(v => {
-        // Solo ventas NO pagadas
         if (v.payment_status === 'paid') return false;
-        
-        // Si tiene fecha de vencimiento, verificar que esté en el rango
         if (v.payment_due_date) {
           const vencimiento = new Date(v.payment_due_date);
           return vencimiento <= en30Dias;
         }
-        
-        // Si no tiene fecha de vencimiento, incluir todas las pendientes
         return true;
       })
       .sort((a, b) => {
-        // Ordenar por fecha de vencimiento (las más próximas primero)
         const dateA = a.payment_due_date ? new Date(a.payment_due_date).getTime() : new Date(a.sale_date || a.created_at).getTime();
         const dateB = b.payment_due_date ? new Date(b.payment_due_date).getTime() : new Date(b.sale_date || b.created_at).getTime();
         return dateA - dateB;
@@ -194,20 +236,14 @@ export async function GET(request: NextRequest) {
     // ========================================
     const facturasProximasAPagar = facturas
       ?.filter(f => {
-        // Solo facturas NO pagadas
         if (f.payment_status === 'paid') return false;
-        
-        // Si tiene fecha de vencimiento, verificar que esté en el rango
         if (f.payment_due_date) {
           const vencimiento = new Date(f.payment_due_date);
           return vencimiento <= en30Dias;
         }
-        
-        // Si no tiene fecha de vencimiento pero está pendiente, incluirla
         return true;
       })
       .sort((a, b) => {
-        // Ordenar por fecha de vencimiento (las más próximas primero)
         const dateA = a.payment_due_date ? new Date(a.payment_due_date).getTime() : new Date(a.invoice_date).getTime();
         const dateB = b.payment_due_date ? new Date(b.payment_due_date).getTime() : new Date(b.invoice_date).getTime();
         return dateA - dateB;
@@ -220,10 +256,9 @@ export async function GET(request: NextRequest) {
         fecha: f.payment_due_date || f.invoice_date
       })) || [];
 
-    // Combinar facturas pendientes + costos fijos del próximo mes
     const proximosPagos = [
       ...facturasProximasAPagar,
-      ...(costosFijos?.slice(0, 2).map(c => ({
+      ...(activeCosts?.slice(0, 2).map(c => ({
         id: `fixed-${c.id}`,
         concepto: c.name || 'Costo fijo mensual',
         monto: c.amount || 0,
@@ -249,7 +284,9 @@ export async function GET(request: NextRequest) {
       balance: totalVentas - totalSalidas,
       proximosCobros,
       proximosPagos,
-      datosHistoricos
+      datosHistoricos,
+      mesesEnPeriodo: Math.round(mesesEnPeriodo * 10) / 10,
+      costosFijosMensuales
     });
 
   } catch (error) {

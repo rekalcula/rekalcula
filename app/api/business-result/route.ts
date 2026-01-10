@@ -9,6 +9,7 @@ const supabase = createClient(
 
 export interface BusinessResultData {
   periodo: string
+  mesesEnPeriodo: number
   
   // Ingresos
   ingresosBrutos: number
@@ -18,6 +19,7 @@ export interface BusinessResultData {
   // Costos
   costosVariables: number
   costosFijos: number
+  costosFijosMensuales: number
   gastosFacturas: number
   ivaSoportado: number
   totalCostos: number
@@ -46,7 +48,7 @@ export interface BusinessResultData {
   pendientePago: number
   diasCobertura: number
   
-  // Configuracion fiscal aplicada
+  // Configuración fiscal aplicada
   configFiscal: {
     tipoEntidad: string
     regimenFiscal: string
@@ -55,7 +57,7 @@ export interface BusinessResultData {
     porcentajeIS: number
   }
   
-  // Datos para grafico waterfall
+  // Datos para gráfico waterfall
   waterfallData: Array<{
     name: string
     value: number
@@ -73,17 +75,86 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams
-    const periodoParam = searchParams.get('periodo') || 'mes'
+    const periodoParam = searchParams.get('periodo') || 'all' // CAMBIADO: Por defecto analiza todo
 
-    // Calcular fechas del periodo
     const now = new Date()
-    const startDate = new Date(now.getFullYear(), now.getMonth(), 1)
-    const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-    
-    const periodoLabel = now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+    let startDate: Date
+    let endDate: Date
+    let mesesEnPeriodo: number
 
     // ========================================
-    // 1. OBTENER CONFIGURACION FISCAL
+    // CALCULAR FECHAS SEGÚN EL PERÍODO
+    // ========================================
+    
+    if (periodoParam === 'all') {
+      // Detectar todo el rango de datos
+      const { data: oldestSale } = await supabase
+        .from('sales')
+        .select('sale_date')
+        .eq('user_id', userId)
+        .order('sale_date', { ascending: true })
+        .limit(1)
+        .single()
+
+      const { data: oldestInvoice } = await supabase
+        .from('invoices')
+        .select('invoice_date')
+        .eq('user_id', userId)
+        .order('invoice_date', { ascending: true })
+        .limit(1)
+        .single()
+
+      // Usar la fecha más antigua
+      if (oldestSale?.sale_date && oldestInvoice?.invoice_date) {
+        startDate = new Date(oldestSale.sale_date < oldestInvoice.invoice_date 
+          ? oldestSale.sale_date 
+          : oldestInvoice.invoice_date)
+      } else if (oldestSale?.sale_date) {
+        startDate = new Date(oldestSale.sale_date)
+      } else if (oldestInvoice?.invoice_date) {
+        startDate = new Date(oldestInvoice.invoice_date)
+      } else {
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+      }
+      
+      endDate = now
+      
+      // Calcular meses en el período
+      const monthsDiff = (endDate.getFullYear() - startDate.getFullYear()) * 12 + 
+                         (endDate.getMonth() - startDate.getMonth()) + 
+                         (endDate.getDate() / 30)
+      mesesEnPeriodo = Math.max(1, monthsDiff)
+      
+    } else if (periodoParam === 'mes') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+      mesesEnPeriodo = 1
+    } else if (periodoParam === '3meses') {
+      startDate = new Date()
+      startDate.setMonth(now.getMonth() - 3)
+      endDate = now
+      mesesEnPeriodo = 3
+    } else if (periodoParam === '6meses') {
+      startDate = new Date()
+      startDate.setMonth(now.getMonth() - 6)
+      endDate = now
+      mesesEnPeriodo = 6
+    } else {
+      // Por defecto: mes actual
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+      mesesEnPeriodo = 1
+    }
+    
+    // Formatear período para mostrar
+    const startDateFormatted = startDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+    const endDateFormatted = endDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+    const periodoLabel = startDateFormatted === endDateFormatted 
+      ? startDateFormatted 
+      : `${startDateFormatted} - ${endDateFormatted}`
+
+    // ========================================
+    // 1. OBTENER CONFIGURACIÓN FISCAL
     // ========================================
     const { data: fiscalConfig } = await supabase
       .from('fiscal_config')
@@ -100,7 +171,7 @@ export async function GET(request: NextRequest) {
     }
 
     // ========================================
-    // 2. OBTENER VENTAS + ITEMS (Ingresos)
+    // 2. OBTENER VENTAS (TODO EL PERÍODO)
     // ========================================
     const { data: sales } = await supabase
       .from('sales')
@@ -112,11 +183,11 @@ export async function GET(request: NextRequest) {
     // Calcular ingresos
     const ingresosBrutos = (sales || []).reduce((sum, sale) => sum + (sale.total || 0), 0)
     
-    // Calcular IVA repercutido (incluido en el total de venta)
+    // Calcular IVA repercutido
     const baseImponibleIngresos = ingresosBrutos / (1 + config.porcentajeIva / 100)
     const ivaRepercutido = ingresosBrutos - baseImponibleIngresos
 
-    // Ventas cobradas vs pendientes (usando payment_status)
+    // Ventas cobradas vs pendientes
     const ventasCobradas = (sales || [])
       .filter(s => s.payment_status === 'paid')
       .reduce((sum, s) => sum + (s.total || 0), 0)
@@ -124,41 +195,38 @@ export async function GET(request: NextRequest) {
 
     // ========================================
     // 3. OBTENER COSTOS FIJOS
-    // CORREGIDO: Filtro mas flexible para active
     // ========================================
     const { data: fixedCosts, error: fixedCostsError } = await supabase
       .from('fixed_costs')
       .select('*')
       .eq('user_id', userId)
 
-    // Log para depuracion
-    console.log('[business-result] Fixed costs raw:', fixedCosts?.length, 'registros')
     if (fixedCostsError) {
       console.error('[business-result] Error obteniendo costos fijos:', fixedCostsError)
     }
 
-    // CORREGIDO: Filtrar en JavaScript para mayor flexibilidad
-    // Aceptar active = true, active = 'true', o active no definido (null/undefined)
+    // Filtrar activos
     const activeCosts = (fixedCosts || []).filter(cost => {
-      // Si active es explicitamente false, excluir
       if (cost.active === false || cost.active === 'false') return false
-      // En cualquier otro caso (true, 'true', null, undefined), incluir
       return true
     })
 
-    console.log('[business-result] Active costs:', activeCosts.length, 'registros')
-
-    const costosFijos = activeCosts.reduce((sum, cost) => {
+    // Calcular costos fijos MENSUALES
+    const costosFijosMensuales = activeCosts.reduce((sum, cost) => {
       let monthly = cost.amount || 0
       if (cost.frequency === 'quarterly') monthly = monthly / 3
       if (cost.frequency === 'yearly' || cost.frequency === 'annual') monthly = monthly / 12
       return sum + monthly
     }, 0)
 
-    console.log('[business-result] Costos fijos calculados:', costosFijos)
+    // IMPORTANTE: Multiplicar por los meses del período
+    const costosFijos = costosFijosMensuales * mesesEnPeriodo
+
+    console.log('[business-result] Período:', periodoLabel, '| Meses:', mesesEnPeriodo)
+    console.log('[business-result] Costos fijos mensuales:', costosFijosMensuales, '| Total período:', costosFijos)
 
     // ========================================
-    // 4. OBTENER FACTURAS/GASTOS (Compras)
+    // 4. OBTENER FACTURAS/GASTOS (TODO EL PERÍODO)
     // ========================================
     const { data: invoices } = await supabase
       .from('invoices')
@@ -170,7 +238,7 @@ export async function GET(request: NextRequest) {
     // Gastos de facturas (compras variables)
     const gastosFacturas = (invoices || []).reduce((sum, inv) => sum + (inv.total_amount || 0), 0)
     
-    // Calcular IVA soportado de las facturas
+    // Calcular IVA soportado
     const baseImponibleGastos = gastosFacturas / (1 + config.porcentajeIva / 100)
     const ivaSoportado = gastosFacturas - baseImponibleGastos
 
@@ -182,55 +250,39 @@ export async function GET(request: NextRequest) {
 
     // ========================================
     // 5. CALCULAR RESULTADOS
-    // CORREGIDO: Usar gastosFacturas como costosVariables
-    // (Las facturas de compra son costes variables del negocio)
     // ========================================
-    
-    // Costos variables = Facturas de compra (materias primas, productos, servicios)
     const costosVariables = gastosFacturas
-    
-    // Total costos = Variables + Fijos
     const totalCostos = costosVariables + costosFijos
     
-    // Margen Bruto = Ingresos - Costos Variables (compras)
     const margenBruto = ingresosBrutos - costosVariables
     const margenBrutoPorcentaje = ingresosBrutos > 0 
       ? (margenBruto / ingresosBrutos) * 100 
       : 0
 
-    // Beneficio Operativo = Margen Bruto - Costos Fijos
     const beneficioOperativo = margenBruto - costosFijos
 
-    console.log('[business-result] Calculo:', {
+    console.log('[business-result] Cálculo:', {
       ingresosBrutos,
       costosVariables,
       costosFijos,
-      totalCostos,
-      margenBruto,
       beneficioOperativo
     })
 
     // ========================================
     // 6. CALCULAR CARGA FISCAL
     // ========================================
-    
-    // IVA a ingresar = IVA Repercutido - IVA Soportado
     const ivaAIngresar = Math.max(0, ivaRepercutido - ivaSoportado)
     
-    // IRPF estimado (solo para autonomos, sobre beneficio positivo)
     const irpfEstimado = config.tipoEntidad === 'autonomo' && beneficioOperativo > 0
       ? beneficioOperativo * (config.porcentajeIrpf / 100)
       : 0
     
-    // Impuesto de Sociedades (para SL/SA)
     const impuestoSociedadesEstimado = 
       (config.tipoEntidad === 'sl' || config.tipoEntidad === 'sa') && beneficioOperativo > 0
         ? beneficioOperativo * (config.porcentajeIS / 100)
         : 0
 
     const totalCargaFiscal = ivaAIngresar + irpfEstimado + impuestoSociedadesEstimado
-    
-    // Reserva fiscal recomendada (un poco mas para seguridad)
     const reservaFiscalRecomendada = totalCargaFiscal * 1.1
 
     // ========================================
@@ -245,24 +297,22 @@ export async function GET(request: NextRequest) {
     // 8. LIQUIDEZ / CASH FLOW
     // ========================================
     const cobradoReal = ventasCobradas
-    const pagadoReal = facturasPagadas + costosFijos // Asumimos costos fijos pagados
+    const pagadoReal = facturasPagadas + costosFijos
     const balanceCaja = cobradoReal - pagadoReal
     const pendienteCobro = ventasPendientes
     const pendientePago = facturasPendientes
 
-    // Dias de cobertura = Liquidez / (Gastos diarios promedio)
-    const gastosDiarios = totalCostos / 30
+    const gastosDiarios = totalCostos / (mesesEnPeriodo * 30)
     const diasCobertura = gastosDiarios > 0 
       ? Math.round(Math.max(0, balanceCaja) / gastosDiarios)
       : 999
 
     // ========================================
-    // 9. DATOS PARA GRAFICO WATERFALL
+    // 9. DATOS PARA GRÁFICO WATERFALL
     // ========================================
     let cumulative = 0
     const waterfallData: BusinessResultData['waterfallData'] = []
 
-    // Ingresos
     cumulative = ingresosBrutos
     waterfallData.push({
       name: 'Ingresos Brutos',
@@ -271,7 +321,6 @@ export async function GET(request: NextRequest) {
       cumulative
     })
 
-    // Costos Variables (Compras)
     if (costosVariables > 0) {
       cumulative -= costosVariables
       waterfallData.push({
@@ -282,7 +331,6 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Margen Bruto (subtotal)
     waterfallData.push({
       name: 'Margen Bruto',
       value: margenBruto,
@@ -290,7 +338,6 @@ export async function GET(request: NextRequest) {
       cumulative
     })
 
-    // Costos Fijos
     if (costosFijos > 0) {
       cumulative -= costosFijos
       waterfallData.push({
@@ -301,7 +348,6 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Beneficio Operativo (subtotal)
     waterfallData.push({
       name: 'Beneficio Operativo',
       value: beneficioOperativo,
@@ -309,7 +355,6 @@ export async function GET(request: NextRequest) {
       cumulative
     })
 
-    // IVA a Ingresar
     if (ivaAIngresar > 0) {
       cumulative -= ivaAIngresar
       waterfallData.push({
@@ -320,7 +365,6 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // IRPF o IS
     if (irpfEstimado > 0) {
       cumulative -= irpfEstimado
       waterfallData.push({
@@ -330,6 +374,7 @@ export async function GET(request: NextRequest) {
         cumulative
       })
     }
+    
     if (impuestoSociedadesEstimado > 0) {
       cumulative -= impuestoSociedadesEstimado
       waterfallData.push({
@@ -340,7 +385,6 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Beneficio Neto (total final)
     waterfallData.push({
       name: 'Beneficio Neto',
       value: beneficioNetoReal,
@@ -353,6 +397,7 @@ export async function GET(request: NextRequest) {
     // ========================================
     const result: BusinessResultData = {
       periodo: periodoLabel,
+      mesesEnPeriodo: Math.round(mesesEnPeriodo * 10) / 10,
       
       ingresosBrutos,
       ivaRepercutido,
@@ -360,6 +405,7 @@ export async function GET(request: NextRequest) {
       
       costosVariables,
       costosFijos,
+      costosFijosMensuales,
       gastosFacturas,
       ivaSoportado,
       totalCostos,

@@ -15,19 +15,64 @@ export default async function AnalyticsPage() {
     redirect('/sign-in')
   }
 
+  // ========================================
+  // DETECTAR RANGO DE DATOS AUTOMÁTICAMENTE
+  // ========================================
+  
+  // Obtener la fecha más antigua de ventas
+  const { data: oldestSale } = await supabase
+    .from('sales')
+    .select('sale_date')
+    .eq('user_id', userId)
+    .order('sale_date', { ascending: true })
+    .limit(1)
+    .single()
+
+  // Obtener la fecha más antigua de facturas
+  const { data: oldestInvoice } = await supabase
+    .from('invoices')
+    .select('invoice_date')
+    .eq('user_id', userId)
+    .order('invoice_date', { ascending: true })
+    .limit(1)
+    .single()
+
   const now = new Date()
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]
+  const endOfPeriod = now.toISOString().split('T')[0]
+  
+  // Determinar la fecha de inicio (la más antigua entre ventas y facturas)
+  let startOfPeriod: string
+  
+  if (oldestSale?.sale_date && oldestInvoice?.invoice_date) {
+    startOfPeriod = oldestSale.sale_date < oldestInvoice.invoice_date 
+      ? oldestSale.sale_date 
+      : oldestInvoice.invoice_date
+  } else if (oldestSale?.sale_date) {
+    startOfPeriod = oldestSale.sale_date
+  } else if (oldestInvoice?.invoice_date) {
+    startOfPeriod = oldestInvoice.invoice_date
+  } else {
+    // Si no hay datos, usar el mes actual
+    startOfPeriod = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
+  }
+
+  // Calcular número de meses en el período
+  const startDate = new Date(startOfPeriod)
+  const endDate = new Date(endOfPeriod)
+  const monthsDiff = (endDate.getFullYear() - startDate.getFullYear()) * 12 + 
+                     (endDate.getMonth() - startDate.getMonth()) + 
+                     (endDate.getDate() / 30) // Fracción del mes actual
+  const monthsInPeriod = Math.max(1, monthsDiff)
 
   // ========================================
-  // 1. OBTENER VENTAS
+  // 1. OBTENER VENTAS (TODO EL PERÍODO)
   // ========================================
   const { data: sales } = await supabase
     .from('sales')
     .select('*, sale_items(*)')
     .eq('user_id', userId)
-    .gte('sale_date', startOfMonth)
-    .lte('sale_date', endOfMonth)
+    .gte('sale_date', startOfPeriod)
+    .lte('sale_date', endOfPeriod)
 
   // ========================================
   // 2. OBTENER COSTES FIJOS
@@ -37,7 +82,7 @@ export default async function AnalyticsPage() {
     .select('*, fixed_cost_categories(*)')
     .eq('user_id', userId)
 
-  // CORREGIDO: Filtrar en JavaScript para mayor flexibilidad
+  // Filtrar costes activos
   const activeFixedCosts = (fixedCosts || []).filter(cost => {
     if (cost.is_active === false || cost.is_active === 'false') return false
     if (cost.active === false || cost.active === 'false') return false
@@ -45,37 +90,38 @@ export default async function AnalyticsPage() {
   })
 
   // ========================================
-  // 3. OBTENER FACTURAS DE COMPRA (COSTES VARIABLES)
+  // 3. OBTENER FACTURAS DE COMPRA (TODO EL PERÍODO)
   // ========================================
   const { data: invoices } = await supabase
     .from('invoices')
     .select('*')
     .eq('user_id', userId)
-    .gte('invoice_date', startOfMonth)
-    .lte('invoice_date', endOfMonth)
+    .gte('invoice_date', startOfPeriod)
+    .lte('invoice_date', endOfPeriod)
 
   // ========================================
   // 4. CALCULAR TOTALES
   // ========================================
   const totalSales = (sales || []).reduce((sum, sale) => sum + (sale.total || 0), 0)
   
-  // CORREGIDO: Costes variables = Facturas de compra (materia prima, productos, etc.)
+  // Costes variables = Facturas de compra
   const totalVariableCosts = (invoices || []).reduce((sum, inv) => sum + (inv.total_amount || 0), 0)
 
   let rentCosts = 0
   let laborCosts = 0
   let otherFixedCosts = 0
 
-  const totalFixedCosts = activeFixedCosts.reduce((sum, cost) => {
+  // Calcular costes fijos MENSUALES
+  const monthlyFixedCosts = activeFixedCosts.reduce((sum, cost) => {
     let monthly = cost.amount || 0
     if (cost.frequency === 'quarterly') monthly = monthly / 3
     if (cost.frequency === 'yearly' || cost.frequency === 'annual') monthly = monthly / 12
 
     const categoryName = cost.fixed_cost_categories?.name?.toLowerCase() || cost.category?.toLowerCase() || ''
     
-    if (categoryName.includes('alquiler') || categoryName.includes('hipoteca') || categoryName.includes('local')) {
+    if (categoryName.includes('alquiler') || categoryName.includes('hipoteca') || categoryName.includes('local') || categoryName.includes('inmobiliario')) {
       rentCosts += monthly
-    } else if (categoryName.includes('personal') || categoryName.includes('salario') || categoryName.includes('nomina') || categoryName.includes('laboral')) {
+    } else if (categoryName.includes('personal') || categoryName.includes('salario') || categoryName.includes('nomina') || categoryName.includes('laboral') || categoryName.includes('nómina')) {
       laborCosts += monthly
     } else {
       otherFixedCosts += monthly
@@ -84,8 +130,16 @@ export default async function AnalyticsPage() {
     return sum + monthly
   }, 0)
 
+  // IMPORTANTE: Multiplicar costes fijos por el número de meses del período
+  const totalFixedCosts = monthlyFixedCosts * monthsInPeriod
+  
+  // También ajustar las categorías al período
+  rentCosts = rentCosts * monthsInPeriod
+  laborCosts = laborCosts * monthsInPeriod
+  otherFixedCosts = otherFixedCosts * monthsInPeriod
+
   // ========================================
-  // 5. CALCULAR METRICAS FINANCIERAS
+  // 5. CALCULAR MÉTRICAS FINANCIERAS
   // ========================================
   const grossProfit = totalSales - totalVariableCosts
   const netProfit = grossProfit - totalFixedCosts
@@ -94,9 +148,13 @@ export default async function AnalyticsPage() {
     ? grossProfit / totalSales
     : 0
 
+  // Punto de equilibrio mensual
   const breakEvenPoint = contributionMargin > 0
-    ? totalFixedCosts / contributionMargin
+    ? monthlyFixedCosts / contributionMargin
     : 0
+
+  // Ventas mensuales promedio
+  const monthlySalesAverage = totalSales / monthsInPeriod
 
   const financialData = {
     totalSales,
@@ -106,7 +164,10 @@ export default async function AnalyticsPage() {
     netProfit,
     contributionMargin: contributionMargin * 100,
     breakEvenPoint,
-    salesAboveBreakEven: totalSales - breakEvenPoint
+    salesAboveBreakEven: monthlySalesAverage - breakEvenPoint,
+    monthsInPeriod: Math.round(monthsInPeriod * 10) / 10,
+    monthlyFixedCosts,
+    monthlySalesAverage
   }
 
   const alertsData = {
@@ -116,23 +177,32 @@ export default async function AnalyticsPage() {
     rentCosts,
     laborCosts,
     grossProfit,
-    netProfit
+    netProfit,
+    monthsInPeriod
   }
 
-  const periodo = now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+  // Formatear período para mostrar
+  const startDateFormatted = startDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+  const endDateFormatted = endDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+  const periodo = startDateFormatted === endDateFormatted 
+    ? startDateFormatted 
+    : `${startDateFormatted} - ${endDateFormatted}`
 
   return (
     <>
       <DashboardNav />
       <div className="min-h-screen bg-[#262626]">
         <div className="max-w-6xl mx-auto px-4 py-8">
-          {/* ========================================
-              HEADER - Movil: vertical / Desktop: horizontal
-              ======================================== */}
+          {/* Header */}
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 md:gap-0 mb-8">
             <div>
               <h1 className="text-3xl font-bold text-[#d98c21]">Analisis Financiero</h1>
-              <p className="mt-2 text-[#FFFCFF] text-[20px]">Punto de equilibrio y rentabilidad - {periodo}</p>
+              <p className="mt-2 text-[#FFFCFF] text-[20px]">
+                Punto de equilibrio y rentabilidad - {periodo}
+              </p>
+              <p className="mt-1 text-gray-400 text-sm">
+                Período analizado: {Math.round(monthsInPeriod * 10) / 10} meses
+              </p>
             </div>
             <FinancialExportButton data={financialData} periodo={periodo} />
           </div>
