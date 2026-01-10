@@ -17,10 +17,10 @@ export default async function InvoicesPage() {
     redirect('/sign-in')
   }
 
-  // Obtener facturas ordenadas por fecha
+  // Obtener facturas con datos de pago
   const { data: invoices, error } = await supabase
     .from('invoices')
-    .select('*')
+    .select('*, payment_method, payment_terms, payment_status, payment_due_date')
     .eq('user_id', userId)
     .order('invoice_date', { ascending: false })
     .order('created_at', { ascending: false })

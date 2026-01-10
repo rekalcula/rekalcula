@@ -13,11 +13,48 @@ interface Invoice {
   category: string | null
   created_at: string
   items: any[]
+  payment_method: string | null
+  payment_terms: string | null
+  payment_status: string | null
+  payment_due_date: string | null
 }
 
 interface InvoicesListWithSelectionProps {
   invoicesByDate: { [key: string]: Invoice[] }
   sortedDates: string[]
+}
+
+// Mapeo de formas de pago
+const getPaymentMethodLabel = (method: string | null): string => {
+  if (!method) return 'No especificado'
+  
+  const methodMap: { [key: string]: string } = {
+    'cash': 'Efectivo',
+    'card': 'Tarjeta',
+    'transfer': 'Transferencia',
+    'check': 'Cheque',
+    'bizum': 'Bizum',
+    'paypal': 'PayPal',
+    'direct_debit': 'Domiciliación',
+    'promissory_note': 'Pagaré',
+    'credit': 'Crédito'
+  }
+  
+  return methodMap[method] || method
+}
+
+// Colores según estado de pago
+const getPaymentStatusStyle = (status: string | null) => {
+  switch (status) {
+    case 'paid':
+      return 'bg-green-100 text-green-700'
+    case 'pending':
+      return 'bg-yellow-100 text-yellow-700'
+    case 'overdue':
+      return 'bg-red-100 text-red-700'
+    default:
+      return 'bg-gray-100 text-gray-600'
+  }
 }
 
 export default function InvoicesListWithSelection({ invoicesByDate, sortedDates }: InvoicesListWithSelectionProps) {
@@ -168,7 +205,7 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
-                            <div className="flex items-center space-x-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className={`text-xs px-2 py-1 rounded-full ${
                                 invoice.category === 'Productos'
                                   ? 'bg-blue-100 text-blue-700'
@@ -177,6 +214,11 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
                                   : 'bg-gray-100 text-gray-600'
                               }`}>
                                 {invoice.category || 'Sin categoria'}
+                              </span>
+
+                              {/* Forma de pago */}
+                              <span className="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-700 font-medium">
+                                {getPaymentMethodLabel(invoice.payment_method)}
                               </span>
                             </div>
 
