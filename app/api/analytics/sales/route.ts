@@ -19,19 +19,47 @@ export async function GET(request: NextRequest) {
     const period = searchParams.get('period') || 'month'
     const compare = searchParams.get('compare') === 'true'
 
-    // Calcular fechas segun el periodo
     const now = new Date()
     let startDate: Date
     let endDate: Date
     let prevStartDate: Date
     let prevEndDate: Date
 
-    if (period === 'day') {
+    // ========================================
+    // CALCULAR FECHAS SEGÚN EL PERÍODO
+    // ========================================
+    
+    if (period === 'all') {
+      // NUEVO: Detectar todo el rango de datos
+      const { data: oldestSale } = await supabase
+        .from('sales')
+        .select('sale_date')
+        .eq('user_id', userId)
+        .order('sale_date', { ascending: true })
+        .limit(1)
+        .single()
+
+      if (oldestSale?.sale_date) {
+        startDate = new Date(oldestSale.sale_date)
+      } else {
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+      }
+      endDate = now
+      
+      // Para comparación, usar período equivalente anterior
+      const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+      prevEndDate = new Date(startDate)
+      prevEndDate.setDate(prevEndDate.getDate() - 1)
+      prevStartDate = new Date(prevEndDate)
+      prevStartDate.setDate(prevStartDate.getDate() - daysDiff)
+      
+    } else if (period === 'day') {
       startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
       endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
       prevStartDate = new Date(startDate)
       prevStartDate.setDate(prevStartDate.getDate() - 1)
       prevEndDate = new Date(startDate)
+      
     } else if (period === 'week') {
       const dayOfWeek = now.getDay()
       const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)
@@ -42,15 +70,18 @@ export async function GET(request: NextRequest) {
       prevStartDate.setDate(prevStartDate.getDate() - 7)
       prevEndDate = new Date(startDate)
       prevEndDate.setDate(prevEndDate.getDate() - 1)
+      
     } else {
-      // Mes completo (del 1 al ultimo dia del mes)
+      // Mes completo (del 1 al último día del mes)
       startDate = new Date(now.getFullYear(), now.getMonth(), 1)
       endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
       prevStartDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
       prevEndDate = new Date(now.getFullYear(), now.getMonth(), 0)
     }
 
-    // Obtener ventas del periodo actual
+    // ========================================
+    // OBTENER VENTAS DEL PERÍODO ACTUAL
+    // ========================================
     const { data: currentSales, error: currentError } = await supabase
       .from('sales')
       .select('*, sale_items(*)')
@@ -63,7 +94,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: currentError.message }, { status: 500 })
     }
 
-    // Obtener ventas del periodo anterior si se solicita comparacion
+    // Obtener ventas del período anterior si se solicita comparación
     let previousSales: any[] = []
     if (compare) {
       const { data: prevData, error: prevError } = await supabase
@@ -78,13 +109,14 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Agregar datos por producto - periodo actual
+    // ========================================
+    // AGREGAR DATOS POR PRODUCTO
+    // ========================================
     const productStats: { [key: string]: { quantity: number; revenue: number } } = {}
     let totalQuantity = 0
     let totalRevenue = 0
 
     for (const sale of currentSales || []) {
-      // Sumar el total de la venta directamente
       totalRevenue += sale.total || 0
       
       for (const item of sale.sale_items || []) {
@@ -101,13 +133,15 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Agregar datos por producto - periodo anterior
+    // Datos del período anterior
     const prevProductStats: { [key: string]: { quantity: number; revenue: number } } = {}
     let prevTotalQuantity = 0
     let prevTotalRevenue = 0
 
     if (compare) {
       for (const sale of previousSales) {
+        prevTotalRevenue += sale.total || 0
+        
         for (const item of sale.sale_items || []) {
           const productName = item.product_name || 'Otros'
           const normalizedName = normalizeProductName(productName)
@@ -119,12 +153,11 @@ export async function GET(request: NextRequest) {
           prevProductStats[normalizedName].quantity += item.quantity || 1
           prevProductStats[normalizedName].revenue += item.total || 0
           prevTotalQuantity += item.quantity || 1
-          prevTotalRevenue += item.total || 0
         }
       }
     }
 
-    // Convertir a array y ordenar por cantidad
+    // Convertir a array y ordenar
     const products = Object.entries(productStats)
       .map(([name, stats]) => {
         const prevStats = prevProductStats[name] || { quantity: 0, revenue: 0 }
@@ -183,8 +216,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Normalizar nombres de productos - VERSION GENERICA
-// Solo limpia el texto sin asumir tipo de negocio
 function normalizeProductName(name: string): string {
   if (!name) return 'otros'
   
