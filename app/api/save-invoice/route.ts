@@ -31,7 +31,9 @@ export async function POST(request: NextRequest) {
       // Datos de forma de pago (OBLIGATORIOS)
       paymentMethod,
       paymentTerms,
-      paymentDueDate
+      paymentDueDate,
+      // ⭐ NUEVO: Flag para incluir IVA en cálculos (solo para facturas manuales)
+      includeVat = false
     } = body
 
     // ========================================
@@ -57,31 +59,37 @@ export async function POST(request: NextRequest) {
     const paymentStatus = isImmediatePayment ? 'paid' : 'pending'
 
     // ========================================
-    // GUARDAR FACTURA EN BD
-    // ⭐ CORREGIDO: Ahora incluye el campo supplier
+    // ⭐ CÁLCULO CONTABLE CRÍTICO
+    // Guardar SOLO base imponible, no total con IVA
     // ========================================
+    const baseAmount = analysis.base_amount || (analysis.total_amount - (analysis.tax_amount || 0))
+    
     const { data: invoiceData, error: dbError } = await supabase
       .from('invoices')
       .insert({
         user_id: userId,
         file_url: fileData.filePath,
         file_name: fileData.fileName,
-        // ⭐ CORRECCIÓN: Guardar nombre del proveedor
         supplier: analysis.supplier || null,
-        total_amount: analysis.total_amount,
+        // ⭐ CAMBIO CRÍTICO: Guardar base_amount (sin IVA) para contabilidad
+        total_amount: baseAmount,
         tax_amount: analysis.tax_amount || 0,
+        // ⭐ NUEVO: Almacenar el importe total original (con IVA) por referencia
+        gross_amount: analysis.total_amount,
         invoice_date: analysis.invoice_date,
         invoice_number: analysis.invoice_number || null,
         category: analysis.category,
         items: analysis.items,
         analysis: analysis.analysis,
-        // ⭐ FORMA DE PAGO (ya confirmada)
+        // Forma de pago (ya confirmada)
         payment_method: paymentMethod,
         payment_terms: paymentTerms || 'immediate',
         payment_due_date: paymentDueDate || null,
         payment_status: paymentStatus,
-        payment_confirmed: true, // ✅ Siempre true porque pasó por el modal
-        actual_payment_date: isImmediatePayment ? new Date().toISOString() : null
+        payment_confirmed: true,
+        actual_payment_date: isImmediatePayment ? new Date().toISOString() : null,
+        // ⭐ NUEVO: Flag para facturas manuales que incluyen IVA
+        include_vat: includeVat
       })
       .select()
       .single()
