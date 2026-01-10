@@ -8,6 +8,7 @@ const supabase = createClient(
 )
 
 const DEFAULT_PAGE_SIZE = 50
+const DEFAULT_VAT_RATE = 0.21 // 21% IVA por defecto en España
 
 // GET - Obtener ventas con paginación
 export async function GET(request: NextRequest) {
@@ -76,7 +77,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Crear venta
+// POST - Crear venta (manual o desde ticket)
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth()
@@ -87,15 +88,53 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
 
+    // ========================================
+    // ⭐ CÁLCULO CONTABLE CRÍTICO
+    // Si el importe incluye IVA, calcular base imponible
+    // ========================================
+    const inputAmount = parseFloat(body.total) || 0
+    const includeVat = body.include_vat === true
+    const vatRate = body.vat_rate || DEFAULT_VAT_RATE
+
+    let baseAmount: number
+    let taxAmount: number
+    let grossTotal: number
+
+    if (includeVat) {
+      // El importe introducido INCLUYE IVA
+      // Calcular base imponible: base = total / (1 + IVA)
+      grossTotal = inputAmount
+      baseAmount = inputAmount / (1 + vatRate)
+      taxAmount = inputAmount - baseAmount
+    } else {
+      // El importe introducido es la base (SIN IVA)
+      baseAmount = inputAmount
+      taxAmount = 0
+      grossTotal = inputAmount
+    }
+
+    // Redondear a 2 decimales
+    baseAmount = Math.round(baseAmount * 100) / 100
+    taxAmount = Math.round(taxAmount * 100) / 100
+    grossTotal = Math.round(grossTotal * 100) / 100
+
     const { data: sale, error: saleError } = await supabase
       .from('sales')
       .insert({
         user_id: userId,
         sale_date: body.sale_date,
-        total: body.total,
+        sale_time: body.sale_time || null,
+        // ⭐ CAMBIO CRÍTICO: Guardar base imponible para contabilidad
+        subtotal: baseAmount,
+        tax_amount: taxAmount,
+        total: baseAmount, // Total contable = base imponible
+        // ⭐ NUEVO: Almacenar importe bruto (con IVA) por referencia
+        gross_total: grossTotal,
         payment_method: body.payment_method,
         notes: body.notes,
-        source: 'manual'
+        source: 'manual',
+        // ⭐ NUEVO: Flag para indicar si se incluyó IVA
+        include_vat: includeVat
       })
       .select()
       .single()
