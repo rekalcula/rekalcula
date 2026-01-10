@@ -34,7 +34,7 @@ interface CashFlowChartProps {
   pagado: number;
   pendientePago: number;
   costosFijos: number;
-  periodo: 'mes' | '3meses' | '6meses';
+  periodo: 'mes' | '3meses' | '6meses' | 'all'; // AÑADIDO: 'all'
   // Datos históricos opcionales para el gráfico temporal
   datosHistoricos?: {
     periodo: string;
@@ -160,7 +160,8 @@ export default function CashFlowChart({
     }
     
     // Si no hay datos históricos, generar datos de ejemplo basados en los valores actuales
-    const mesesAtras = periodo === 'mes' ? 1 : periodo === '3meses' ? 3 : 6;
+    // ACTUALIZADO: Manejar 'all' como 12 meses (o usar los datos que vengan)
+    const mesesAtras = periodo === 'mes' ? 1 : periodo === '3meses' ? 3 : periodo === '6meses' ? 6 : 12;
     const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     const mesActual = new Date().getMonth();
     
