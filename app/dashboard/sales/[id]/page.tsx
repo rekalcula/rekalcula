@@ -1,4 +1,4 @@
-// Updated: 2025-01-01
+// Updated: 2026-01-10 - CORRECCIÓN CONTABLE: Mostrar Base Imponible
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
@@ -57,6 +57,14 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
     return parts[parts.length - 1] || 'ticket'
   }
 
+  // ========================================
+  // ⭐ CÁLCULO CONTABLE
+  // Determinar si mostrar desglose de IVA
+  // ========================================
+  const hasVatBreakdown = sale.tax_amount && sale.tax_amount > 0
+  const grossTotal = sale.gross_total || (sale.total + (sale.tax_amount || 0))
+  const baseAmount = sale.total // El campo total ahora es la base imponible
+
   return (
     <>
       <DashboardNav />
@@ -99,10 +107,40 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
                   </>
                 )}
 
-                <p className="text-sm text-gray-500">Total</p>
-                <p className="text-3xl font-bold text-green-600 mb-4">
-                  €{sale.total?.toFixed(2) || '0.00'}
-                </p>
+                {/* ========================================
+                    ⭐ SECCIÓN CONTABLE CORREGIDA
+                    Mostrar Base Imponible como valor principal
+                    ======================================== */}
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                  <p className="text-sm text-green-700 font-medium">Base Imponible (Contable)</p>
+                  <p className="text-3xl font-bold text-green-600">
+                    €{baseAmount?.toFixed(2) || '0.00'}
+                  </p>
+                  <p className="text-xs text-green-600 mt-1">
+                    Este es el importe que se contabiliza (sin IVA)
+                  </p>
+                </div>
+
+                {/* Desglose de IVA si existe */}
+                {hasVatBreakdown && (
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-gray-500 font-medium mb-2">Desglose fiscal:</p>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Base imponible:</span>
+                        <span className="font-medium">€{baseAmount?.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">IVA:</span>
+                        <span className="font-medium">€{sale.tax_amount?.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between pt-1 border-t border-gray-300">
+                        <span className="text-gray-700 font-medium">Total bruto (con IVA):</span>
+                        <span className="font-bold">€{grossTotal?.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -145,23 +183,27 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
                     ))}
                   </div>
 
-                  {/* Resumen */}
+                  {/* Resumen corregido */}
                   <div className="mt-4 pt-4 border-t">
-                    {sale.subtotal && sale.subtotal !== sale.total && (
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-500">Subtotal</span>
-                        <span className="text-gray-900">€{sale.subtotal?.toFixed(2)}</span>
-                      </div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-gray-500">Base imponible</span>
+                      <span className="text-gray-900">€{baseAmount?.toFixed(2)}</span>
+                    </div>
+                    {hasVatBreakdown && (
+                      <>
+                        <div className="flex justify-between text-sm mb-2">
+                          <span className="text-gray-500">IVA</span>
+                          <span className="text-gray-900">€{sale.tax_amount?.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm mb-2">
+                          <span className="text-gray-500">Total bruto</span>
+                          <span className="text-gray-900">€{grossTotal?.toFixed(2)}</span>
+                        </div>
+                      </>
                     )}
-                    {sale.tax_amount > 0 && (
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-500">IVA</span>
-                        <span className="text-gray-900">€{sale.tax_amount?.toFixed(2)}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between font-bold text-lg">
-                      <span>Total</span>
-                      <span className="text-green-600">€{sale.total?.toFixed(2)}</span>
+                    <div className="flex justify-between font-bold text-lg pt-2 border-t">
+                      <span className="text-green-700">Importe contable</span>
+                      <span className="text-green-600">€{baseAmount?.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
