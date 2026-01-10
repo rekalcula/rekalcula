@@ -144,6 +144,15 @@ Responde SOLO con el JSON, sin explicaciones.`
       }, { status: 400 })
     }
 
+    // ========================================
+    // ⭐ CÁLCULO CONTABLE CRÍTICO
+    // Guardar SOLO base imponible (subtotal), no total con IVA
+    // ========================================
+    const taxAmount = ticketData.iva || 0
+    const grossTotal = ticketData.total || 0
+    // Base imponible = subtotal extraído O calculado (total - IVA)
+    const baseAmount = ticketData.subtotal || (grossTotal - taxAmount)
+
     // Guardar la venta en la base de datos
     const { data: sale, error: saleError } = await supabase
       .from('sales')
@@ -151,13 +160,17 @@ Responde SOLO con el JSON, sin explicaciones.`
         user_id: userId,
         sale_date: ticketData.fecha || new Date().toISOString().split('T')[0],
         sale_time: ticketData.hora,
-        subtotal: ticketData.subtotal || ticketData.total,
-        tax_amount: ticketData.iva || 0,
-        total: ticketData.total,
+        // ⭐ CAMBIO CRÍTICO: Guardar base imponible para contabilidad
+        subtotal: baseAmount,
+        tax_amount: taxAmount,
+        // ⭐ total ahora es la BASE IMPONIBLE (sin IVA) para cálculos contables
+        total: baseAmount,
+        // ⭐ NUEVO: Almacenar el importe bruto original (con IVA) por referencia
+        gross_total: grossTotal,
         payment_method: ticketData.metodo_pago,
         notes: ticketData.negocio ? `Negocio: ${ticketData.negocio}` : null,
         source: 'ticket',
-        file_url: uploadError ? null : fileName  // Guardar la ruta del archivo
+        file_url: uploadError ? null : fileName
       })
       .select()
       .single()
