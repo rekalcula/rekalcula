@@ -17,11 +17,14 @@ interface Props {
 }
 
 export default function ProfitabilityAnalysis({ data }: Props) {
-  const dailyBreakEven = data.breakEvenPoint / 30
-  const averageDailySales = data.totalSales / new Date().getDate()
+  // CORREGIDO: Usar dias del mes completo (30) en lugar del dia actual
+  const diasDelMes = 30
+  const dailyBreakEven = data.breakEvenPoint / diasDelMes
+  const averageDailySales = data.totalSales / diasDelMes
+  
   const daysToBreakEven = averageDailySales > 0
     ? Math.ceil(data.breakEvenPoint / averageDailySales)
-    : 30
+    : diasDelMes
 
   const recommendations = []
 
