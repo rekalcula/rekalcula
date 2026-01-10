@@ -7,8 +7,10 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// GET - Obtener ventas
-export async function GET() {
+const DEFAULT_PAGE_SIZE = 50
+
+// GET - Obtener ventas con paginación
+export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth()
     
@@ -16,17 +18,59 @@ export async function GET() {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    const { data: sales, error } = await supabase
+    const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || String(DEFAULT_PAGE_SIZE))
+    const offset = (page - 1) * limit
+
+    // Consulta 1: Obtener totales (COUNT y SUM de TODAS las ventas)
+    const { count, error: countError } = await supabase
+      .from('sales')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+
+    if (countError) {
+      return NextResponse.json({ error: countError.message }, { status: 500 })
+    }
+
+    // Consulta 2: Obtener suma total de todas las ventas
+    const { data: sumData, error: sumError } = await supabase
+      .from('sales')
+      .select('total')
+      .eq('user_id', userId)
+
+    if (sumError) {
+      return NextResponse.json({ error: sumError.message }, { status: 500 })
+    }
+
+    const totalAmount = sumData?.reduce((sum, sale) => sum + (sale.total || 0), 0) || 0
+
+    // Consulta 3: Obtener ventas paginadas con sus items
+    const { data: sales, error: salesError } = await supabase
       .from('sales')
       .select('*, sale_items(*)')
       .eq('user_id', userId)
       .order('sale_date', { ascending: false })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1)
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (salesError) {
+      return NextResponse.json({ error: salesError.message }, { status: 500 })
     }
 
-    return NextResponse.json(sales)
+    const total = count || 0
+    const totalPages = Math.ceil(total / limit)
+    const hasMore = page < totalPages
+
+    return NextResponse.json({
+      sales: sales || [],
+      total,
+      totalAmount,
+      page,
+      limit,
+      totalPages,
+      hasMore
+    })
   } catch (error) {
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })
   }

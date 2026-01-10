@@ -10,6 +10,8 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+const PAGE_SIZE = 50
+
 export default async function SalesPage() {
   const { userId } = await auth()
   
@@ -17,23 +19,38 @@ export default async function SalesPage() {
     redirect('/sign-in')
   }
 
-  // Obtener ventas ordenadas por fecha
+  // Consulta 1: Obtener el total de ventas (COUNT)
+  const { count: totalCount, error: countError } = await supabase
+    .from('sales')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+
+  // Consulta 2: Obtener la suma total de TODAS las ventas
+  const { data: allSalesForSum, error: sumError } = await supabase
+    .from('sales')
+    .select('total')
+    .eq('user_id', userId)
+
+  const totalAmount = allSalesForSum?.reduce((sum, sale) => sum + (sale.total || 0), 0) || 0
+  const totalSalesCount = totalCount || 0
+
+  // Consulta 3: Obtener primera página de ventas (paginadas)
   const { data: sales, error } = await supabase
     .from('sales')
     .select('*, sale_items(*)')
     .eq('user_id', userId)
     .order('sale_date', { ascending: false })
     .order('created_at', { ascending: false })
-    .limit(100)
+    .range(0, PAGE_SIZE - 1)
 
   if (error) {
     console.error('Error fetching sales:', error)
   }
 
   const salesList: any[] = sales || []
-  const totalSales = salesList.reduce((sum, sale) => sum + (sale.total || 0), 0)
+  const hasMore = totalSalesCount > PAGE_SIZE
 
-  // Agrupar ventas por fecha
+  // Agrupar ventas por fecha (solo las cargadas inicialmente)
   const salesByDate: { [key: string]: any[] } = {}
   salesList.forEach((sale) => {
     const date = sale.sale_date || sale.created_at?.split('T')[0] || 'sin-fecha'
@@ -68,30 +85,34 @@ export default async function SalesPage() {
             </Link>
           </div>
 
-          {/* Resumen */}
+          {/* Resumen - TOTALES REALES de todas las ventas */}
           <div className="bg-gray-200 rounded-xl shadow-sm p-6 border-2 border-[#979797] mb-6">
             <div className="grid md:grid-cols-3 gap-6">
               <div>
                 <p className="text-xl text-gray-500">Total Ventas</p>
-                <p className="text-2xl font-bold text-green-600">€{totalSales.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-green-600">€{totalAmount.toFixed(2)}</p>
               </div>
               <div>
                 <p className="text-xl text-gray-500">Número de Ventas</p>
-                <p className="text-2xl font-bold text-gray-900">{salesList.length}</p>
+                <p className="text-2xl font-bold text-gray-900">{totalSalesCount}</p>
               </div>
               <div>
                 <p className="text-xl text-gray-500">Promedio por Venta</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  €{salesList.length > 0 ? (totalSales / salesList.length).toFixed(2) : '0.00'}
+                  €{totalSalesCount > 0 ? (totalAmount / totalSalesCount).toFixed(2) : '0.00'}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Lista con selección */}
+          {/* Lista con selección y paginación */}
           <SalesListWithSelection
-            salesByDate={salesByDate}
-            sortedDates={sortedDates}
+            initialSalesByDate={salesByDate}
+            initialSortedDates={sortedDates}
+            totalSales={totalSalesCount}
+            initialLoadedCount={salesList.length}
+            hasMore={hasMore}
+            pageSize={PAGE_SIZE}
           />
         </div>
       </div>
