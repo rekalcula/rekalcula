@@ -105,7 +105,6 @@ export default function BusinessResultSummary({ data, loading }: Props) {
           <p className="text-3xl font-bold text-gray-900">
             {formatCurrency(data.totalCostos)}
           </p>
-          {/* CORREGIDO: Mostrar solo Compras y Fijos, sin duplicados */}
           <div className="mt-2 text-xs text-gray-500 space-y-0.5">
             <p>Compras: {formatCurrency(data.costosVariables)}</p>
             <p>Fijos: {formatCurrency(data.costosFijos)}</p>
@@ -194,12 +193,12 @@ export default function BusinessResultSummary({ data, loading }: Props) {
           FILA 3: LIQUIDEZ Y RESERVA FISCAL
           ======================================== */}
       <div className="grid md:grid-cols-3 gap-4">
-        {/* Liquidez */}
+        {/* Balance del Período - ✅ CORREGIDO */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex items-center justify-between mb-3">
             <IconWallet size={28} color="#3B82F6" />
           </div>
-          <p className="text-sm text-gray-500 mb-1">Liquidez Disponible</p>
+          <p className="text-sm text-gray-500 mb-1">Balance del Período</p>
           <p className={`text-2xl font-bold ${data.balanceCaja >= 0 ? 'text-gray-900' : 'text-red-600'}`}>
             {formatCurrency(data.balanceCaja)}
           </p>
@@ -272,31 +271,35 @@ export default function BusinessResultSummary({ data, loading }: Props) {
       </div>
 
       {/* ========================================
-          FILA 4: PENDIENTES
+          FILA 4: PENDIENTES (solo si hay pendientes)
           ======================================== */}
       {(data.pendienteCobro > 0 || data.pendientePago > 0) && (
         <div className="grid md:grid-cols-2 gap-4">
           {/* Pendiente de Cobro */}
-          <div className="bg-blue-50 rounded-xl shadow-sm p-5 border border-blue-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-blue-600 font-medium">Pendiente de Cobro</p>
-                <p className="text-xl font-bold text-blue-700">{formatCurrency(data.pendienteCobro)}</p>
+          {data.pendienteCobro > 0 && (
+            <div className="bg-blue-50 rounded-xl shadow-sm p-5 border border-blue-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-blue-600 font-medium">Pendiente de Cobro</p>
+                  <p className="text-xl font-bold text-blue-700">{formatCurrency(data.pendienteCobro)}</p>
+                </div>
+                <div className="text-3xl">📥</div>
               </div>
-              <div className="text-3xl">📥</div>
             </div>
-          </div>
+          )}
 
           {/* Pendiente de Pago */}
-          <div className="bg-orange-50 rounded-xl shadow-sm p-5 border border-orange-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-orange-600 font-medium">Pendiente de Pago</p>
-                <p className="text-xl font-bold text-orange-700">{formatCurrency(data.pendientePago)}</p>
+          {data.pendientePago > 0 && (
+            <div className="bg-orange-50 rounded-xl shadow-sm p-5 border border-orange-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-orange-600 font-medium">Pendiente de Pago</p>
+                  <p className="text-xl font-bold text-orange-700">{formatCurrency(data.pendientePago)}</p>
+                </div>
+                <div className="text-3xl">📤</div>
               </div>
-              <div className="text-3xl">📤</div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>
