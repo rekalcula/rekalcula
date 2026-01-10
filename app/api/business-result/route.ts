@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams
-    const periodoParam = searchParams.get('periodo') || 'all' // CAMBIADO: Por defecto analiza todo
+    const periodoParam = searchParams.get('periodo') || 'all'
 
     const now = new Date()
     let startDate: Date
@@ -189,12 +189,12 @@ export async function GET(request: NextRequest) {
 
     // Ventas cobradas vs pendientes
     const ventasCobradas = (sales || [])
-      .filter(s => s.payment_status === 'paid')
+      .filter(s => s.payment_status === 'paid' || s.source === 'ticket')
       .reduce((sum, s) => sum + (s.total || 0), 0)
     const ventasPendientes = ingresosBrutos - ventasCobradas
 
     // ========================================
-    // 3. OBTENER COSTOS FIJOS
+    // 3. OBTENER COSTOS FIJOS - ✅ CORREGIDO
     // ========================================
     const { data: fixedCosts, error: fixedCostsError } = await supabase
       .from('fixed_costs')
@@ -205,9 +205,9 @@ export async function GET(request: NextRequest) {
       console.error('[business-result] Error obteniendo costos fijos:', fixedCostsError)
     }
 
-    // Filtrar activos
+    // Filtrar activos - ✅ CORREGIDO: usar is_active
     const activeCosts = (fixedCosts || []).filter(cost => {
-      if (cost.active === false || cost.active === 'false') return false
+      if (cost.is_active === false || cost.is_active === 'false') return false
       return true
     })
 
@@ -244,7 +244,7 @@ export async function GET(request: NextRequest) {
 
     // Facturas pagadas vs pendientes
     const facturasPagadas = (invoices || [])
-      .filter(i => i.payment_status === 'paid')
+      .filter(i => i.payment_status === 'paid' || i.payment_confirmed === true)
       .reduce((sum, i) => sum + (i.total_amount || 0), 0)
     const facturasPendientes = gastosFacturas - facturasPagadas
 
