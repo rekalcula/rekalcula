@@ -48,8 +48,6 @@ const config: CapacitorConfig = {
   android: {
     // Permitir contenido mixto si es necesario
     allowMixedContent: false,
-    // Capturar todos los links externos
-    captureAllLinks: false,
     // Usar la versión más reciente de WebView
     webContentsDebuggingEnabled: false
   },
