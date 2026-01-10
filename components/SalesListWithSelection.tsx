@@ -17,16 +17,33 @@ interface Sale {
 }
 
 interface SalesListWithSelectionProps {
-  salesByDate: { [key: string]: Sale[] }
-  sortedDates: string[]
+  initialSalesByDate: { [key: string]: Sale[] }
+  initialSortedDates: string[]
+  totalSales: number
+  initialLoadedCount: number
+  hasMore: boolean
+  pageSize: number
 }
 
-export default function SalesListWithSelection({ salesByDate, sortedDates }: SalesListWithSelectionProps) {
+export default function SalesListWithSelection({ 
+  initialSalesByDate, 
+  initialSortedDates,
+  totalSales,
+  initialLoadedCount,
+  hasMore: initialHasMore,
+  pageSize
+}: SalesListWithSelectionProps) {
   const router = useRouter()
+  const [salesByDate, setSalesByDate] = useState(initialSalesByDate)
+  const [sortedDates, setSortedDates] = useState(initialSortedDates)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [deleting, setDeleting] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [hasMore, setHasMore] = useState(initialHasMore)
+  const [loadedCount, setLoadedCount] = useState(initialLoadedCount)
 
-  // Obtener todos los IDs
+  // Obtener todos los IDs de las ventas cargadas
   const allIds = sortedDates.flatMap(date => salesByDate[date].map(s => s.id))
 
   const toggleSelect = (id: string) => {
@@ -48,7 +65,7 @@ export default function SalesListWithSelection({ salesByDate, sortedDates }: Sal
   const handleDeleteSelected = async () => {
     if (selectedIds.length === 0) return
 
-    if (!confirm(`¿Estas seguro de que quieres eliminar ${selectedIds.length} venta(s)?`)) {
+    if (!confirm(`¿Estás seguro de que quieres eliminar ${selectedIds.length} venta(s)?`)) {
       return
     }
 
@@ -72,9 +89,64 @@ export default function SalesListWithSelection({ salesByDate, sortedDates }: Sal
     }
   }
 
+  // Función para cargar más ventas
+  const handleLoadMore = async () => {
+    if (loadingMore || !hasMore) return
+
+    setLoadingMore(true)
+    const nextPage = currentPage + 1
+
+    try {
+      const response = await fetch(`/api/sales?page=${nextPage}&limit=${pageSize}`)
+      
+      if (!response.ok) {
+        throw new Error('Error al cargar más ventas')
+      }
+
+      const data = await response.json()
+      const newSales: Sale[] = data.sales
+
+      if (newSales.length > 0) {
+        // Agrupar nuevas ventas por fecha
+        const newSalesByDate = { ...salesByDate }
+        
+        newSales.forEach((sale) => {
+          const date = sale.sale_date || sale.created_at?.split('T')[0] || 'sin-fecha'
+          if (!newSalesByDate[date]) {
+            newSalesByDate[date] = []
+          }
+          // Evitar duplicados
+          if (!newSalesByDate[date].some(s => s.id === sale.id)) {
+            newSalesByDate[date].push(sale)
+          }
+        })
+
+        // Reordenar las fechas
+        const newSortedDates = Object.keys(newSalesByDate).sort((a, b) => {
+          if (a === 'sin-fecha') return 1
+          if (b === 'sin-fecha') return -1
+          return new Date(b).getTime() - new Date(a).getTime()
+        })
+
+        setSalesByDate(newSalesByDate)
+        setSortedDates(newSortedDates)
+        setCurrentPage(nextPage)
+        setHasMore(data.hasMore)
+        setLoadedCount(prev => prev + newSales.length)
+      } else {
+        setHasMore(false)
+      }
+    } catch (error) {
+      console.error('Error loading more sales:', error)
+      alert('Error al cargar más ventas')
+    } finally {
+      setLoadingMore(false)
+    }
+  }
+
   return (
     <>
-      {/* Barra de seleccion */}
+      {/* Barra de selección */}
       {allIds.length > 0 && (
         <div className="bg-gray-200 rounded-xl shadow-sm p-4 mb-6 flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -123,91 +195,121 @@ export default function SalesListWithSelection({ salesByDate, sortedDates }: Sal
             </Link>
           </div>
         ) : (
-          sortedDates.map((date) => {
-            const dateSales = salesByDate[date]
-            const dateTotal = dateSales.reduce((sum: number, s: any) => sum + (s.total || 0), 0)
-            const formattedDate = date !== 'sin-fecha'
-              ? new Date(date).toLocaleDateString('es-ES', {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric'
-                })
-              : 'Sin fecha'
+          <>
+            {sortedDates.map((date) => {
+              const dateSales = salesByDate[date]
+              const dateTotal = dateSales.reduce((sum: number, s: any) => sum + (s.total || 0), 0)
+              const formattedDate = date !== 'sin-fecha'
+                ? new Date(date).toLocaleDateString('es-ES', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                  })
+                : 'Sin fecha'
 
-            return (
-              <div key={date} className="bg-gray-200 rounded-xl shadow-sm overflow-hidden">
-                {/* Cabecera de fecha */}
-                <div className="px-6 py-4 bg-gray-50 border-b flex justify-between items-center">
-                  <h3 className="font-semibold text-gray-900 capitalize flex items-center gap-2">
-                    <IconCalendar size={20} color="#6B7280" />
-                    {formattedDate}
-                  </h3>
-                  <span className="text-green-600 font-semibold">
-                    €{dateTotal.toFixed(2)}
-                  </span>
-                </div>
+              return (
+                <div key={date} className="bg-gray-200 rounded-xl shadow-sm overflow-hidden">
+                  {/* Cabecera de fecha */}
+                  <div className="px-6 py-4 bg-gray-50 border-b flex justify-between items-center">
+                    <h3 className="font-semibold text-gray-900 capitalize flex items-center gap-2">
+                      <IconCalendar size={20} color="#6B7280" />
+                      {formattedDate}
+                    </h3>
+                    <span className="text-green-600 font-semibold">
+                      €{dateTotal.toFixed(2)}
+                    </span>
+                  </div>
 
-                {/* Ventas del dia */}
-                <div className="divide-y">
-                  {dateSales.map((sale: any) => (
-                    <div key={sale.id} className="flex items-center">
-                      {/* Checkbox */}
-                      <div className="pl-4">
-                        <input
-                          type="checkbox"
-                          checked={selectedIds.includes(sale.id)}
-                          onChange={() => toggleSelect(sale.id)}
-                          className="w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                        />
-                      </div>
+                  {/* Ventas del día */}
+                  <div className="divide-y">
+                    {dateSales.map((sale: any) => (
+                      <div key={sale.id} className="flex items-center">
+                        {/* Checkbox */}
+                        <div className="pl-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.includes(sale.id)}
+                            onChange={() => toggleSelect(sale.id)}
+                            className="w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                          />
+                        </div>
 
-                      {/* Contenido */}
-                      <Link
-                        href={`/dashboard/sales/${sale.id}`}
-                        className="flex-1 px-6 py-4 hover:bg-gray-50 transition-colors"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2">
-                              <span className={`text-xs px-2 py-1 rounded-full ${
-                                sale.source === 'ticket'
-                                  ? 'bg-blue-100 text-blue-700'
-                                  : 'bg-gray-100 text-gray-600'
-                              }`}>
-                                {sale.source === 'ticket' ? 'Ticket' : 'Manual'}
-                              </span>
-                              {sale.payment_method && sale.payment_method !== 'desconocido' && (
-                                <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
-                                  {sale.payment_method}
+                        {/* Contenido */}
+                        <Link
+                          href={`/dashboard/sales/${sale.id}`}
+                          className="flex-1 px-6 py-4 hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2">
+                                <span className={`text-xs px-2 py-1 rounded-full ${
+                                  sale.source === 'ticket'
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : 'bg-gray-100 text-gray-600'
+                                }`}>
+                                  {sale.source === 'ticket' ? 'Ticket' : 'Manual'}
                                 </span>
+                                {sale.payment_method && sale.payment_method !== 'desconocido' && (
+                                  <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
+                                    {sale.payment_method}
+                                  </span>
+                                )}
+                              </div>
+
+                              <p className="font-medium text-gray-900 mt-2">
+                                {sale.notes?.replace('Negocio: ', '') || 'Venta'}
+                              </p>
+
+                              {sale.sale_items && sale.sale_items.length > 0 && (
+                                <p className="text-sm text-gray-500 mt-1">
+                                  {sale.sale_items.length} item{sale.sale_items.length > 1 ? 's' : ''}
+                                </p>
                               )}
                             </div>
 
-                            <p className="font-medium text-gray-900 mt-2">
-                              {sale.notes?.replace('Negocio: ', '') || 'Venta'}
-                            </p>
-
-                            {sale.sale_items && sale.sale_items.length > 0 && (
-                              <p className="text-sm text-gray-500 mt-1">
-                                {sale.sale_items.length} item{sale.sale_items.length > 1 ? 's' : ''}
+                            <div className="text-right ml-4">
+                              <p className="text-lg font-bold text-gray-900">
+                                €{sale.total?.toFixed(2) || '0.00'}
                               </p>
-                            )}
+                            </div>
                           </div>
-
-                          <div className="text-right ml-4">
-                            <p className="text-lg font-bold text-gray-900">
-                              €{sale.total?.toFixed(2) || '0.00'}
-                            </p>
-                          </div>
-                        </div>
-                      </Link>
-                    </div>
-                  ))}
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )
-          })
+              )
+            })}
+
+            {/* Botón Cargar más y contador */}
+            <div className="mt-8 text-center space-y-4">
+              {hasMore && (
+                <button
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                  className="bg-[#0d0d0d] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#2d2d2d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loadingMore ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Cargando...
+                    </span>
+                  ) : (
+                    `Cargar más ventas`
+                  )}
+                </button>
+              )}
+              
+              <p className="text-gray-400 text-sm">
+                Mostrando {loadedCount} de {totalSales} ventas
+                {!hasMore && totalSales > 0 && ' (todas cargadas)'}
+              </p>
+            </div>
+          </>
         )}
       </div>
     </>
