@@ -1,4 +1,6 @@
-﻿import { auth } from '@clerk/nextjs/server'
+﻿// app/dashboard/sales/page.tsx
+// CORREGIDO: 2026-01-10 - Usar subtotal como base imponible
+import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import DashboardNav from '@/components/DashboardNav'
@@ -25,13 +27,19 @@ export default async function SalesPage() {
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId)
 
-  // Consulta 2: Obtener la suma total de TODAS las ventas
+  // ⭐ CORRECCIÓN: Obtener subtotal (base imponible) en vez de total
   const { data: allSalesForSum, error: sumError } = await supabase
     .from('sales')
-    .select('total')
+    .select('subtotal, total')
     .eq('user_id', userId)
 
-  const totalAmount = allSalesForSum?.reduce((sum, sale) => sum + (sale.total || 0), 0) || 0
+  // ⭐ CORRECCIÓN: Usar subtotal como base imponible para contabilidad
+  const totalAmount = allSalesForSum?.reduce((sum, sale) => {
+    // Usar subtotal si existe, si no usar total (compatibilidad)
+    const baseAmount = sale.subtotal || sale.total || 0
+    return sum + baseAmount
+  }, 0) || 0
+  
   const totalSalesCount = totalCount || 0
 
   // Consulta 3: Obtener primera página de ventas (paginadas)
@@ -71,7 +79,7 @@ export default async function SalesPage() {
       <DashboardNav />
       <div className="min-h-screen bg-[#262626]">
         <div className="max-w-6xl mx-auto px-4 py-8">
-          {/* Header responsive - Apilado en móvil, horizontal en desktop */}
+          {/* Header responsive */}
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-[#d98c21]">Ventas</h1>
@@ -85,12 +93,13 @@ export default async function SalesPage() {
             </Link>
           </div>
 
-          {/* Resumen - TOTALES REALES de todas las ventas */}
+          {/* ⭐ Resumen - Ahora muestra BASE IMPONIBLE (sin IVA) */}
           <div className="bg-gray-200 rounded-xl shadow-sm p-6 border-2 border-[#979797] mb-6">
             <div className="grid md:grid-cols-3 gap-6">
               <div>
                 <p className="text-xl text-gray-500">Total Ventas</p>
                 <p className="text-2xl font-bold text-green-600">€{totalAmount.toFixed(2)}</p>
+                <p className="text-xs text-gray-400">Base imponible (sin IVA)</p>
               </div>
               <div>
                 <p className="text-xl text-gray-500">Número de Ventas</p>
