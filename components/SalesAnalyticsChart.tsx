@@ -38,7 +38,8 @@ interface AnalyticsData {
 }
 
 export default function SalesAnalyticsChart() {
-  const [period, setPeriod] = useState<'day' | 'week' | 'month'>('month')
+  // ACTUALIZADO: Añadido 'all' al tipo
+  const [period, setPeriod] = useState<'day' | 'week' | 'month' | 'all'>('all')
   const [compare, setCompare] = useState(false)
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -48,10 +49,19 @@ export default function SalesAnalyticsChart() {
     fetchData()
   }, [period, compare])
 
+  // ACTUALIZADO: Desactivar comparación automáticamente cuando es "all"
+  useEffect(() => {
+    if (period === 'all' && compare) {
+      setCompare(false)
+    }
+  }, [period])
+
   const fetchData = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/analytics/sales?period=${period}&compare=${compare}`)
+      // ACTUALIZADO: No enviar compare cuando period=all
+      const compareParam = period === 'all' ? false : compare
+      const response = await fetch(`/api/analytics/sales?period=${period}&compare=${compareParam}`)
       const result = await response.json()
       setData(result)
     } catch (error) {
@@ -79,11 +89,13 @@ export default function SalesAnalyticsChart() {
     })
   }
 
+  // ACTUALIZADO: Añadido caso 'all'
   const getPeriodLabel = () => {
     switch (period) {
       case 'day': return 'Hoy'
       case 'week': return 'Esta semana'
       case 'month': return 'Este mes'
+      case 'all': return 'Todo el período'
     }
   }
 
@@ -92,6 +104,7 @@ export default function SalesAnalyticsChart() {
       case 'day': return 'vs Ayer'
       case 'week': return 'vs Semana anterior'
       case 'month': return 'vs Mes anterior'
+      case 'all': return '' // No aplica
     }
   }
 
@@ -129,10 +142,21 @@ export default function SalesAnalyticsChart() {
       <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-6">
         <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-4">
           
-          {/* Período */}
+          {/* Período - ACTUALIZADO: Añadido botón "Todo" */}
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium text-gray-300">Período:</span>
             <div className="flex bg-[#0d0d0d] rounded-lg p-1 border border-[#3a3a3a]">
+              {/* NUEVO: Botón "Todo" */}
+              <button
+                onClick={() => setPeriod('all')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  period === 'all' 
+                    ? 'bg-[#D98C21] text-white' 
+                    : 'text-gray-300 hover:text-white hover:bg-[#2a2a2a]'
+                }`}
+              >
+                Todo
+              </button>
               <button
                 onClick={() => setPeriod('day')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -166,18 +190,20 @@ export default function SalesAnalyticsChart() {
             </div>
           </div>
 
-          {/* Comparativa */}
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={compare}
-              onChange={(e) => setCompare(e.target.checked)}
-              className="w-5 h-5 rounded border-gray-600 bg-[#2a2a2a] text-[#D98C21] focus:ring-[#D98C21]"
-            />
-            <span className="text-sm font-medium text-gray-300">
-              Comparar {getCompareLabel()}
-            </span>
-          </label>
+          {/* Comparativa - ACTUALIZADO: Deshabilitado cuando period=all */}
+          {period !== 'all' && (
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={compare}
+                onChange={(e) => setCompare(e.target.checked)}
+                className="w-5 h-5 rounded border-gray-600 bg-[#2a2a2a] text-[#D98C21] focus:ring-[#D98C21]"
+              />
+              <span className="text-sm font-medium text-gray-300">
+                Comparar {getCompareLabel()}
+              </span>
+            </label>
+          )}
 
           {/* Vista */}
           <div className="flex items-center gap-3">
