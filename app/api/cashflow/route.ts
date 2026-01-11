@@ -16,7 +16,50 @@ const METODOS_PAGO_CONTADO = [
   'bizum', 'paypal'
 ];
 
-// Función para verificar si una venta está cobrada
+// ========================================
+// FECHAS DE LIQUIDACIÓN DE IVA (España)
+// ========================================
+const FECHAS_LIQUIDACION_IVA = [
+  { mes: 1, dia: 30, trimestre: 4, nombre: 'Q4 (Oct-Dic)' },
+  { mes: 4, dia: 20, trimestre: 1, nombre: 'Q1 (Ene-Mar)' },
+  { mes: 7, dia: 20, trimestre: 2, nombre: 'Q2 (Abr-Jun)' },
+  { mes: 10, dia: 20, trimestre: 3, nombre: 'Q3 (Jul-Sep)' }
+];
+
+function obtenerTrimestre(fecha: Date): number {
+  const mes = fecha.getMonth();
+  if (mes >= 0 && mes <= 2) return 1;
+  if (mes >= 3 && mes <= 5) return 2;
+  if (mes >= 6 && mes <= 8) return 3;
+  return 4;
+}
+
+function obtenerRangoTrimestre(trimestre: number, año: number): { inicio: Date; fin: Date } {
+  const inicios = [
+    new Date(año, 0, 1), new Date(año, 3, 1), new Date(año, 6, 1), new Date(año, 9, 1)
+  ];
+  const fines = [
+    new Date(año, 2, 31), new Date(año, 5, 30), new Date(año, 8, 30), new Date(año, 11, 31)
+  ];
+  return { inicio: inicios[trimestre - 1], fin: fines[trimestre - 1] };
+}
+
+function obtenerProximaLiquidacion(ahora: Date): { fecha: Date; trimestre: string; diasRestantes: number } {
+  const año = ahora.getFullYear();
+  
+  for (const liq of FECHAS_LIQUIDACION_IVA) {
+    const fechaLiq = new Date(año, liq.mes - 1, liq.dia);
+    if (fechaLiq > ahora) {
+      const diasRestantes = Math.ceil((fechaLiq.getTime() - ahora.getTime()) / (1000 * 60 * 60 * 24));
+      return { fecha: fechaLiq, trimestre: liq.nombre, diasRestantes };
+    }
+  }
+  
+  const fechaLiq = new Date(año + 1, 0, 30);
+  const diasRestantes = Math.ceil((fechaLiq.getTime() - ahora.getTime()) / (1000 * 60 * 60 * 24));
+  return { fecha: fechaLiq, trimestre: 'Q4 (Oct-Dic)', diasRestantes };
+}
+
 function ventaEstaCobrada(venta: any): boolean {
   if (venta.payment_status === 'paid') return true;
   if (venta.source === 'ticket') return true;
@@ -26,7 +69,6 @@ function ventaEstaCobrada(venta: any): boolean {
   return false;
 }
 
-// Función para verificar si una factura está pagada
 function facturaEstaPagada(factura: any): boolean {
   if (factura.payment_status === 'paid') return true;
   if (factura.payment_confirmed === true) return true;
@@ -51,31 +93,18 @@ export async function GET(request: NextRequest) {
     let startDate: Date;
     let mesesEnPeriodo: number;
 
-    // ========================================
-    // CALCULAR FECHAS SEGÚN EL PERÍODO
-    // ========================================
-    
     if (periodo === 'all') {
       const { data: oldestSale } = await supabase
-        .from('sales')
-        .select('sale_date')
-        .eq('user_id', userId)
-        .order('sale_date', { ascending: true })
-        .limit(1)
-        .single();
+        .from('sales').select('sale_date').eq('user_id', userId)
+        .order('sale_date', { ascending: true }).limit(1).single();
 
       const { data: oldestInvoice } = await supabase
-        .from('invoices')
-        .select('invoice_date')
-        .eq('user_id', userId)
-        .order('invoice_date', { ascending: true })
-        .limit(1)
-        .single();
+        .from('invoices').select('invoice_date').eq('user_id', userId)
+        .order('invoice_date', { ascending: true }).limit(1).single();
 
       if (oldestSale?.sale_date && oldestInvoice?.invoice_date) {
         startDate = new Date(oldestSale.sale_date < oldestInvoice.invoice_date 
-          ? oldestSale.sale_date 
-          : oldestInvoice.invoice_date);
+          ? oldestSale.sale_date : oldestInvoice.invoice_date);
       } else if (oldestSale?.sale_date) {
         startDate = new Date(oldestSale.sale_date);
       } else if (oldestInvoice?.invoice_date) {
@@ -85,287 +114,209 @@ export async function GET(request: NextRequest) {
       }
 
       const monthsDiff = (now.getFullYear() - startDate.getFullYear()) * 12 + 
-                         (now.getMonth() - startDate.getMonth()) + 
-                         (now.getDate() / 30);
+                         (now.getMonth() - startDate.getMonth()) + (now.getDate() / 30);
       mesesEnPeriodo = Math.max(1, monthsDiff);
-      
     } else {
       switch (periodo) {
         case '3meses':
-          startDate = new Date();
-          startDate.setMonth(now.getMonth() - 3);
-          mesesEnPeriodo = 3;
-          break;
+          startDate = new Date(); startDate.setMonth(now.getMonth() - 3); mesesEnPeriodo = 3; break;
         case '6meses':
-          startDate = new Date();
-          startDate.setMonth(now.getMonth() - 6);
-          mesesEnPeriodo = 6;
-          break;
+          startDate = new Date(); startDate.setMonth(now.getMonth() - 6); mesesEnPeriodo = 6; break;
         default:
-          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-          mesesEnPeriodo = 1;
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1); mesesEnPeriodo = 1;
       }
     }
 
-    // ========================================
     // OBTENER VENTAS
-    // ========================================
-    const { data: ventas, error: errorVentas } = await supabase
+    const { data: ventas } = await supabase
       .from('sales')
-      .select('id, total, payment_status, payment_method, payment_due_date, actual_payment_date, customer_name, sale_date, created_at, source')
+      .select('id, total, subtotal, tax_amount, gross_total, payment_status, payment_method, payment_due_date, actual_payment_date, customer_name, sale_date, created_at, source')
       .eq('user_id', userId)
       .gte('sale_date', startDate.toISOString().split('T')[0])
       .lte('sale_date', now.toISOString().split('T')[0]);
 
-    if (errorVentas) console.error('Error obteniendo ventas:', errorVentas);
-
-    // ========================================
     // OBTENER FACTURAS
-    // ========================================
-    const { data: facturas, error: errorFacturas } = await supabase
+    const { data: facturas } = await supabase
       .from('invoices')
-      .select('id, total_amount, invoice_date, payment_status, payment_method, payment_due_date, actual_payment_date, category, supplier, payment_confirmed')
+      .select('id, total_amount, tax_amount, gross_amount, invoice_date, payment_status, payment_method, payment_due_date, actual_payment_date, category, supplier, payment_confirmed')
       .eq('user_id', userId)
       .gte('invoice_date', startDate.toISOString().split('T')[0])
       .lte('invoice_date', now.toISOString().split('T')[0]);
 
-    if (errorFacturas) console.error('Error obteniendo facturas:', errorFacturas);
+    // OBTENER COSTOS FIJOS
+    const { data: costosFijos } = await supabase
+      .from('fixed_costs').select('id, name, amount, frequency, is_active').eq('user_id', userId);
 
-    // ========================================
-    // OBTENER COSTOS FIJOS - ✅ CORREGIDO
-    // ========================================
-    const { data: costosFijos, error: errorCostos } = await supabase
-      .from('fixed_costs')
-      .select('id, name, amount, frequency, is_active')
-      .eq('user_id', userId);
+    const activeCosts = (costosFijos || []).filter(c => c.is_active !== false && c.is_active !== 'false');
 
-    if (errorCostos) console.error('Error obteniendo costos fijos:', errorCostos);
+    // ⭐ CALCULAR ENTRADAS - BASE IMPONIBLE
+    const ventasBaseImponible = ventas?.reduce((sum, v) => sum + (v.subtotal || v.total || 0), 0) || 0;
+    const ivaRepercutido = ventas?.reduce((sum, v) => sum + (v.tax_amount || 0), 0) || 0;
+    const ventasBruto = ventas?.reduce((sum, v) => sum + (v.gross_total || v.total || 0), 0) || 0;
+    const ventasCobradasBase = ventas?.filter(v => ventaEstaCobrada(v))
+      .reduce((sum, v) => sum + (v.subtotal || v.total || 0), 0) || 0;
+    const ventasPendientesBase = ventasBaseImponible - ventasCobradasBase;
 
-    const activeCosts = (costosFijos || []).filter(cost => {
-      if (cost.is_active === false || cost.is_active === 'false') return false;
-      return true;
-    });
-
-    // ========================================
-    // CALCULAR ENTRADAS (VENTAS)
-    // ========================================
-    const totalVentas = ventas?.reduce((sum, v) => sum + (v.total || 0), 0) || 0;
-    const ventasCobradas = ventas
-      ?.filter(v => ventaEstaCobrada(v))
-      .reduce((sum, v) => sum + (v.total || 0), 0) || 0;
-    const ventasPendientes = totalVentas - ventasCobradas;
-
-    // ========================================
-    // CALCULAR FACTURAS DE COMPRA
-    // ========================================
-    const totalFacturas = facturas?.reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
-    const facturasPagadas = facturas
-      ?.filter(f => facturaEstaPagada(f))
+    // ⭐ CALCULAR SALIDAS - BASE IMPONIBLE
+    const facturasBaseImponible = facturas?.reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
+    const ivaSoportado = facturas?.reduce((sum, f) => sum + (f.tax_amount || 0), 0) || 0;
+    const facturasBruto = facturas?.reduce((sum, f) => sum + (f.gross_amount || f.total_amount || 0), 0) || 0;
+    const facturasPagadasBase = facturas?.filter(f => facturaEstaPagada(f))
       .reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
-    const facturasPendientes = totalFacturas - facturasPagadas;
+    const facturasPendientesBase = facturasBaseImponible - facturasPagadasBase;
 
-    // ========================================
-    // CALCULAR COSTOS FIJOS DEL PERÍODO
-    // ========================================
+    // COSTOS FIJOS
     const costosFijosMensuales = activeCosts.reduce((sum, c) => {
       let mensual = c.amount || 0;
       if (c.frequency === 'annual' || c.frequency === 'yearly') mensual = mensual / 12;
       if (c.frequency === 'quarterly') mensual = mensual / 3;
       return sum + mensual;
     }, 0);
-
-    // Total costos fijos del período (proporcional a los meses)
     const totalCostosFijos = costosFijosMensuales * mesesEnPeriodo;
 
-    // ========================================
-    // CALCULAR SALIDAS TOTALES
-    // Los costos fijos son gastos recurrentes que se pagan regularmente
-    // Por lo tanto, se consideran como "pagados" para el período analizado
-    // ========================================
-    const totalSalidas = totalFacturas + totalCostosFijos;
+    // ⭐ IVA TRIMESTRAL
+    const trimestreActual = obtenerTrimestre(now);
+    const rangoTrimestre = obtenerRangoTrimestre(trimestreActual, now.getFullYear());
     
-    // Pagado = facturas pagadas + costos fijos del período (ya ocurrieron)
-    const salidasPagadas = facturasPagadas + totalCostosFijos;
-    
-    // Pendiente = solo facturas de compra pendientes de pago
-    const salidasPendientes = facturasPendientes;
+    const ventasTrimestre = ventas?.filter(v => {
+      const f = new Date(v.sale_date);
+      return f >= rangoTrimestre.inicio && f <= rangoTrimestre.fin;
+    }) || [];
+    const facturasTrimestre = facturas?.filter(f => {
+      const fecha = new Date(f.invoice_date);
+      return fecha >= rangoTrimestre.inicio && fecha <= rangoTrimestre.fin;
+    }) || [];
 
-    // ========================================
-    // GENERAR DATOS HISTÓRICOS POR MES
-    // ========================================
-    const datosHistoricos: Array<{ periodo: string; entradas: number; salidas: number }> = [];
+    const ivaRepercutidoTrimestre = ventasTrimestre.reduce((sum, v) => sum + (v.tax_amount || 0), 0);
+    const ivaSoportadoTrimestre = facturasTrimestre.reduce((sum, f) => sum + (f.tax_amount || 0), 0);
+    const liquidacionIvaTrimestre = ivaRepercutidoTrimestre - ivaSoportadoTrimestre;
+    const proximaLiquidacion = obtenerProximaLiquidacion(now);
+
+    // TOTALES
+    const totalSalidasBase = facturasBaseImponible + totalCostosFijos;
+    const balanceOperativo = ventasBaseImponible - totalSalidasBase;
+
+    // DATOS HISTÓRICOS
+    const datosHistoricos: Array<{ periodo: string; entradas: number; salidas: number; ivaRepercutido: number; ivaSoportado: number }> = [];
     const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     const mesesAMostrar = Math.min(Math.ceil(mesesEnPeriodo), 12);
     
     for (let i = mesesAMostrar - 1; i >= 0; i--) {
-      const mesDate = new Date();
-      mesDate.setMonth(now.getMonth() - i);
+      const mesDate = new Date(); mesDate.setMonth(now.getMonth() - i);
       const mesIndex = mesDate.getMonth();
-      const mesNombre = meses[mesIndex];
       const año = mesDate.getFullYear();
       
       const ventasMes = ventas?.filter(v => {
-        const fecha = new Date(v.sale_date || v.created_at);
-        return fecha.getMonth() === mesIndex && fecha.getFullYear() === año;
-      }).reduce((sum, v) => sum + (v.total || 0), 0) || 0;
-
+        const f = new Date(v.sale_date || v.created_at);
+        return f.getMonth() === mesIndex && f.getFullYear() === año;
+      }) || [];
       const facturasMes = facturas?.filter(f => {
         const fecha = new Date(f.invoice_date);
         return fecha.getMonth() === mesIndex && fecha.getFullYear() === año;
-      }).reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
+      }) || [];
 
-      // IMPORTANTE: Las salidas incluyen facturas + costos fijos mensuales
       datosHistoricos.push({
-        periodo: mesNombre,
-        entradas: ventasMes,
-        salidas: facturasMes + costosFijosMensuales
+        periodo: meses[mesIndex],
+        entradas: ventasMes.reduce((sum, v) => sum + (v.subtotal || v.total || 0), 0),
+        salidas: facturasMes.reduce((sum, f) => sum + (f.total_amount || 0), 0) + costosFijosMensuales,
+        ivaRepercutido: ventasMes.reduce((sum, v) => sum + (v.tax_amount || 0), 0),
+        ivaSoportado: facturasMes.reduce((sum, f) => sum + (f.tax_amount || 0), 0)
       });
     }
 
-    // ========================================
-    // PRÓXIMOS COBROS (solo ventas realmente pendientes)
-    // ========================================
+    // PRÓXIMOS COBROS Y PAGOS
     const ahora = new Date();
-    const en30Dias = new Date(ahora);
-    en30Dias.setDate(ahora.getDate() + 30);
+    const en30Dias = new Date(ahora); en30Dias.setDate(ahora.getDate() + 30);
 
-    const proximosCobros = ventas
-      ?.filter(v => {
-        if (ventaEstaCobrada(v)) return false;
-        if (v.payment_due_date) {
-          const vencimiento = new Date(v.payment_due_date);
-          return vencimiento >= ahora && vencimiento <= en30Dias;
-        }
-        return false;
-      })
-      .sort((a, b) => {
-        const dateA = a.payment_due_date ? new Date(a.payment_due_date).getTime() : 0;
-        const dateB = b.payment_due_date ? new Date(b.payment_due_date).getTime() : 0;
-        return dateA - dateB;
-      })
-      .slice(0, 5)
-      .map(v => ({
-        id: String(v.id),
-        concepto: v.customer_name || 'Venta pendiente',
-        monto: v.total || 0,
-        fecha: v.payment_due_date || v.sale_date || v.created_at
+    const proximosCobros = ventas?.filter(v => !ventaEstaCobrada(v) && v.payment_due_date && 
+      new Date(v.payment_due_date) >= ahora && new Date(v.payment_due_date) <= en30Dias)
+      .sort((a, b) => new Date(a.payment_due_date!).getTime() - new Date(b.payment_due_date!).getTime())
+      .slice(0, 5).map(v => ({
+        id: String(v.id), concepto: v.customer_name || 'Venta pendiente',
+        monto: v.subtotal || v.total || 0, iva: v.tax_amount || 0,
+        fecha: v.payment_due_date || v.sale_date
       })) || [];
 
-    // ========================================
-    // PRÓXIMOS PAGOS (facturas pendientes)
-    // ========================================
-    const proximosPagos = facturas
-      ?.filter(f => {
-        if (facturaEstaPagada(f)) return false;
-        if (f.payment_due_date) {
-          const vencimiento = new Date(f.payment_due_date);
-          return vencimiento >= ahora && vencimiento <= en30Dias;
-        }
-        return false;
-      })
-      .sort((a, b) => {
-        const dateA = a.payment_due_date ? new Date(a.payment_due_date).getTime() : 0;
-        const dateB = b.payment_due_date ? new Date(b.payment_due_date).getTime() : 0;
-        return dateA - dateB;
-      })
-      .slice(0, 5)
-      .map(f => ({
-        id: String(f.id),
-        concepto: f.supplier || `Factura ${f.category || 'compra'}`,
-        monto: f.total_amount || 0,
+    const proximosPagos = facturas?.filter(f => !facturaEstaPagada(f) && f.payment_due_date &&
+      new Date(f.payment_due_date) >= ahora && new Date(f.payment_due_date) <= en30Dias)
+      .sort((a, b) => new Date(a.payment_due_date!).getTime() - new Date(b.payment_due_date!).getTime())
+      .slice(0, 5).map(f => ({
+        id: String(f.id), concepto: f.supplier || `Factura ${f.category || 'compra'}`,
+        monto: f.total_amount || 0, iva: f.tax_amount || 0,
         fecha: f.payment_due_date || f.invoice_date
       })) || [];
 
-    // ========================================
-    // RESPUESTA CON DESGLOSE COMPLETO
-    // ========================================
     return NextResponse.json({
       entradas: {
-        total: totalVentas,
-        cobrado: ventasCobradas,
-        pendiente: ventasPendientes
+        total: ventasBaseImponible, cobrado: ventasCobradasBase,
+        pendiente: ventasPendientesBase, bruto: ventasBruto
       },
       salidas: {
-        total: totalSalidas,
-        pagado: salidasPagadas,
-        pendiente: salidasPendientes,
-        // NUEVO: Desglose detallado de salidas
+        total: totalSalidasBase, pagado: facturasPagadasBase + totalCostosFijos,
+        pendiente: facturasPendientesBase, bruto: facturasBruto,
         desglose: {
-          facturas: totalFacturas,
-          facturasPagadas: facturasPagadas,
-          facturasPendientes: facturasPendientes,
-          costosFijos: totalCostosFijos,
-          costosFijosMensuales: costosFijosMensuales
+          facturas: facturasBaseImponible, facturasPagadas: facturasPagadasBase,
+          facturasPendientes: facturasPendientesBase, costosFijos: totalCostosFijos,
+          costosFijosMensuales
         }
       },
-      balance: totalVentas - totalSalidas,
-      proximosCobros,
-      proximosPagos,
-      datosHistoricos,
+      balance: balanceOperativo,
+      iva: {
+        repercutido: ivaRepercutido, soportado: ivaSoportado,
+        liquidacion: ivaRepercutido - ivaSoportado,
+        trimestre: {
+          numero: trimestreActual, nombre: `Q${trimestreActual}`,
+          repercutido: ivaRepercutidoTrimestre, soportado: ivaSoportadoTrimestre,
+          liquidacion: liquidacionIvaTrimestre,
+          inicio: rangoTrimestre.inicio.toISOString().split('T')[0],
+          fin: rangoTrimestre.fin.toISOString().split('T')[0]
+        },
+        proximaLiquidacion: {
+          fecha: proximaLiquidacion.fecha.toISOString().split('T')[0],
+          trimestre: proximaLiquidacion.trimestre,
+          diasRestantes: proximaLiquidacion.diasRestantes,
+          importeEstimado: liquidacionIvaTrimestre
+        }
+      },
+      proximosCobros, proximosPagos, datosHistoricos,
       mesesEnPeriodo: Math.round(mesesEnPeriodo * 10) / 10,
       costosFijosMensuales,
-      // NUEVO: Resumen para información del usuario
       resumen: {
         periodoMeses: Math.round(mesesEnPeriodo * 10) / 10,
-        ventasTotales: totalVentas,
-        comprasTotales: totalFacturas,
-        costosFijosTotales: totalCostosFijos,
-        gastosTotales: totalSalidas,
-        beneficioBruto: totalVentas - totalSalidas
+        ventasBase: ventasBaseImponible, comprasBase: facturasBaseImponible,
+        costosFijosTotales: totalCostosFijos, gastosTotales: totalSalidasBase,
+        beneficioBruto: balanceOperativo,
+        ivaRepercutido, ivaSoportado,
+        ivaAPagar: Math.max(0, ivaRepercutido - ivaSoportado),
+        ivaACompensar: Math.max(0, ivaSoportado - ivaRepercutido),
+        ventasBruto, comprasBruto: facturasBruto
       }
     });
-
   } catch (error) {
     console.error('Error en API cashflow:', error);
-    return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
 
-// ========================================
-// POST: Marcar como pagado/cobrado
-// ========================================
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth();
-    
-    if (!userId) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-    }
+    if (!userId) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
     const body = await request.json();
     const { type, id, action } = body;
 
     if (action === 'mark_paid') {
       const table = type === 'invoice' ? 'invoices' : 'sales';
-      const today = new Date().toISOString().split('T')[0];
+      const { error } = await supabase.from(table).update({ 
+        payment_status: 'paid', actual_payment_date: new Date().toISOString().split('T')[0]
+      }).eq('id', id).eq('user_id', userId);
 
-      const { error } = await supabase
-        .from(table)
-        .update({ 
-          payment_status: 'paid',
-          actual_payment_date: today
-        })
-        .eq('id', id)
-        .eq('user_id', userId);
-
-      if (error) {
-        console.error('Error actualizando estado:', error);
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-      }
-
+      if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
       return NextResponse.json({ success: true });
     }
-
     return NextResponse.json({ error: 'Acción no válida' }, { status: 400 });
-
   } catch (error) {
-    console.error('Error en POST cashflow:', error);
-    return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
