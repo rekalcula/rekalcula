@@ -16,13 +16,16 @@ interface CashFlowData {
     desglose?: {
       facturas: number; facturasPagadas: number; facturasPendientes: number;
       costosFijos: number; costosFijosMensuales: number;
+      ivaCostosFijos?: number; ivaCostosFijosMensual?: number;
     };
   };
   balance: number;
   iva?: {
     repercutido: number; soportado: number; liquidacion: number;
+    soportadoFacturas?: number; soportadoCostosFijos?: number;
     trimestre: {
       numero: number; nombre: string; repercutido: number; soportado: number;
+      soportadoFacturas?: number; soportadoCostosFijos?: number;
       liquidacion: number; inicio: string; fin: string;
     };
     proximaLiquidacion: {
@@ -37,7 +40,9 @@ interface CashFlowData {
   resumen?: {
     periodoMeses: number; ventasBase: number; comprasBase: number;
     costosFijosTotales: number; gastosTotales: number; beneficioBruto: number;
-    ivaRepercutido: number; ivaSoportado: number; ivaAPagar: number; ivaACompensar: number;
+    ivaRepercutido: number; ivaSoportado: number; 
+    ivaSoportadoFacturas?: number; ivaSoportadoCostosFijos?: number;
+    ivaAPagar: number; ivaACompensar: number;
     ventasBruto: number; comprasBruto: number;
   };
 }
@@ -187,11 +192,21 @@ export default function CashFlowPage() {
                   <p className="text-xs text-blue-300 mt-1">Lo que debes a Hacienda</p>
                 </div>
                 
-                {/* IVA Soportado */}
+                {/* IVA Soportado - CON DESGLOSE */}
                 <div className="bg-white/10 rounded-lg p-4">
-                  <p className="text-blue-200 text-sm">IVA Soportado (Compras)</p>
+                  <p className="text-blue-200 text-sm">IVA Soportado (Deducible)</p>
                   <p className="text-2xl font-bold text-white">{formatCurrency(iva.trimestre.soportado)}</p>
-                  <p className="text-xs text-blue-300 mt-1">Lo que puedes deducir</p>
+                  {/* Desglose */}
+                  <div className="mt-2 pt-2 border-t border-white/20 space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-blue-300">Facturas:</span>
+                      <span className="text-white">{formatCurrency(iva.trimestre.soportadoFacturas || 0)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-blue-300">Costes fijos:</span>
+                      <span className="text-white">{formatCurrency(iva.trimestre.soportadoCostosFijos || 0)}</span>
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Resultado */}
