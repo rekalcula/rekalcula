@@ -3,12 +3,12 @@
 import { useEffect, useState } from 'react'
 import { 
   TrendingUp, TrendingDown, Clock, Calendar, AlertCircle, 
-  CheckCircle2, Lightbulb, ArrowUpRight, ArrowDownRight,
-  Sun, Moon, Coffee, Sunset
+  CheckCircle2, Lightbulb, ArrowUpRight, ArrowDownRight, X
 } from 'lucide-react'
 
 interface OpportunityData {
   hasData: boolean
+  selectedDay?: number | null
   periodoAnalisis?: {
     inicio: string
     fin: string
@@ -46,22 +46,27 @@ interface OpportunityData {
     mejorDia: string
     mejorHora: string
     impactoTotalPotencial: number
-  }
+  } | null
 }
 
 export default function OpportunityAnalysis() {
   const [data, setData] = useState<OpportunityData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedDay, setSelectedDay] = useState<number | null>(null)
 
   useEffect(() => {
     fetchOpportunities()
-  }, [])
+  }, [selectedDay])
 
   const fetchOpportunities = async () => {
     setLoading(true)
     try {
-      const response = await fetch('/api/analytics/opportunity')
+      const url = selectedDay !== null 
+        ? `/api/analytics/opportunity?day=${selectedDay}`
+        : '/api/analytics/opportunity'
+      
+      const response = await fetch(url)
       if (!response.ok) throw new Error('Error al cargar análisis')
       const result = await response.json()
       setData(result)
@@ -70,6 +75,10 @@ export default function OpportunityAnalysis() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleDayClick = (dia: number) => {
+    setSelectedDay(dia === selectedDay ? null : dia)
   }
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('es-ES', {
@@ -107,14 +116,6 @@ export default function OpportunityAnalysis() {
     }
   }
 
-  const getFranjaIcon = (franja: string) => {
-    if (franja.includes('Mañana') || franja.includes('temprano')) return <Coffee className="w-4 h-4" />
-    if (franja.includes('Tarde')) return <Sun className="w-4 h-4" />
-    if (franja.includes('Noche')) return <Moon className="w-4 h-4" />
-    if (franja.includes('Madrugada')) return <Moon className="w-4 h-4" />
-    return <Clock className="w-4 h-4" />
-  }
-
   if (loading) {
     return (
       <div className="bg-[#1a1a1a] rounded-xl p-6 border border-gray-700">
@@ -145,21 +146,25 @@ export default function OpportunityAnalysis() {
     )
   }
 
+  const selectedDayName = selectedDay !== null && data.analisisDias 
+    ? data.analisisDias[selectedDay].nombre 
+    : null
+
   return (
     <div className="space-y-6">
-      {/* Header con métricas generales */}
-      <div className="bg-gradient-to-r from-purple-900 to-indigo-900 rounded-xl p-6 border border-purple-700">
-        <div className="flex items-center gap-3 mb-4">
-          <Lightbulb className="w-7 h-7 text-yellow-300" />
-          <div>
-            <h3 className="text-xl font-bold text-white">Análisis de Oportunidades</h3>
-            <p className="text-purple-200 text-sm">
-              Basado en {data.periodoAnalisis?.totalVentas} ventas • {data.periodoAnalisis?.totalDias} días
-            </p>
+      {/* Header con métricas generales (solo si no hay filtro) */}
+      {selectedDay === null && data.metricas && (
+        <div className="bg-gradient-to-r from-purple-900 to-indigo-900 rounded-xl p-6 border border-purple-700">
+          <div className="flex items-center gap-3 mb-4">
+            <Lightbulb className="w-7 h-7 text-yellow-300" />
+            <div>
+              <h3 className="text-xl font-bold text-white">Análisis de Oportunidades</h3>
+              <p className="text-purple-200 text-sm">
+                Basado en {data.periodoAnalisis?.totalVentas} ventas • {data.periodoAnalisis?.totalDias} días
+              </p>
+            </div>
           </div>
-        </div>
 
-        {data.metricas && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
             <div className="bg-white/10 rounded-lg p-3">
               <p className="text-purple-200 text-xs">Mejor día</p>
@@ -178,11 +183,11 @@ export default function OpportunityAnalysis() {
               <p className="text-green-300 font-bold text-lg">+{formatCurrency(data.metricas.impactoTotalPotencial)}</p>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Recomendaciones */}
-      {data.recomendaciones && data.recomendaciones.length > 0 && (
+      {/* Recomendaciones (solo si no hay filtro) */}
+      {selectedDay === null && data.recomendaciones && data.recomendaciones.length > 0 && (
         <div className="bg-[#1a1a1a] rounded-xl p-6 border border-gray-700">
           <h4 className="text-lg font-semibold text-[#d98c21] mb-4 flex items-center gap-2">
             <TrendingUp className="w-5 h-5" />
@@ -237,52 +242,88 @@ export default function OpportunityAnalysis() {
         </div>
       )}
 
-      {/* Análisis por día de la semana */}
+      {/* Análisis por día de la semana (CLICKEABLE) */}
       {data.analisisDias && (
         <div className="bg-[#1a1a1a] rounded-xl p-6 border border-gray-700">
           <h4 className="text-lg font-semibold text-[#d98c21] mb-4 flex items-center gap-2">
             <Calendar className="w-5 h-5" />
             Rendimiento por Día de la Semana
+            {selectedDay !== null && (
+              <span className="text-sm text-gray-400 font-normal">
+                (Click para filtrar por hora)
+              </span>
+            )}
           </h4>
 
           <div className="grid grid-cols-1 md:grid-cols-7 gap-2">
             {data.analisisDias.map((dia) => {
               const isWeekend = dia.dia === 0 || dia.dia === 6
+              const isSelected = selectedDay === dia.dia
               const ingresosMax = Math.max(...data.analisisDias!.map(d => d.ingresosPromedio))
               const porcentaje = (dia.ingresosPromedio / ingresosMax) * 100
 
               return (
-                <div
+                <button
                   key={dia.dia}
+                  onClick={() => handleDayClick(dia.dia)}
                   className={`
-                    rounded-lg p-3 border
-                    ${isWeekend ? 'bg-purple-900/20 border-purple-700' : 'bg-[#262626] border-gray-700'}
+                    rounded-lg p-3 border transition-all cursor-pointer
+                    ${isSelected 
+                      ? 'bg-[#d98c21] border-[#d98c21] ring-2 ring-[#d98c21]/50' 
+                      : isWeekend 
+                        ? 'bg-purple-900/20 border-purple-700 hover:bg-purple-900/30' 
+                        : 'bg-[#262626] border-gray-700 hover:bg-[#2d2d2d]'
+                    }
                   `}
                 >
-                  <p className="text-white font-semibold text-sm mb-1">{dia.nombre.substring(0, 3)}</p>
-                  <p className="text-[#d98c21] font-bold text-lg">{formatCurrency(dia.ingresosPromedio)}</p>
-                  <p className="text-gray-400 text-xs mt-1">{Math.round(dia.ventasPromedio)} ventas</p>
+                  <p className={`font-semibold text-sm mb-1 ${isSelected ? 'text-white' : 'text-white'}`}>
+                    {dia.nombre.substring(0, 3)}
+                  </p>
+                  <p className={`font-bold text-lg ${isSelected ? 'text-white' : 'text-[#d98c21]'}`}>
+                    {formatCurrency(dia.ingresosPromedio)}
+                  </p>
+                  <p className={`text-xs mt-1 ${isSelected ? 'text-white/80' : 'text-gray-400'}`}>
+                    {Math.round(dia.ventasPromedio)} ventas
+                  </p>
                   
                   <div className="mt-2 bg-gray-700 rounded-full h-2 overflow-hidden">
                     <div
-                      className={`h-full ${isWeekend ? 'bg-purple-500' : 'bg-[#d98c21]'}`}
+                      className={`h-full ${isSelected ? 'bg-white' : isWeekend ? 'bg-purple-500' : 'bg-[#d98c21]'}`}
                       style={{ width: `${porcentaje}%` }}
                     />
                   </div>
-                </div>
+                </button>
               )
             })}
           </div>
+
+          {selectedDay !== null && (
+            <button
+              onClick={() => setSelectedDay(null)}
+              className="mt-4 flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+            >
+              <X className="w-4 h-4" />
+              Ver todos los días
+            </button>
+          )}
         </div>
       )}
 
       {/* Análisis hora por hora (24 horas) */}
       {data.analisisHorarios && (
         <div className="bg-[#1a1a1a] rounded-xl p-6 border border-gray-700">
-          <h4 className="text-lg font-semibold text-[#d98c21] mb-4 flex items-center gap-2">
+          <h4 className="text-lg font-semibold text-[#d98c21] mb-2 flex items-center gap-2">
             <Clock className="w-5 h-5" />
             Rendimiento Hora por Hora
+            {selectedDayName && (
+              <span className="text-white font-bold">- {selectedDayName.toUpperCase()}</span>
+            )}
           </h4>
+          {selectedDayName && (
+            <p className="text-gray-400 text-sm mb-4">
+              Mostrando solo ventas de {selectedDayName}
+            </p>
+          )}
 
           {/* Gráfico de barras horizontal */}
           <div className="space-y-2">
