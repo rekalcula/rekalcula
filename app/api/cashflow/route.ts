@@ -143,9 +143,11 @@ export async function GET(request: NextRequest) {
       .gte('invoice_date', startDate.toISOString().split('T')[0])
       .lte('invoice_date', now.toISOString().split('T')[0]);
 
-    // OBTENER COSTOS FIJOS
+    // OBTENER COSTOS FIJOS (con campos de IVA)
     const { data: costosFijos } = await supabase
-      .from('fixed_costs').select('id, name, amount, frequency, is_active').eq('user_id', userId);
+      .from('fixed_costs')
+      .select('id, name, amount, base_amount, tax_amount, vat_rate, frequency, is_active, cost_type')
+      .eq('user_id', userId);
 
     const activeCosts = (costosFijos || []).filter(c => c.is_active !== false && c.is_active !== 'false');
 
@@ -165,14 +167,27 @@ export async function GET(request: NextRequest) {
       .reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
     const facturasPendientesBase = facturasBaseImponible - facturasPagadasBase;
 
-    // COSTOS FIJOS
+    // COSTOS FIJOS (base imponible)
     const costosFijosMensuales = activeCosts.reduce((sum, c) => {
-      let mensual = c.amount || 0;
+      // Usar base_amount si existe, si no amount
+      let mensual = c.base_amount || c.amount || 0;
       if (c.frequency === 'annual' || c.frequency === 'yearly') mensual = mensual / 12;
       if (c.frequency === 'quarterly') mensual = mensual / 3;
       return sum + mensual;
     }, 0);
     const totalCostosFijos = costosFijosMensuales * mesesEnPeriodo;
+
+    // ⭐ IVA de COSTOS FIJOS (mensualizado)
+    const ivaCostosFijosMensual = activeCosts.reduce((sum, c) => {
+      let ivaMensual = c.tax_amount || 0;
+      if (c.frequency === 'annual' || c.frequency === 'yearly') ivaMensual = ivaMensual / 12;
+      if (c.frequency === 'quarterly') ivaMensual = ivaMensual / 3;
+      return sum + ivaMensual;
+    }, 0);
+    const ivaCostosFijosPeriodo = ivaCostosFijosMensual * mesesEnPeriodo;
+
+    // ⭐ IVA SOPORTADO TOTAL = Facturas + Costos Fijos
+    const ivaSoportadoTotal = ivaSoportado + ivaCostosFijosPeriodo;
 
     // ⭐ IVA TRIMESTRAL
     const trimestreActual = obtenerTrimestre(now);
@@ -188,7 +203,10 @@ export async function GET(request: NextRequest) {
     }) || [];
 
     const ivaRepercutidoTrimestre = ventasTrimestre.reduce((sum, v) => sum + (v.tax_amount || 0), 0);
-    const ivaSoportadoTrimestre = facturasTrimestre.reduce((sum, f) => sum + (f.tax_amount || 0), 0);
+    const ivaSoportadoFacturasTrimestre = facturasTrimestre.reduce((sum, f) => sum + (f.tax_amount || 0), 0);
+    // IVA costos fijos del trimestre (3 meses)
+    const ivaCostosFijosTrimestre = ivaCostosFijosMensual * 3;
+    const ivaSoportadoTrimestre = ivaSoportadoFacturasTrimestre + ivaCostosFijosTrimestre;
     const liquidacionIvaTrimestre = ivaRepercutidoTrimestre - ivaSoportadoTrimestre;
     const proximaLiquidacion = obtenerProximaLiquidacion(now);
 
@@ -220,7 +238,8 @@ export async function GET(request: NextRequest) {
         entradas: ventasMes.reduce((sum, v) => sum + (v.subtotal || v.total || 0), 0),
         salidas: facturasMes.reduce((sum, f) => sum + (f.total_amount || 0), 0) + costosFijosMensuales,
         ivaRepercutido: ventasMes.reduce((sum, v) => sum + (v.tax_amount || 0), 0),
-        ivaSoportado: facturasMes.reduce((sum, f) => sum + (f.tax_amount || 0), 0)
+        // ⭐ IVA Soportado = Facturas + Costos Fijos
+        ivaSoportado: facturasMes.reduce((sum, f) => sum + (f.tax_amount || 0), 0) + ivaCostosFijosMensual
       });
     }
 
@@ -253,20 +272,30 @@ export async function GET(request: NextRequest) {
       },
       salidas: {
         total: totalSalidasBase, pagado: facturasPagadasBase + totalCostosFijos,
-        pendiente: facturasPendientesBase, bruto: facturasBruto,
+        pendiente: facturasPendientesBase, bruto: facturasBruto + ivaCostosFijosPeriodo,
         desglose: {
           facturas: facturasBaseImponible, facturasPagadas: facturasPagadasBase,
           facturasPendientes: facturasPendientesBase, costosFijos: totalCostosFijos,
-          costosFijosMensuales
+          costosFijosMensuales,
+          // ⭐ NUEVO: IVA de costos fijos
+          ivaCostosFijos: ivaCostosFijosPeriodo,
+          ivaCostosFijosMensual: ivaCostosFijosMensual
         }
       },
       balance: balanceOperativo,
       iva: {
-        repercutido: ivaRepercutido, soportado: ivaSoportado,
-        liquidacion: ivaRepercutido - ivaSoportado,
+        // ⭐ IVA TOTAL = Facturas + Costos Fijos
+        repercutido: ivaRepercutido, 
+        soportado: ivaSoportadoTotal,
+        soportadoFacturas: ivaSoportado,
+        soportadoCostosFijos: ivaCostosFijosPeriodo,
+        liquidacion: ivaRepercutido - ivaSoportadoTotal,
         trimestre: {
           numero: trimestreActual, nombre: `Q${trimestreActual}`,
-          repercutido: ivaRepercutidoTrimestre, soportado: ivaSoportadoTrimestre,
+          repercutido: ivaRepercutidoTrimestre, 
+          soportado: ivaSoportadoTrimestre,
+          soportadoFacturas: ivaSoportadoFacturasTrimestre,
+          soportadoCostosFijos: ivaCostosFijosTrimestre,
           liquidacion: liquidacionIvaTrimestre,
           inicio: rangoTrimestre.inicio.toISOString().split('T')[0],
           fin: rangoTrimestre.fin.toISOString().split('T')[0]
@@ -286,9 +315,13 @@ export async function GET(request: NextRequest) {
         ventasBase: ventasBaseImponible, comprasBase: facturasBaseImponible,
         costosFijosTotales: totalCostosFijos, gastosTotales: totalSalidasBase,
         beneficioBruto: balanceOperativo,
-        ivaRepercutido, ivaSoportado,
-        ivaAPagar: Math.max(0, ivaRepercutido - ivaSoportado),
-        ivaACompensar: Math.max(0, ivaSoportado - ivaRepercutido),
+        // ⭐ IVA desglosado
+        ivaRepercutido, 
+        ivaSoportado: ivaSoportadoTotal,
+        ivaSoportadoFacturas: ivaSoportado,
+        ivaSoportadoCostosFijos: ivaCostosFijosPeriodo,
+        ivaAPagar: Math.max(0, ivaRepercutido - ivaSoportadoTotal),
+        ivaACompensar: Math.max(0, ivaSoportadoTotal - ivaRepercutido),
         ventasBruto, comprasBruto: facturasBruto
       }
     });
