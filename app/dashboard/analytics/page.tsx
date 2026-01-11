@@ -100,20 +100,23 @@ export default async function AnalyticsPage() {
     .lte('invoice_date', endOfPeriod)
 
   // ========================================
-  // 4. CALCULAR TOTALES
+  // 4. CALCULAR TOTALES (⭐ BASE IMPONIBLE - SIN IVA)
   // ========================================
-  const totalSales = (sales || []).reduce((sum, sale) => sum + (sale.total || 0), 0)
+  // ⭐ CORRECCIÓN 1: Usar SUBTOTAL (base imponible) en lugar de TOTAL (con IVA)
+  const totalSales = (sales || []).reduce((sum, sale) => sum + (sale.subtotal || sale.total || 0), 0)
   
-  // Costes variables = Facturas de compra
+  // ⭐ CORRECCIÓN 2: Costes variables = Facturas de compra (BASE IMPONIBLE)
+  // En la BD, total_amount es la base imponible
   const totalVariableCosts = (invoices || []).reduce((sum, inv) => sum + (inv.total_amount || 0), 0)
 
   let rentCosts = 0
   let laborCosts = 0
   let otherFixedCosts = 0
 
-  // Calcular costes fijos MENSUALES
+  // Calcular costes fijos MENSUALES (base imponible)
   const monthlyFixedCosts = activeFixedCosts.reduce((sum, cost) => {
-    let monthly = cost.amount || 0
+    // ⭐ USAR base_amount si existe (sin IVA), si no amount
+    let monthly = cost.base_amount || cost.amount || 0
     if (cost.frequency === 'quarterly') monthly = monthly / 3
     if (cost.frequency === 'yearly' || cost.frequency === 'annual') monthly = monthly / 12
 
@@ -130,16 +133,28 @@ export default async function AnalyticsPage() {
     return sum + monthly
   }, 0)
 
-  // IMPORTANTE: Multiplicar costes fijos por el número de meses del período
+  // ⭐ CORRECCIÓN 3: Separar costes fijos PASADOS de FUTUROS
+  // Calcular meses transcurridos hasta HOY dentro del periodo
+  const mesesTranscurridosHastaHoy = Math.max(0, 
+    (now.getFullYear() - startDate.getFullYear()) * 12 + 
+    (now.getMonth() - startDate.getMonth()) + 
+    (now.getDate() >= startDate.getDate() ? 1 : 0)
+  )
+  const mesesTranscurridos = Math.min(mesesTranscurridosHastaHoy, Math.ceil(monthsInPeriod))
+  
+  // Costes fijos del período (total)
   const totalFixedCosts = monthlyFixedCosts * monthsInPeriod
   
-  // También ajustar las categorías al período
+  // Costes fijos PASADOS (ya incurridos)
+  const fixedCostsPast = monthlyFixedCosts * mesesTranscurridos
+  
+  // Ajustar categorías al período completo
   rentCosts = rentCosts * monthsInPeriod
   laborCosts = laborCosts * monthsInPeriod
   otherFixedCosts = otherFixedCosts * monthsInPeriod
 
   // ========================================
-  // 5. CALCULAR MÉTRICAS FINANCIERAS
+  // 5. CALCULAR MÉTRICAS FINANCIERAS (SIN IVA)
   // ========================================
   const grossProfit = totalSales - totalVariableCosts
   const netProfit = grossProfit - totalFixedCosts
@@ -148,7 +163,7 @@ export default async function AnalyticsPage() {
     ? grossProfit / totalSales
     : 0
 
-  // Punto de equilibrio mensual
+  // ⭐ Punto de equilibrio mensual (sin IVA)
   const breakEvenPoint = contributionMargin > 0
     ? monthlyFixedCosts / contributionMargin
     : 0
@@ -160,12 +175,14 @@ export default async function AnalyticsPage() {
     totalSales,
     totalVariableCosts,
     totalFixedCosts,
+    fixedCostsPast,
     grossProfit,
     netProfit,
     contributionMargin: contributionMargin * 100,
     breakEvenPoint,
     salesAboveBreakEven: monthlySalesAverage - breakEvenPoint,
     monthsInPeriod: Math.round(monthsInPeriod * 10) / 10,
+    mesesTranscurridos,
     monthlyFixedCosts,
     monthlySalesAverage
   }
@@ -201,7 +218,7 @@ export default async function AnalyticsPage() {
                 Punto de equilibrio y rentabilidad - {periodo}
               </p>
               <p className="mt-1 text-gray-400 text-sm">
-                Período analizado: {Math.round(monthsInPeriod * 10) / 10} meses
+                Período analizado: {Math.round(monthsInPeriod * 10) / 10} meses • Cifras sin IVA
               </p>
             </div>
             <FinancialExportButton data={financialData} periodo={periodo} />
