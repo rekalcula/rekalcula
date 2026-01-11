@@ -1,4 +1,5 @@
-﻿import { auth } from '@clerk/nextjs/server'
+﻿import OpportunityAnalysis from '@/components/OpportunityAnalysis'
+import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import DashboardNav from '@/components/DashboardNav'
 import SalesAnalyticsChart from '@/components/SalesAnalyticsChart'
