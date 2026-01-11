@@ -10,15 +10,8 @@ const supabase = createClient(
 // Nombres de días en español
 const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 
-// Franjas horarias para análisis
-const FRANJAS_HORARIAS = [
-  { nombre: 'Madrugada', inicio: 0, fin: 6 },
-  { nombre: 'Mañana temprano', inicio: 6, fin: 10 },
-  { nombre: 'Media mañana', inicio: 10, fin: 14 },
-  { nombre: 'Tarde', inicio: 14, fin: 18 },
-  { nombre: 'Noche', inicio: 18, fin: 22 },
-  { nombre: 'Noche tardía', inicio: 22, fin: 24 }
-]
+// Análisis hora por hora (24 horas)
+const HORAS_DIA = Array.from({ length: 24 }, (_, i) => i)
 
 interface SaleWithTime {
   id: number
@@ -118,13 +111,14 @@ export async function GET(request: NextRequest) {
     })
 
     // ========================================
-    // ANÁLISIS POR FRANJA HORARIA
+    // ANÁLISIS HORA POR HORA (24 HORAS)
     // ========================================
-    const ventasPorHora: { [key: string]: { ventas: number; ingresos: number } } = {}
+    const ventasPorHora: { [key: number]: { ventas: number; ingresos: number } } = {}
     
-    FRANJAS_HORARIAS.forEach(franja => {
-      ventasPorHora[franja.nombre] = { ventas: 0, ingresos: 0 }
-    })
+    // Inicializar todas las horas (0-23)
+    for (let h = 0; h < 24; h++) {
+      ventasPorHora[h] = { ventas: 0, ingresos: 0 }
+    }
 
     sales.forEach((sale: SaleWithTime) => {
       // Usar created_at para hora exacta de venta
@@ -132,23 +126,23 @@ export async function GET(request: NextRequest) {
       const hora = fecha.getHours()
       const ingreso = sale.subtotal || sale.total || 0
       
-      const franja = FRANJAS_HORARIAS.find(f => hora >= f.inicio && hora < f.fin)
-      if (franja) {
-        ventasPorHora[franja.nombre].ventas += 1
-        ventasPorHora[franja.nombre].ingresos += ingreso
+      if (hora >= 0 && hora < 24) {
+        ventasPorHora[hora].ventas += 1
+        ventasPorHora[hora].ingresos += ingreso
       }
     })
 
-    // Calcular métricas por franja
+    // Calcular métricas por hora
     const totalDias = Math.ceil((now.getTime() - threeMonthsAgo.getTime()) / (1000 * 60 * 60 * 24))
     
-    const horariosAnalisis = Object.entries(ventasPorHora).map(([franja, data]) => ({
-      franja,
+    const horariosAnalisis = Object.entries(ventasPorHora).map(([hora, data]) => ({
+      hora: parseInt(hora),
+      horaFormato: `${hora.padStart(2, '0')}:00`,
       ventasPromedioDiarias: totalDias > 0 ? data.ventas / totalDias : 0,
       ingresosPromedioDiarios: totalDias > 0 ? data.ingresos / totalDias : 0,
       totalVentas: data.ventas,
       totalIngresos: data.ingresos
-    }))
+    })).sort((a, b) => a.hora - b.hora)
 
     // ========================================
     // GENERAR RECOMENDACIONES DE OPORTUNIDAD
@@ -203,44 +197,54 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 3. ANÁLISIS DE FRANJAS HORARIAS
-    const mejorFranja = horariosAnalisis.reduce((max, f) => 
-      f.ingresosPromedioDiarios > max.ingresosPromedioDiarios ? f : max
+    // 3. ANÁLISIS DE HORAS ESPECÍFICAS
+    const mejorHora = horariosAnalisis.reduce((max, h) => 
+      h.ingresosPromedioDiarios > max.ingresosPromedioDiarios ? h : max
     , horariosAnalisis[0])
 
-    const peorFranja = horariosAnalisis.reduce((min, f) => 
-      f.ventasPromedioDiarias > 0 && f.ingresosPromedioDiarios < min.ingresosPromedioDiarios ? f : min
-    , horariosAnalisis.find(f => f.ventasPromedioDiarias > 0) || horariosAnalisis[0])
+    const peorHoraConVentas = horariosAnalisis
+      .filter(h => h.ventasPromedioDiarias > 0)
+      .reduce((min, h) => 
+        h.ingresosPromedioDiarios < min.ingresosPromedioDiarios ? h : min
+      , horariosAnalisis.find(h => h.ventasPromedioDiarias > 0) || horariosAnalisis[0])
 
-    if (mejorFranja.ingresosPromedioDiarios > ingresoPromedioDiario / 6 * 2) {
+    // Identificar franjas de actividad (horas consecutivas con ventas)
+    const horasConActividad = horariosAnalisis.filter(h => h.totalVentas > 0)
+    const horaApertura = horasConActividad.length > 0 ? horasConActividad[0].hora : 8
+    const horaCierre = horasConActividad.length > 0 ? horasConActividad[horasConActividad.length - 1].hora : 22
+
+    if (mejorHora.ingresosPromedioDiarios > ingresoPromedioDiario / 24 * 3) {
       recomendaciones.push({
         type: 'ampliar_horario',
         priority: 'high',
-        title: `Pico de demanda: ${mejorFranja.franja}`,
-        description: `En ${mejorFranja.franja} concentras €${Math.round(mejorFranja.ingresosPromedioDiarios)}/día. Reforzar personal o ampliar capacidad en esta franja podría aumentar ingresos.`,
-        impactoMensual: Math.round(mejorFranja.ingresosPromedioDiarios * 0.15 * 30),
+        title: `Pico de demanda: ${mejorHora.horaFormato}`,
+        description: `A las ${mejorHora.horaFormato} concentras tu mayor actividad con €${Math.round(mejorHora.ingresosPromedioDiarios)}/día. Asegurar capacidad suficiente en esta hora es crítico.`,
+        impactoMensual: Math.round(mejorHora.ingresosPromedioDiarios * 0.15 * 30),
         confidence: 75,
         data: {
-          franja: mejorFranja.franja,
-          ingresosPromedioHora: Math.round(mejorFranja.ingresosPromedioDiarios),
-          ventasPromedioHora: Math.round(mejorFranja.ventasPromedioDiarias * 10) / 10
+          hora: mejorHora.horaFormato,
+          ingresosPromedioHora: Math.round(mejorHora.ingresosPromedioDiarios),
+          ventasPromedioHora: Math.round(mejorHora.ventasPromedioDiarias * 10) / 10
         }
       })
     }
 
-    if (peorFranja.ventasPromedioDiarias < 0.5 && peorFranja.ingresosPromedioDiarios < costoFijoDiario * 0.1) {
+    // Analizar horas con muy baja actividad consecutivas al inicio o final del día
+    const horasInicio = horariosAnalisis.slice(horaApertura, horaApertura + 3)
+    const ingresosMedioInicio = horasInicio.reduce((sum, h) => sum + h.ingresosPromedioDiarios, 0) / 3
+
+    if (ingresosMedioInicio < costoFijoDiario * 0.1 && horaApertura < 10) {
       recomendaciones.push({
         type: 'reducir_horario',
         priority: 'medium',
-        title: `Baja actividad: ${peorFranja.franja}`,
-        description: `En ${peorFranja.franja} apenas vendes (€${Math.round(peorFranja.ingresosPromedioDiarios)}/día). Considera ajustar horario de apertura para reducir costos operativos.`,
+        title: `Baja actividad al abrir (${horaApertura}:00-${horaApertura + 3}:00)`,
+        description: `Las primeras horas apenas generan €${Math.round(ingresosMedioInicio)}/día. Abrir 2-3 horas más tarde podría reducir costos operativos sin impacto significativo.`,
         impactoMensual: Math.round(costoFijoDiario * 0.15 * 30),
-        confidence: 65,
+        confidence: 70,
         data: {
-          franja: peorFranja.franja,
-          ingresosPromedioHora: Math.round(peorFranja.ingresosPromedioDiarios),
-          ventasPromedioHora: Math.round(peorFranja.ventasPromedioDiarias * 10) / 10,
-          costoHorarioEstimado: Math.round(costoFijoDiario / 16) // 16h apertura estimada
+          horaActual: `${horaApertura}:00`,
+          ingresosPromedio: Math.round(ingresosMedioInicio),
+          horaSugerida: `${horaApertura + 2}:00`
         }
       })
     }
@@ -287,7 +291,7 @@ export async function GET(request: NextRequest) {
         ingresoPromedioDiario: Math.round(ingresoPromedioDiario),
         costoFijoDiario: Math.round(costoFijoDiario),
         mejorDia: mejorDia.nombre,
-        mejorFranja: mejorFranja.franja,
+        mejorHora: mejorHora.horaFormato,
         impactoTotalPotencial: Math.round(recomendaciones.reduce((sum, r) => sum + r.impactoMensual, 0))
       }
     })
