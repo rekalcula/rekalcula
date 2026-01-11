@@ -24,7 +24,8 @@ interface OpportunityData {
     totalIngresos: number
   }>
   analisisHorarios?: Array<{
-    franja: string
+    hora: number
+    horaFormato: string
     ventasPromedioDiarias: number
     ingresosPromedioDiarios: number
     totalVentas: number
@@ -43,7 +44,7 @@ interface OpportunityData {
     ingresoPromedioDiario: number
     costoFijoDiario: number
     mejorDia: string
-    mejorFranja: string
+    mejorHora: string
     impactoTotalPotencial: number
   }
 }
@@ -165,8 +166,8 @@ export default function OpportunityAnalysis() {
               <p className="text-white font-bold text-lg">{data.metricas.mejorDia}</p>
             </div>
             <div className="bg-white/10 rounded-lg p-3">
-              <p className="text-purple-200 text-xs">Mejor franja</p>
-              <p className="text-white font-bold text-sm">{data.metricas.mejorFranja}</p>
+              <p className="text-purple-200 text-xs">Mejor hora</p>
+              <p className="text-white font-bold text-lg">{data.metricas.mejorHora}</p>
             </div>
             <div className="bg-white/10 rounded-lg p-3">
               <p className="text-purple-200 text-xs">Ingreso/día</p>
@@ -275,42 +276,104 @@ export default function OpportunityAnalysis() {
         </div>
       )}
 
-      {/* Análisis por franja horaria */}
+      {/* Análisis hora por hora (24 horas) */}
       {data.analisisHorarios && (
         <div className="bg-[#1a1a1a] rounded-xl p-6 border border-gray-700">
           <h4 className="text-lg font-semibold text-[#d98c21] mb-4 flex items-center gap-2">
             <Clock className="w-5 h-5" />
-            Rendimiento por Franja Horaria
+            Rendimiento Hora por Hora
           </h4>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {data.analisisHorarios.map((horario, index) => {
+          {/* Gráfico de barras horizontal */}
+          <div className="space-y-2">
+            {data.analisisHorarios.map((horario) => {
               const ingresosMax = Math.max(...data.analisisHorarios!.map(h => h.ingresosPromedioDiarios))
-              const porcentaje = (horario.ingresosPromedioDiarios / ingresosMax) * 100
+              const porcentaje = ingresosMax > 0 ? (horario.ingresosPromedioDiarios / ingresosMax) * 100 : 0
+              const tieneActividad = horario.totalVentas > 0
+
+              // Determinar color según actividad
+              let colorClase = 'bg-gray-700'
+              if (tieneActividad) {
+                if (porcentaje > 80) colorClase = 'bg-gradient-to-r from-green-500 to-emerald-600'
+                else if (porcentaje > 50) colorClase = 'bg-gradient-to-r from-[#d98c21] to-[#f4a340]'
+                else if (porcentaje > 20) colorClase = 'bg-gradient-to-r from-yellow-500 to-amber-500'
+                else colorClase = 'bg-gradient-to-r from-gray-500 to-gray-600'
+              }
 
               return (
-                <div key={index} className="bg-[#262626] rounded-lg p-4 border border-gray-700">
-                  <div className="flex items-center gap-2 mb-2">
-                    {getFranjaIcon(horario.franja)}
-                    <p className="text-white font-semibold">{horario.franja}</p>
+                <div
+                  key={horario.hora}
+                  className={`
+                    flex items-center gap-3 p-2 rounded-lg transition-all
+                    ${tieneActividad ? 'bg-[#262626] hover:bg-[#2d2d2d]' : 'bg-[#1a1a1a]'}
+                  `}
+                >
+                  {/* Hora */}
+                  <div className="w-16 flex-shrink-0">
+                    <p className={`text-sm font-mono ${tieneActividad ? 'text-white font-semibold' : 'text-gray-600'}`}>
+                      {horario.horaFormato}
+                    </p>
                   </div>
-                  
-                  <p className="text-[#d98c21] font-bold text-xl">{formatCurrency(horario.ingresosPromedioDiarios)}</p>
-                  <p className="text-gray-400 text-sm">por día en promedio</p>
-                  
-                  <div className="mt-3 bg-gray-700 rounded-full h-3 overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-[#d98c21] to-[#f4a340]"
-                      style={{ width: `${porcentaje}%` }}
-                    />
+
+                  {/* Barra de progreso */}
+                  <div className="flex-1 flex items-center gap-2">
+                    <div className="flex-1 bg-gray-800 rounded-full h-6 overflow-hidden relative">
+                      <div
+                        className={`h-full transition-all duration-500 ${colorClase}`}
+                        style={{ width: `${porcentaje}%` }}
+                      />
+                      {tieneActividad && porcentaje > 15 && (
+                        <span className="absolute inset-0 flex items-center justify-center text-white text-xs font-bold">
+                          {formatCurrency(horario.ingresosPromedioDiarios)}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Valor fuera de la barra si es muy pequeña */}
+                    {tieneActividad && porcentaje <= 15 && (
+                      <span className="text-[#d98c21] text-xs font-semibold whitespace-nowrap">
+                        {formatCurrency(horario.ingresosPromedioDiarios)}
+                      </span>
+                    )}
                   </div>
-                  
-                  <p className="text-gray-500 text-xs mt-2">
-                    {Math.round(horario.ventasPromedioDiarias * 10) / 10} ventas/día • {horario.totalVentas} total
-                  </p>
+
+                  {/* Ventas */}
+                  <div className="w-20 flex-shrink-0 text-right">
+                    {tieneActividad ? (
+                      <p className="text-gray-400 text-xs">
+                        {Math.round(horario.ventasPromedioDiarias * 10) / 10} v/d
+                      </p>
+                    ) : (
+                      <p className="text-gray-700 text-xs">—</p>
+                    )}
+                  </div>
                 </div>
               )
             })}
+          </div>
+
+          {/* Leyenda */}
+          <div className="mt-4 pt-4 border-t border-gray-700 flex flex-wrap items-center gap-4 text-xs text-gray-400">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded bg-gradient-to-r from-green-500 to-emerald-600"></div>
+              <span>Pico (>80%)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded bg-gradient-to-r from-[#d98c21] to-[#f4a340]"></div>
+              <span>Alto (50-80%)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded bg-gradient-to-r from-yellow-500 to-amber-500"></div>
+              <span>Medio (20-50%)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded bg-gradient-to-r from-gray-500 to-gray-600"></div>
+              <span>Bajo (<20%)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded bg-gray-700"></div>
+              <span>Sin actividad</span>
+            </div>
           </div>
         </div>
       )}
