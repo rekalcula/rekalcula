@@ -110,14 +110,15 @@ export async function GET(request: NextRequest) {
     }
 
     // ========================================
-    // AGREGAR DATOS POR PRODUCTO
+    // AGREGAR DATOS POR PRODUCTO (⭐ BASE IMPONIBLE)
     // ========================================
     const productStats: { [key: string]: { quantity: number; revenue: number } } = {}
     let totalQuantity = 0
     let totalRevenue = 0
 
     for (const sale of currentSales || []) {
-      totalRevenue += sale.total || 0
+      // ⭐ CORRECCIÓN 1: USAR SUBTOTAL (base imponible) en lugar de TOTAL (con IVA)
+      totalRevenue += sale.subtotal || sale.total || 0
       
       for (const item of sale.sale_items || []) {
         const productName = item.product_name || 'Otros'
@@ -128,19 +129,23 @@ export async function GET(request: NextRequest) {
         }
         
         productStats[normalizedName].quantity += item.quantity || 1
-        productStats[normalizedName].revenue += item.total || 0
+        // ⭐ CORRECCIÓN 2: Para items individuales, usar subtotal si existe
+        // Si no existe, asumir que total ya es base (algunos items no tienen IVA separado)
+        const itemBase = item.subtotal || item.total || 0
+        productStats[normalizedName].revenue += itemBase
         totalQuantity += item.quantity || 1
       }
     }
 
-    // Datos del período anterior
+    // Datos del período anterior (⭐ también base imponible)
     const prevProductStats: { [key: string]: { quantity: number; revenue: number } } = {}
     let prevTotalQuantity = 0
     let prevTotalRevenue = 0
 
     if (compare) {
       for (const sale of previousSales) {
-        prevTotalRevenue += sale.total || 0
+        // ⭐ USAR SUBTOTAL en período anterior también
+        prevTotalRevenue += sale.subtotal || sale.total || 0
         
         for (const item of sale.sale_items || []) {
           const productName = item.product_name || 'Otros'
@@ -151,7 +156,8 @@ export async function GET(request: NextRequest) {
           }
           
           prevProductStats[normalizedName].quantity += item.quantity || 1
-          prevProductStats[normalizedName].revenue += item.total || 0
+          const itemBase = item.subtotal || item.total || 0
+          prevProductStats[normalizedName].revenue += itemBase
           prevTotalQuantity += item.quantity || 1
         }
       }
