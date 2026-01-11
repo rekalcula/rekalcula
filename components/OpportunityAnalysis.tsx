@@ -356,7 +356,7 @@ export default function OpportunityAnalysis() {
           <div className="mt-4 pt-4 border-t border-gray-700 flex flex-wrap items-center gap-4 text-xs text-gray-400">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded bg-gradient-to-r from-green-500 to-emerald-600"></div>
-              <span>Pico (>80%)</span>
+              <span>Pico (&gt;80%)</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded bg-gradient-to-r from-[#d98c21] to-[#f4a340]"></div>
@@ -368,7 +368,7 @@ export default function OpportunityAnalysis() {
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded bg-gradient-to-r from-gray-500 to-gray-600"></div>
-              <span>Bajo (<20%)</span>
+              <span>Bajo (&lt;20%)</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded bg-gray-700"></div>
