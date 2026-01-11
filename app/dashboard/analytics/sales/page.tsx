@@ -44,6 +44,11 @@ export default async function SalesAnalyticsPage() {
           {/* Contenido principal */}
           <SalesAnalyticsChart />
           
+          {/* ⭐ AÑADIR ESTAS 3 LÍNEAS ⭐ */}
+          <div className="mt-8">
+            <OpportunityAnalysis />
+          </div>
+          
         </div>
       </div>
     </>
