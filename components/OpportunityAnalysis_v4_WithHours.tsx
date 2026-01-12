@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { 
-  TrendingUp, TrendingDown, Clock, Calendar, AlertCircle, 
+  TrendingUp, Clock, Calendar, AlertCircle, 
   CheckCircle2, Lightbulb, ArrowUpRight, ArrowDownRight, X, Coffee
 } from 'lucide-react'
 
@@ -17,7 +17,6 @@ interface BusinessHour {
 
 interface OpportunityData {
   hasData: boolean
-  selectedDay?: number | null
   periodoAnalisis?: {
     inicio: string
     fin: string
@@ -72,10 +71,8 @@ export default function OpportunityAnalysisV4() {
   }, [])
 
   useEffect(() => {
-    if (businessHours.length > 0) {
-      fetchOpportunities()
-    }
-  }, [selectedDay, businessHours])
+    fetchOpportunities()
+  }, [selectedDay])
 
   const loadBusinessHours = async () => {
     try {
@@ -102,6 +99,7 @@ export default function OpportunityAnalysisV4() {
       const result = await response.json()
       setData(result)
     } catch (err) {
+      console.error('Error:', err)
       setError('No se pudo cargar el análisis de oportunidades')
     } finally {
       setLoading(false)
@@ -112,29 +110,26 @@ export default function OpportunityAnalysisV4() {
     setSelectedDay(dia === selectedDay ? null : dia)
   }
 
-  // Función para verificar si una hora está dentro del horario de apertura
   const isHourOpen = (hora: number, dayOfWeek: number): 'open' | 'closed' | 'lunch_break' => {
-    if (businessHours.length === 0) return 'open' // Si no hay configuración, mostrar todo
+    if (businessHours.length === 0) return 'open'
+    if (hora < 0 || hora > 23) return 'closed'
 
     const schedule = businessHours.find(h => h.day_of_week === dayOfWeek)
     if (!schedule || schedule.is_closed) return 'closed'
 
-    const horaStr = `${hora.toString().padStart(2, '0')}:00`
+    const horaStr = `${String(hora).padStart(2, '0')}:00`
 
-    // Verificar turno mañana
     if (schedule.morning_open && schedule.morning_close) {
       if (horaStr >= schedule.morning_open && horaStr < schedule.morning_close) {
         return 'open'
       }
     }
 
-    // Verificar turno tarde (si existe)
     if (schedule.afternoon_open && schedule.afternoon_close) {
       if (horaStr >= schedule.afternoon_open && horaStr < schedule.afternoon_close) {
         return 'open'
       }
       
-      // Si está entre los dos turnos, es hora de comida
       if (schedule.morning_close && horaStr >= schedule.morning_close && horaStr < schedule.afternoon_open) {
         return 'lunch_break'
       }
@@ -143,27 +138,26 @@ export default function OpportunityAnalysisV4() {
     return 'closed'
   }
 
-  // Filtrar horas según configuración de apertura
   const getFilteredHours = () => {
     if (!data?.analisisHorarios) return []
 
-    return data.analisisHorarios.map(horario => {
-      const dayOfWeek = selectedDay !== null ? selectedDay : 0 // Usar día seleccionado o lunes por defecto
-      const status = isHourOpen(horario.hora, dayOfWeek)
-      
-      return {
-        ...horario,
-        status
-      }
-    })
+    const dayOfWeek = selectedDay !== null ? selectedDay : 0
+    
+    return data.analisisHorarios.map(horario => ({
+      ...horario,
+      status: isHourOpen(horario.hora, dayOfWeek)
+    }))
   }
 
-  const formatCurrency = (value: number) => new Intl.NumberFormat('es-ES', {
-    style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(value)
+  const formatCurrency = (value: number) => {
+    if (typeof value !== 'number' || isNaN(value)) return '€0'
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(value)
+  }
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -223,15 +217,14 @@ export default function OpportunityAnalysisV4() {
     )
   }
 
-  const selectedDayName = selectedDay !== null && data.analisisDias 
-    ? data.analisisDias[selectedDay].nombre 
+  const selectedDayData = selectedDay !== null && data.analisisDias 
+    ? data.analisisDias.find(d => d.dia === selectedDay)
     : null
 
   const filteredHours = getFilteredHours()
 
   return (
     <div className="space-y-6">
-      {/* Header con métricas generales (solo si no hay filtro) */}
       {selectedDay === null && data.metricas && (
         <div className="bg-gradient-to-r from-purple-900 to-indigo-900 rounded-xl p-6 border border-purple-700">
           <div className="flex items-center gap-3 mb-4">
@@ -239,7 +232,7 @@ export default function OpportunityAnalysisV4() {
             <div>
               <h3 className="text-xl font-bold text-white">Análisis de Oportunidades</h3>
               <p className="text-purple-200 text-sm">
-                Basado en {data.periodoAnalisis?.totalVentas} ventas • {data.periodoAnalisis?.totalDias} días
+                Basado en {data.periodoAnalisis?.totalVentas || 0} ventas • {data.periodoAnalisis?.totalDias || 0} días
               </p>
             </div>
           </div>
@@ -265,7 +258,6 @@ export default function OpportunityAnalysisV4() {
         </div>
       )}
 
-      {/* Recomendaciones (solo si no hay filtro) */}
       {selectedDay === null && data.recomendaciones && data.recomendaciones.length > 0 && (
         <div className="bg-[#1a1a1a] rounded-xl p-6 border border-gray-700">
           <h4 className="text-lg font-semibold text-[#d98c21] mb-4 flex items-center gap-2">
@@ -302,15 +294,14 @@ export default function OpportunityAnalysisV4() {
                         </span>
                       </div>
                       
-                      <span className={`
-                        px-2 py-1 rounded text-xs font-medium
-                        ${rec.priority === 'high' ? 'bg-red-100 text-red-700' : ''}
-                        ${rec.priority === 'medium' ? 'bg-amber-100 text-amber-700' : ''}
-                        ${rec.priority === 'low' ? 'bg-blue-100 text-blue-700' : ''}
-                      `}>
-                        {rec.priority === 'high' ? 'Alta prioridad' : ''}
-                        {rec.priority === 'medium' ? 'Prioridad media' : ''}
-                        {rec.priority === 'low' ? 'Baja prioridad' : ''}
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        rec.priority === 'high' ? 'bg-red-100 text-red-700' : 
+                        rec.priority === 'medium' ? 'bg-amber-100 text-amber-700' : 
+                        'bg-blue-100 text-blue-700'
+                      }`}>
+                        {rec.priority === 'high' ? 'Alta prioridad' : 
+                         rec.priority === 'medium' ? 'Prioridad media' : 
+                         'Baja prioridad'}
                       </span>
                     </div>
                   </div>
@@ -321,41 +312,33 @@ export default function OpportunityAnalysisV4() {
         </div>
       )}
 
-      {/* Análisis por día de la semana (CLICKEABLE) */}
-      {data.analisisDias && (
+      {data.analisisDias && data.analisisDias.length > 0 && (
         <div className="bg-[#1a1a1a] rounded-xl p-6 border border-gray-700">
           <h4 className="text-lg font-semibold text-[#d98c21] mb-4 flex items-center gap-2">
             <Calendar className="w-5 h-5" />
             Rendimiento por Día de la Semana
-            {selectedDay !== null && (
-              <span className="text-sm text-gray-400 font-normal">
-                (Click para filtrar por hora)
-              </span>
-            )}
           </h4>
 
           <div className="grid grid-cols-1 md:grid-cols-7 gap-2">
             {data.analisisDias.map((dia) => {
-              const isWeekend = dia.dia === 5 || dia.dia === 6 // Sábado=5, Domingo=6 (en mi mapeo 0=Lunes)
+              const isWeekend = dia.dia === 5 || dia.dia === 6
               const isSelected = selectedDay === dia.dia
-              const ingresosMax = Math.max(...data.analisisDias!.map(d => d.ingresosPromedio))
-              const porcentaje = (dia.ingresosPromedio / ingresosMax) * 100
+              const ingresosMax = Math.max(...data.analisisDias!.map(d => d.ingresosPromedio), 1)
+              const porcentaje = Math.min(Math.max((dia.ingresosPromedio / ingresosMax) * 100, 0), 100)
 
               return (
                 <button
                   key={dia.dia}
                   onClick={() => handleDayClick(dia.dia)}
-                  className={`
-                    rounded-lg p-3 border transition-all cursor-pointer
-                    ${isSelected 
+                  className={`rounded-lg p-3 border transition-all cursor-pointer ${
+                    isSelected 
                       ? 'bg-[#d98c21] border-[#d98c21] ring-2 ring-[#d98c21]/50' 
                       : isWeekend 
                         ? 'bg-purple-900/20 border-purple-700 hover:bg-purple-900/30' 
                         : 'bg-[#262626] border-gray-700 hover:bg-[#2d2d2d]'
-                    }
-                  `}
+                  }`}
                 >
-                  <p className={`font-semibold text-sm mb-1 ${isSelected ? 'text-white' : 'text-white'}`}>
+                  <p className="font-semibold text-sm mb-1 text-white">
                     {dia.nombre.substring(0, 3)}
                   </p>
                   <p className={`font-bold text-lg ${isSelected ? 'text-white' : 'text-[#d98c21]'}`}>
@@ -388,34 +371,34 @@ export default function OpportunityAnalysisV4() {
         </div>
       )}
 
-      {/* Análisis hora por hora (24 horas) - FILTRADO POR HORARIO */}
-      {data.analisisHorarios && (
+      {data.analisisHorarios && data.analisisHorarios.length > 0 && (
         <div className="bg-[#1a1a1a] rounded-xl p-6 border border-gray-700">
           <h4 className="text-lg font-semibold text-[#d98c21] mb-2 flex items-center gap-2">
             <Clock className="w-5 h-5" />
             Rendimiento Hora por Hora
-            {selectedDayName && (
-              <span className="text-white font-bold">- {selectedDayName.toUpperCase()}</span>
+            {selectedDayData && (
+              <span className="text-white font-bold">- {selectedDayData.nombre.toUpperCase()}</span>
             )}
           </h4>
-          {selectedDayName && (
+          {selectedDayData && (
             <p className="text-gray-400 text-sm mb-4">
-              Mostrando solo ventas de {selectedDayName} • Solo horas de apertura
+              Mostrando solo ventas de {selectedDayData.nombre}
             </p>
           )}
 
-          {/* Gráfico de barras horizontal - FILTRADO */}
           <div className="space-y-2">
             {filteredHours.map((horario) => {
-              const ingresosMax = Math.max(...filteredHours.filter(h => h.status === 'open').map(h => h.ingresosPromedioDiarios))
-              const porcentaje = ingresosMax > 0 ? (horario.ingresosPromedioDiarios / ingresosMax) * 100 : 0
+              const openHours = filteredHours.filter(h => h.status === 'open')
+              const ingresosMax = openHours.length > 0 
+                ? Math.max(...openHours.map(h => h.ingresosPromedioDiarios), 1)
+                : 1
+              
+              const porcentaje = Math.min(Math.max((horario.ingresosPromedioDiarios / ingresosMax) * 100, 0), 100)
               const tieneActividad = horario.totalVentas > 0
-              const status = horario.status
+              const { status } = horario
 
-              // Solo mostrar horas de apertura y hora de comida
               if (status === 'closed') return null
 
-              // Color según actividad
               let colorClase = 'bg-gray-700'
               if (status === 'lunch_break') {
                 colorClase = 'bg-amber-600'
@@ -429,19 +412,26 @@ export default function OpportunityAnalysisV4() {
               return (
                 <div
                   key={horario.hora}
-                  className={`
-                    flex items-center gap-3 p-2 rounded-lg transition-all
-                    ${status === 'lunch_break' ? 'bg-amber-900/20' : tieneActividad ? 'bg-[#262626] hover:bg-[#2d2d2d]' : 'bg-[#1a1a1a]'}
-                  `}
+                  className={`flex items-center gap-3 p-2 rounded-lg transition-all ${
+                    status === 'lunch_break' 
+                      ? 'bg-amber-900/20' 
+                      : tieneActividad 
+                        ? 'bg-[#262626] hover:bg-[#2d2d2d]' 
+                        : 'bg-[#1a1a1a]'
+                  }`}
                 >
-                  {/* Hora */}
                   <div className="w-16 flex-shrink-0">
-                    <p className={`text-sm font-mono ${status === 'lunch_break' ? 'text-amber-400 font-semibold' : tieneActividad ? 'text-white font-semibold' : 'text-gray-600'}`}>
+                    <p className={`text-sm font-mono ${
+                      status === 'lunch_break' 
+                        ? 'text-amber-400 font-semibold' 
+                        : tieneActividad 
+                          ? 'text-white font-semibold' 
+                          : 'text-gray-600'
+                    }`}>
                       {horario.horaFormato}
                     </p>
                   </div>
 
-                  {/* Barra de progreso o mensaje de cierre */}
                   {status === 'lunch_break' ? (
                     <div className="flex-1 flex items-center gap-2 text-amber-400">
                       <Coffee className="w-4 h-4" />
@@ -461,7 +451,6 @@ export default function OpportunityAnalysisV4() {
                         )}
                       </div>
 
-                      {/* Valor fuera de la barra si es muy pequeña */}
                       {tieneActividad && porcentaje <= 15 && (
                         <span className="text-[#d98c21] text-xs font-semibold whitespace-nowrap">
                           {formatCurrency(horario.ingresosPromedioDiarios)}
@@ -470,13 +459,12 @@ export default function OpportunityAnalysisV4() {
                     </div>
                   )}
 
-                  {/* Ventas */}
                   <div className="w-20 flex-shrink-0 text-right">
                     {status === 'lunch_break' ? (
                       <span className="text-gray-700 text-xs">—</span>
                     ) : tieneActividad ? (
                       <p className="text-gray-400 text-xs">
-                        {Math.round(horario.ventasPromedioDiarias * 10) / 10} v/d
+                        {(Math.round(horario.ventasPromedioDiarias * 10) / 10).toFixed(1)} v/d
                       </p>
                     ) : (
                       <p className="text-gray-700 text-xs">—</p>
@@ -487,26 +475,25 @@ export default function OpportunityAnalysisV4() {
             })}
           </div>
 
-          {/* Leyenda */}
           <div className="mt-4 pt-4 border-t border-gray-700 flex flex-wrap items-center gap-4 text-xs text-gray-400">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-gradient-to-r from-green-500 to-emerald-600"></div>
-              <span>Pico (&gt;80%)</span>
+              <div className="w-3 h-3 rounded bg-gradient-to-r from-green-500 to-emerald-600" />
+              <span>Pico (más de 80%)</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-gradient-to-r from-[#d98c21] to-[#f4a340]"></div>
+              <div className="w-3 h-3 rounded bg-gradient-to-r from-[#d98c21] to-[#f4a340]" />
               <span>Alto (50-80%)</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-gradient-to-r from-yellow-500 to-amber-500"></div>
+              <div className="w-3 h-3 rounded bg-gradient-to-r from-yellow-500 to-amber-500" />
               <span>Medio (20-50%)</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-gradient-to-r from-gray-500 to-gray-600"></div>
-              <span>Bajo (&lt;20%)</span>
+              <div className="w-3 h-3 rounded bg-gradient-to-r from-gray-500 to-gray-600" />
+              <span>Bajo (menos de 20%)</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-amber-600"></div>
+              <div className="w-3 h-3 rounded bg-amber-600" />
               <span>Cierre mediodía</span>
             </div>
           </div>
