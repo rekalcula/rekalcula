@@ -270,12 +270,7 @@ export default function BusinessHoursConfigComponent({ onSaved }: Props) {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="
-            w-full sm:w-auto
-            px-6 py-3 bg-[#d98c21] text-white font-semibold rounded-lg
-            hover:bg-[#c27d1e] disabled:opacity-50 disabled:cursor-not-allowed
-            flex items-center justify-center gap-2 transition-colors
-          "
+          className="w-full sm:w-auto px-6 py-3 bg-[#d98c21] text-white font-semibold rounded-lg hover:bg-[#c27d1e] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors"
         >
           {saving ? (
             <>
