@@ -30,6 +30,28 @@ interface OpportunityRecommendation {
   data: any
 }
 
+// ========================================
+// NUEVA FUNCIÓN: Obtener horarios comerciales
+// ========================================
+async function getBusinessHours(userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('business_hours')
+      .select('*')
+      .eq('user_id', userId)
+    
+    if (error) {
+      console.error('Error al cargar business_hours:', error)
+      return []
+    }
+    
+    return data || []
+  } catch (err) {
+    console.error('Error en getBusinessHours:', err)
+    return []
+  }
+}
+
 // Función para extraer hora de venta correctamente
 function getHoraVenta(sale: SaleWithTime): number {
   // Opción 1: Si existe sale_time separado
@@ -201,7 +223,8 @@ export async function GET(request: NextRequest) {
             impactoMensual: Math.round(ahorroPotencial),
             confidence: dia.diasContados >= 8 ? 85 : 60,
             data: {
-              dia: dia.nombre,
+              dia: dia.dia, // ← CAMBIO: Guardamos el número del día (0-6)
+              diaNombre: dia.nombre,
               ingresosActuales: Math.round(dia.ingresosPromedio),
               ventasPromedio: Math.round(dia.ventasPromedio * 10) / 10,
               costoOperativoDiario: Math.round(costoFijoDiario)
@@ -224,7 +247,8 @@ export async function GET(request: NextRequest) {
           impactoMensual: Math.round(mejorDia.ingresosPromedio * 0.2 * 4.33),
           confidence: 70,
           data: {
-            dia: mejorDia.nombre,
+            dia: mejorDia.dia, // ← CAMBIO: Guardamos el número del día (0-6)
+            diaNombre: mejorDia.nombre,
             ingresosActuales: Math.round(mejorDia.ingresosPromedio),
             ventasPromedio: Math.round(mejorDia.ventasPromedio * 10) / 10,
             potencialAdicional: Math.round(mejorDia.ingresosPromedio * 0.2)
@@ -260,6 +284,53 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // ========================================
+    // NUEVO: FILTRAR RECOMENDACIONES DE DÍAS CERRADOS
+    // ========================================
+    let recomendacionesFiltradas = recomendaciones
+    
+    if (selectedDay === null && recomendaciones.length > 0) {
+      // Cargar configuración de horarios
+      const businessHours = await getBusinessHours(userId)
+      
+      // Crear Set con días cerrados (mapeo: 0=Lunes en business_hours, 0=Domingo en Date.getDay())
+      // IMPORTANTE: business_hours usa 0=Lunes, pero Date.getDay() usa 0=Domingo
+      // Necesitamos convertir entre sistemas
+      const closedDaysInDateSystem = new Set<number>()
+      
+      businessHours.forEach(h => {
+        if (h.is_closed === true) {
+          // Convertir de business_hours (0=Lunes) a Date.getDay() (0=Domingo)
+          // business_hours: 0=Lun, 1=Mar, 2=Mié, 3=Jue, 4=Vie, 5=Sáb, 6=Dom
+          // Date.getDay(): 0=Dom, 1=Lun, 2=Mar, 3=Mié, 4=Jue, 5=Vie, 6=Sáb
+          const dateSystemDay = h.day_of_week === 6 ? 0 : h.day_of_week + 1
+          closedDaysInDateSystem.add(dateSystemDay)
+        }
+      })
+      
+      if (closedDaysInDateSystem.size > 0) {
+        console.log('Días cerrados (sistema Date):', Array.from(closedDaysInDateSystem))
+        
+        // Filtrar recomendaciones de días que ya están cerrados
+        recomendacionesFiltradas = recomendaciones.filter(rec => {
+          // Si la recomendación es sobre un día específico
+          if (rec.data && typeof rec.data.dia === 'number') {
+            const diaRecomendacion = rec.data.dia
+            
+            // Si el día ya está cerrado, NO mostrar la recomendación
+            if (closedDaysInDateSystem.has(diaRecomendacion)) {
+              console.log(`⚠️ Filtrada recomendación redundante: "${rec.title}" (día ${diaRecomendacion} ya cerrado)`)
+              return false
+            }
+          }
+          
+          return true
+        })
+        
+        console.log(`Recomendaciones: ${recomendaciones.length} → ${recomendacionesFiltradas.length} (después de filtrar)`)
+      }
+    }
+
     return NextResponse.json({
       hasData: true,
       selectedDay: selectedDay !== null ? parseInt(selectedDay) : null,
@@ -271,13 +342,13 @@ export async function GET(request: NextRequest) {
       },
       analisisDias: diasAnalisis,
       analisisHorarios: horariosAnalisis,
-      recomendaciones: selectedDay === null ? recomendaciones.slice(0, 5) : [],
+      recomendaciones: selectedDay === null ? recomendacionesFiltradas.slice(0, 5) : [], // ← CAMBIO: usar filtradas
       metricas: selectedDay === null ? {
         ingresoPromedioDiario: Math.round(sales.reduce((sum, s) => sum + (s.subtotal || s.total || 0), 0) / totalDias),
         costoFijoDiario: Math.round(costosFijosMensuales / 30),
         mejorDia: diasAnalisis.reduce((max, dia) => dia.ingresosPromedio > max.ingresosPromedio ? dia : max, diasAnalisis[0]).nombre,
         mejorHora: horariosAnalisis.reduce((max, h) => h.ingresosPromedioDiarios > max.ingresosPromedioDiarios ? h : max, horariosAnalisis[0]).horaFormato,
-        impactoTotalPotencial: Math.round(recomendaciones.reduce((sum, r) => sum + r.impactoMensual, 0))
+        impactoTotalPotencial: Math.round(recomendacionesFiltradas.reduce((sum, r) => sum + r.impactoMensual, 0)) // ← CAMBIO: usar filtradas
       } : null
     })
 
