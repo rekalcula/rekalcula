@@ -260,8 +260,11 @@ export default function OpportunityAnalysisV4() {
 
       {selectedDay === null && data.recomendaciones && data.recomendaciones.length > 0 && (
         <div className="bg-[#1a1a1a] rounded-xl p-6 border border-gray-700">
-          <h4 className="text-lg font-semibold text-[#d98c21] mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
+          {/* ============================================ */}
+          {/* FIX MÓVIL 1: Título más pequeño en móvil */}
+          {/* ============================================ */}
+          <h4 className="text-sm sm:text-lg font-semibold text-[#d98c21] mb-4 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
             Oportunidades Detectadas ({data.recomendaciones.length})
           </h4>
 
@@ -284,8 +287,11 @@ export default function OpportunityAnalysisV4() {
                     
                     <p className="text-sm mb-3">{rec.description}</p>
                     
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 text-sm">
+                    {/* ============================================ */}
+                    {/* FIX MÓVIL 2: Layout vertical en móvil */}
+                    {/* ============================================ */}
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm">
                         <span className="font-semibold">
                           Impacto: {rec.impactoMensual > 0 ? '+' : ''}{formatCurrency(rec.impactoMensual)}/mes
                         </span>
@@ -294,7 +300,7 @@ export default function OpportunityAnalysisV4() {
                         </span>
                       </div>
                       
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      <span className={`px-2 py-1 rounded text-xs font-medium self-start sm:self-auto ${
                         rec.priority === 'high' ? 'bg-red-100 text-red-700' : 
                         rec.priority === 'medium' ? 'bg-amber-100 text-amber-700' : 
                         'bg-blue-100 text-blue-700'
