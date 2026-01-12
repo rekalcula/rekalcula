@@ -388,9 +388,10 @@ export default function OpportunityAnalysisV4() {
 
           <div className="space-y-2">
             {filteredHours.map((horario) => {
-              const openHours = filteredHours.filter(h => h.status === 'open')
-              const ingresosMax = openHours.length > 0 
-                ? Math.max(...openHours.map(h => h.ingresosPromedioDiarios), 1)
+              // FIX: Calcular máximo con todas las horas que tienen actividad
+              const horasConActividad = filteredHours.filter(h => h.totalVentas > 0)
+              const ingresosMax = horasConActividad.length > 0 
+                ? Math.max(...horasConActividad.map(h => h.ingresosPromedioDiarios))
                 : 1
               
               const porcentaje = Math.min(Math.max((horario.ingresosPromedioDiarios / ingresosMax) * 100, 0), 100)
