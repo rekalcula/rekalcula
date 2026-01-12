@@ -60,7 +60,7 @@ interface OpportunityData {
 
 const DIAS_SEMANA = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 
-export default function OpportunityAnalysis_v3() {
+export default function OpportunityAnalysisV4() {
   const [data, setData] = useState<OpportunityData | null>(null)
   const [businessHours, setBusinessHours] = useState<BusinessHour[]>([])
   const [loading, setLoading] = useState(true)
