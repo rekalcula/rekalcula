@@ -38,7 +38,6 @@ interface AnalyticsData {
 }
 
 export default function SalesAnalyticsChart() {
-  // ACTUALIZADO: Añadido 'all' al tipo
   const [period, setPeriod] = useState<'day' | 'week' | 'month' | 'all'>('all')
   const [compare, setCompare] = useState(false)
   const [data, setData] = useState<AnalyticsData | null>(null)
@@ -49,7 +48,6 @@ export default function SalesAnalyticsChart() {
     fetchData()
   }, [period, compare])
 
-  // ACTUALIZADO: Desactivar comparación automáticamente cuando es "all"
   useEffect(() => {
     if (period === 'all' && compare) {
       setCompare(false)
@@ -59,7 +57,6 @@ export default function SalesAnalyticsChart() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      // ACTUALIZADO: No enviar compare cuando period=all
       const compareParam = period === 'all' ? false : compare
       const response = await fetch(`/api/analytics/sales?period=${period}&compare=${compareParam}`)
       const result = await response.json()
@@ -89,7 +86,6 @@ export default function SalesAnalyticsChart() {
     })
   }
 
-  // ACTUALIZADO: Añadido caso 'all'
   const getPeriodLabel = () => {
     switch (period) {
       case 'day': return 'Hoy'
@@ -104,7 +100,7 @@ export default function SalesAnalyticsChart() {
       case 'day': return 'vs Ayer'
       case 'week': return 'vs Semana anterior'
       case 'month': return 'vs Mes anterior'
-      case 'all': return '' // No aplica
+      case 'all': return ''
     }
   }
 
@@ -138,15 +134,14 @@ export default function SalesAnalyticsChart() {
 
   return (
     <div className="space-y-6">
-      {/* Filtros - ESTILO MODERNO */}
+      {/* Filtros - LAYOUT VERTICAL APLICADO */}
       <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-6">
-        <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-start gap-6">
           
-          {/* Período - ACTUALIZADO: Añadido botón "Todo" */}
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-gray-300">Período:</span>
+          {/* Período - CAMBIO 1: LAYOUT VERTICAL */}
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-gray-400">Período:</span>
             <div className="flex bg-[#0d0d0d] rounded-lg p-1 border border-[#3a3a3a]">
-              {/* NUEVO: Botón "Todo" */}
               <button
                 onClick={() => setPeriod('all')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -190,7 +185,7 @@ export default function SalesAnalyticsChart() {
             </div>
           </div>
 
-          {/* Comparativa - ACTUALIZADO: Deshabilitado cuando period=all */}
+          {/* Comparativa */}
           {period !== 'all' && (
             <label className="flex items-center gap-3 cursor-pointer">
               <input
@@ -205,9 +200,9 @@ export default function SalesAnalyticsChart() {
             </label>
           )}
 
-          {/* Vista */}
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-gray-300">Ver:</span>
+          {/* Ver - CAMBIO 1: LAYOUT VERTICAL */}
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-gray-400">Ver:</span>
             <div className="flex bg-[#0d0d0d] rounded-lg p-1 border border-[#3a3a3a]">
               <button
                 onClick={() => setViewMode('quantity')}
@@ -241,7 +236,7 @@ export default function SalesAnalyticsChart() {
         </div>
       </div>
 
-      {/* Tarjetas de resumen - ESTILO MODERNO */}
+      {/* Tarjetas de resumen */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-6">
           <p className="text-sm text-gray-400">Total Productos Vendidos</p>
@@ -284,7 +279,7 @@ export default function SalesAnalyticsChart() {
         </div>
       </div>
 
-      {/* Gráfico de barras - ESTILO MODERNO */}
+      {/* Gráfico de barras */}
       <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] p-6">
         <h3 className="text-lg font-bold text-white mb-6">
           {viewMode === 'quantity' ? 'Productos por Cantidad Vendida' : 'Productos por Ingresos'} - {getPeriodLabel()}
@@ -352,7 +347,7 @@ export default function SalesAnalyticsChart() {
         )}
       </div>
 
-      {/* Tabla detallada - ESTILO MODERNO */}
+      {/* Tabla detallada */}
       <div className="bg-[#1a1a1a] rounded-xl border border-[#3a3a3a] overflow-hidden">
         <div className="px-6 py-4 border-b border-[#3a3a3a]">
           <h3 className="text-lg font-bold text-white">Detalle por Producto</h3>
