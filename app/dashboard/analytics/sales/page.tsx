@@ -5,7 +5,7 @@ import SalesAnalysisWithHours from '@/components/SalesAnalysisWithHours'
 
 export default function SalesAnalyticsPage() {
   return (
-    <div className="min-h-screen bg-[#fefcf5] p-6 space-y-8">
+    <div className="min-h-screen bg-[#262626] p-6 space-y-8">
       {/* ============================================ */}
       {/* ANÁLISIS DE PRODUCTOS (ORIGINAL) */}
       {/* ============================================ */}
