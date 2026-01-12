@@ -397,7 +397,8 @@ export default function OpportunityAnalysisV4() {
               const tieneActividad = horario.totalVentas > 0
               const { status } = horario
 
-              if (status === 'closed') return null
+              if (status === 'closed' && horario.totalVentas === 0) return null
+
 
               let colorClase = 'bg-gray-700'
               if (status === 'lunch_break') {
