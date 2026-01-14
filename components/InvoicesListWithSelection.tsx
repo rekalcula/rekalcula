@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { IconCalendar, IconDocument, IconTrash } from './Icons'
-import PaymentMethodBadge from './PaymentMethodBadge'  // ← NUEVO IMPORT
+import PaymentMethodBadge from './PaymentMethodBadge'
+import InvoicePaymentFilter from './InvoicePaymentFilter'
 
 interface Invoice {
   id: string
@@ -25,27 +26,50 @@ interface InvoicesListWithSelectionProps {
   sortedDates: string[]
 }
 
-// Colores según estado de pago
-const getPaymentStatusStyle = (status: string | null) => {
-  switch (status) {
-    case 'paid':
-      return 'bg-green-100 text-green-700'
-    case 'pending':
-      return 'bg-yellow-100 text-yellow-700'
-    case 'overdue':
-      return 'bg-red-100 text-red-700'
-    default:
-      return 'bg-gray-100 text-gray-600'
-  }
-}
-
 export default function InvoicesListWithSelection({ invoicesByDate, sortedDates }: InvoicesListWithSelectionProps) {
   const router = useRouter()
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [deleting, setDeleting] = useState(false)
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>('all')  // ← NUEVO ESTADO
 
-  // Obtener todos los IDs
-  const allIds = sortedDates.flatMap(date => invoicesByDate[date].map(inv => inv.id))
+  // Obtener todos los IDs y todas las facturas
+  const allInvoices = sortedDates.flatMap(date => invoicesByDate[date])
+  const allIds = allInvoices.map(inv => inv.id)
+
+  // ========== FILTRADO POR FORMA DE PAGO ==========
+  const filteredInvoicesByDate = useMemo(() => {
+    if (paymentMethodFilter === 'all') {
+      return invoicesByDate
+    }
+
+    const filtered: { [key: string]: Invoice[] } = {}
+    
+    sortedDates.forEach(date => {
+      const dateInvoices = invoicesByDate[date].filter(
+        inv => inv.payment_method === paymentMethodFilter
+      )
+      if (dateInvoices.length > 0) {
+        filtered[date] = dateInvoices
+      }
+    })
+
+    return filtered
+  }, [invoicesByDate, sortedDates, paymentMethodFilter])
+
+  const filteredSortedDates = useMemo(() => {
+    return Object.keys(filteredInvoicesByDate).sort((a, b) => {
+      if (a === 'sin-fecha') return 1
+      if (b === 'sin-fecha') return -1
+      return new Date(b).getTime() - new Date(a).getTime()
+    })
+  }, [filteredInvoicesByDate])
+
+  const filteredInvoicesCount = useMemo(() => {
+    return filteredSortedDates.reduce((count, date) => {
+      return count + filteredInvoicesByDate[date].length
+    }, 0)
+  }, [filteredSortedDates, filteredInvoicesByDate])
+  // ================================================
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev =>
@@ -56,10 +80,14 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
   }
 
   const toggleSelectAll = () => {
-    if (selectedIds.length === allIds.length) {
+    const visibleIds = filteredSortedDates.flatMap(date => 
+      filteredInvoicesByDate[date].map(inv => inv.id)
+    )
+    
+    if (selectedIds.length === visibleIds.length && visibleIds.length > 0) {
       setSelectedIds([])
     } else {
-      setSelectedIds(allIds)
+      setSelectedIds(visibleIds)
     }
   }
 
@@ -90,21 +118,34 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
     }
   }
 
+  const visibleIds = filteredSortedDates.flatMap(date => 
+    filteredInvoicesByDate[date].map(inv => inv.id)
+  )
+
   return (
     <>
+      {/* ========== FILTRO DE FORMA DE PAGO ========== */}
+      <InvoicePaymentFilter
+        selectedMethod={paymentMethodFilter}
+        onMethodChange={setPaymentMethodFilter}
+        totalInvoices={allInvoices.length}
+        filteredCount={filteredInvoicesCount}
+      />
+      {/* ============================================== */}
+
       {/* Barra de seleccion */}
-      {allIds.length > 0 && (
+      {visibleIds.length > 0 && (
         <div className="bg-gray-200 rounded-xl shadow-sm p-4 mb-6 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <label className="flex items-center space-x-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={selectedIds.length === allIds.length && allIds.length > 0}
+                checked={selectedIds.length === visibleIds.length && visibleIds.length > 0}
                 onChange={toggleSelectAll}
                 className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
               <span className="text-gray-700 font-medium">
-                {selectedIds.length === allIds.length ? 'Deseleccionar todo' : 'Seleccionar todo'}
+                {selectedIds.length === visibleIds.length && visibleIds.length > 0 ? 'Deseleccionar todo' : 'Seleccionar todo'}
               </span>
             </label>
             {selectedIds.length > 0 && (
@@ -129,20 +170,35 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
 
       {/* Lista de facturas */}
       <div className="space-y-6">
-        {sortedDates.length === 0 ? (
+        {filteredSortedDates.length === 0 ? (
           <div className="bg-gray-200 rounded-xl shadow-sm p-12 text-center">
             <IconDocument size={48} color="#9CA3AF" className="mx-auto mb-2" />
-            <p className="text-gray-500">No hay facturas registradas</p>
-            <Link
-              href="/dashboard/upload"
-              className="mt-4 inline-block text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Subir primera factura →
-            </Link>
+            {paymentMethodFilter === 'all' ? (
+              <>
+                <p className="text-gray-500">No hay facturas registradas</p>
+                <Link
+                  href="/dashboard/upload"
+                  className="mt-4 inline-block text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  Subir primera factura →
+                </Link>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-900 font-semibold mb-2">No hay facturas con este filtro</p>
+                <p className="text-gray-500 mb-4">No se encontraron facturas con la forma de pago seleccionada</p>
+                <button
+                  onClick={() => setPaymentMethodFilter('all')}
+                  className="inline-block text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  Ver todas las facturas →
+                </button>
+              </>
+            )}
           </div>
         ) : (
-          sortedDates.map((date) => {
-            const dateInvoices = invoicesByDate[date]
+          filteredSortedDates.map((date) => {
+            const dateInvoices = filteredInvoicesByDate[date]
             const dateTotal = dateInvoices.reduce((sum: number, inv: any) => sum + (inv.total_amount || 0), 0)
             const formattedDate = date !== 'sin-fecha'
               ? new Date(date).toLocaleDateString('es-ES', {
@@ -198,12 +254,11 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
                                 {invoice.category || 'Sin categoria'}
                               </span>
 
-                              {/* ========== CAMBIO AQUÍ: Forma de pago con badge ========== */}
+                              {/* Forma de pago con badge */}
                               <PaymentMethodBadge 
                                 method={invoice.payment_method || 'transfer'} 
                                 size="sm" 
                               />
-                              {/* ========================================================== */}
                             </div>
 
                             <p className="font-medium text-gray-900 mt-2">
