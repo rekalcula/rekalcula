@@ -41,7 +41,7 @@ interface CashflowData {
 export default function CashflowDashboard() {
   const [data, setData] = useState<CashflowData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [period, setPeriod] = useState<'month' | '3months' | '6months'>('month')
+  const [period, setPeriod] = useState<'month' | '3months' | '6months' | '12months'>('month')
   const [groupBy, setGroupBy] = useState<'day' | 'week' | 'month'>('week')
 
   useEffect(() => {
@@ -88,6 +88,10 @@ export default function CashflowDashboard() {
       case '6months':
         startDate.setMonth(startDate.getMonth() - 2)
         endDate.setMonth(endDate.getMonth() + 4)
+        break
+      case '12months':
+        startDate.setMonth(startDate.getMonth() - 11)
+        endDate.setMonth(endDate.getMonth() + 1)
         break
     }
 
@@ -146,7 +150,8 @@ export default function CashflowDashboard() {
             {[
               { value: 'month', label: 'Este mes' },
               { value: '3months', label: '3 meses' },
-              { value: '6months', label: '6 meses' }
+              { value: '6months', label: '6 meses' },
+              { value: '12months', label: '12 meses' }
             ].map(opt => (
               <button
                 key={opt.value}
