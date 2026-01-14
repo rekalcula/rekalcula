@@ -276,11 +276,11 @@ export default function UploadSalesTicket() {
     setTotalBatches(0)
 
     if (successCount > 0) {
-      setSuccess(`${successCount} ticket(s) procesado(s) correctamente`)
+      setSuccess(`✅ ${successCount} ticket(s) procesado(s) correctamente. Redirigiendo...`)
 
       setTimeout(() => {
-        router.refresh()
-      }, 3000)
+        window.location.href = '/dashboard/sales'  // ✅ Redirección forzada
+      }, 2000)
     }
 
     if (errorCount > 0) {
@@ -348,7 +348,7 @@ export default function UploadSalesTicket() {
       setShowManualForm(false)
 
       setTimeout(() => {
-        router.refresh()
+        window.location.href = '/dashboard/sales'  // ✅
       }, 2000)
 
     } catch (err: any) {
