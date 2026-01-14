@@ -1,11 +1,10 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { IconCalendar, IconDocument, IconTrash } from './Icons'
 import PaymentMethodBadge from './PaymentMethodBadge'
-import InvoicePaymentFilter from './InvoicePaymentFilter'
 
 interface Invoice {
   id: string
@@ -30,46 +29,26 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
   const router = useRouter()
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [deleting, setDeleting] = useState(false)
-  const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>('all')  // ← NUEVO ESTADO
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>('all')
 
-  // Obtener todos los IDs y todas las facturas
-  const allInvoices = sortedDates.flatMap(date => invoicesByDate[date])
-  const allIds = allInvoices.map(inv => inv.id)
+  // Obtener todos los IDs
+  const allIds = sortedDates.flatMap(date => invoicesByDate[date].map(inv => inv.id))
 
-  // ========== FILTRADO POR FORMA DE PAGO ==========
-  const filteredInvoicesByDate = useMemo(() => {
-    if (paymentMethodFilter === 'all') {
-      return invoicesByDate
-    }
+  // Filtrar facturas por forma de pago
+  const filteredInvoicesByDate: { [key: string]: Invoice[] } = {}
+  const filteredSortedDates: string[] = []
 
-    const filtered: { [key: string]: Invoice[] } = {}
+  sortedDates.forEach(date => {
+    const filteredInvoices = invoicesByDate[date].filter(invoice => {
+      if (paymentMethodFilter === 'all') return true
+      return invoice.payment_method === paymentMethodFilter
+    })
     
-    sortedDates.forEach(date => {
-      const dateInvoices = invoicesByDate[date].filter(
-        inv => inv.payment_method === paymentMethodFilter
-      )
-      if (dateInvoices.length > 0) {
-        filtered[date] = dateInvoices
-      }
-    })
-
-    return filtered
-  }, [invoicesByDate, sortedDates, paymentMethodFilter])
-
-  const filteredSortedDates = useMemo(() => {
-    return Object.keys(filteredInvoicesByDate).sort((a, b) => {
-      if (a === 'sin-fecha') return 1
-      if (b === 'sin-fecha') return -1
-      return new Date(b).getTime() - new Date(a).getTime()
-    })
-  }, [filteredInvoicesByDate])
-
-  const filteredInvoicesCount = useMemo(() => {
-    return filteredSortedDates.reduce((count, date) => {
-      return count + filteredInvoicesByDate[date].length
-    }, 0)
-  }, [filteredSortedDates, filteredInvoicesByDate])
-  // ================================================
+    if (filteredInvoices.length > 0) {
+      filteredInvoicesByDate[date] = filteredInvoices
+      filteredSortedDates.push(date)
+    }
+  })
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev =>
@@ -80,14 +59,10 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
   }
 
   const toggleSelectAll = () => {
-    const visibleIds = filteredSortedDates.flatMap(date => 
-      filteredInvoicesByDate[date].map(inv => inv.id)
-    )
-    
-    if (selectedIds.length === visibleIds.length && visibleIds.length > 0) {
+    if (selectedIds.length === allIds.length) {
       setSelectedIds([])
     } else {
-      setSelectedIds(visibleIds)
+      setSelectedIds(allIds)
     }
   }
 
@@ -118,38 +93,48 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
     }
   }
 
-  const visibleIds = filteredSortedDates.flatMap(date => 
-    filteredInvoicesByDate[date].map(inv => inv.id)
-  )
-
   return (
     <>
-      {/* ========== FILTRO DE FORMA DE PAGO ========== */}
-      <InvoicePaymentFilter
-        selectedMethod={paymentMethodFilter}
-        onMethodChange={setPaymentMethodFilter}
-        totalInvoices={allInvoices.length}
-        filteredCount={filteredInvoicesCount}
-      />
-      {/* ============================================== */}
+      {/* ========== FILTRO DE FORMA DE PAGO (estilo oscuro) ========== */}
+      <div className="bg-[#1a1a1a] rounded-xl border border-[#404040] p-6 mb-6">
+        <label className="block text-gray-400 text-sm font-medium mb-3">
+          Filtrar por forma de pago:
+        </label>
+        <select
+          value={paymentMethodFilter}
+          onChange={(e) => setPaymentMethodFilter(e.target.value)}
+          className="w-full md:w-auto px-4 py-2 bg-[#262626] text-white border border-[#404040] rounded-lg focus:outline-none focus:border-[#d98c21] transition-colors"
+        >
+          <option value="all">📋 Todas las formas de pago</option>
+          <option value="cash">💵 Efectivo</option>
+          <option value="card">💳 Tarjeta</option>
+          <option value="transfer">🏦 Transferencia</option>
+          <option value="promissory_note">📄 Pagaré</option>
+          <option value="direct_debit">💰 Domiciliación</option>
+          <option value="credit_30">📅 Crédito 30 días</option>
+          <option value="credit_60">📅 Crédito 60 días</option>
+          <option value="credit_90">📅 Crédito 90 días</option>
+        </select>
+      </div>
+      {/* ============================================================== */}
 
-      {/* Barra de seleccion */}
-      {visibleIds.length > 0 && (
-        <div className="bg-gray-200 rounded-xl shadow-sm p-4 mb-6 flex items-center justify-between">
+      {/* Barra de selección (estilo oscuro) */}
+      {allIds.length > 0 && (
+        <div className="bg-[#1a1a1a] rounded-xl border border-[#404040] p-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
             <label className="flex items-center space-x-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={selectedIds.length === visibleIds.length && visibleIds.length > 0}
+                checked={selectedIds.length === allIds.length && allIds.length > 0}
                 onChange={toggleSelectAll}
-                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="w-5 h-5 rounded border-[#404040] text-[#d98c21] focus:ring-[#d98c21] bg-[#262626]"
               />
-              <span className="text-gray-700 font-medium">
-                {selectedIds.length === visibleIds.length && visibleIds.length > 0 ? 'Deseleccionar todo' : 'Seleccionar todo'}
+              <span className="text-white font-medium">
+                {selectedIds.length === allIds.length ? 'Deseleccionar todo' : 'Seleccionar todo'}
               </span>
             </label>
             {selectedIds.length > 0 && (
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-gray-400">
                 ({selectedIds.length} seleccionada{selectedIds.length > 1 ? 's' : ''})
               </span>
             )}
@@ -168,32 +153,31 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
         </div>
       )}
 
-      {/* Lista de facturas */}
+      {/* Lista de facturas (estilo oscuro) */}
       <div className="space-y-6">
         {filteredSortedDates.length === 0 ? (
-          <div className="bg-gray-200 rounded-xl shadow-sm p-12 text-center">
-            <IconDocument size={48} color="#9CA3AF" className="mx-auto mb-2" />
-            {paymentMethodFilter === 'all' ? (
-              <>
-                <p className="text-gray-500">No hay facturas registradas</p>
-                <Link
-                  href="/dashboard/upload"
-                  className="mt-4 inline-block text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  Subir primera factura →
-                </Link>
-              </>
-            ) : (
-              <>
-                <p className="text-gray-900 font-semibold mb-2">No hay facturas con este filtro</p>
-                <p className="text-gray-500 mb-4">No se encontraron facturas con la forma de pago seleccionada</p>
-                <button
-                  onClick={() => setPaymentMethodFilter('all')}
-                  className="inline-block text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  Ver todas las facturas →
-                </button>
-              </>
+          <div className="bg-[#1a1a1a] rounded-xl border border-[#404040] p-12 text-center">
+            <IconDocument size={48} color="#666" className="mx-auto mb-2" />
+            <p className="text-gray-400 mb-2">
+              {paymentMethodFilter === 'all' 
+                ? 'No hay facturas registradas' 
+                : 'No hay facturas con esta forma de pago'}
+            </p>
+            {paymentMethodFilter !== 'all' && (
+              <button
+                onClick={() => setPaymentMethodFilter('all')}
+                className="text-[#d98c21] hover:text-[#e09b35] font-medium"
+              >
+                Ver todas las facturas →
+              </button>
+            )}
+            {paymentMethodFilter === 'all' && (
+              <Link
+                href="/dashboard/upload"
+                className="mt-4 inline-block text-[#d98c21] hover:text-[#e09b35] font-medium"
+              >
+                Subir primera factura →
+              </Link>
             )}
           </div>
         ) : (
@@ -210,71 +194,71 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
               : 'Sin fecha'
 
             return (
-              <div key={date} className="bg-gray-200 rounded-xl shadow-sm overflow-hidden">
-                {/* Cabecera de fecha */}
-                <div className="px-6 py-4 bg-gray-50 border-b flex justify-between items-center">
-                  <h3 className="font-semibold text-gray-900 capitalize flex items-center gap-2">
-                    <IconCalendar size={20} color="#6B7280" />
+              <div key={date} className="bg-[#1a1a1a] rounded-xl border border-[#404040] overflow-hidden">
+                {/* Cabecera de fecha (estilo oscuro) */}
+                <div className="px-6 py-4 bg-[#0d0d0d] border-b border-[#404040] flex justify-between items-center">
+                  <h3 className="font-semibold text-white capitalize flex items-center gap-2">
+                    <IconCalendar size={20} color="#d98c21" />
                     {formattedDate}
                   </h3>
-                  <span className="text-red-600 font-semibold">
-                    €{dateTotal.toFixed(2)}
+                  <span className="text-red-400 font-semibold">
+                    €{dateTotal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
 
-                {/* Facturas del dia */}
-                <div className="divide-y">
+                {/* Facturas del día */}
+                <div className="divide-y divide-[#404040]">
                   {dateInvoices.map((invoice: any) => (
-                    <div key={invoice.id} className="flex items-center">
+                    <div key={invoice.id} className="flex items-center hover:bg-[#262626] transition-colors">
                       {/* Checkbox */}
                       <div className="pl-4">
                         <input
                           type="checkbox"
                           checked={selectedIds.includes(invoice.id)}
                           onChange={() => toggleSelect(invoice.id)}
-                          className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          className="w-5 h-5 rounded border-[#404040] text-[#d98c21] focus:ring-[#d98c21] bg-[#262626]"
                         />
                       </div>
 
                       {/* Contenido */}
                       <Link
                         href={`/dashboard/invoices/${invoice.id}`}
-                        className="flex-1 px-6 py-4 hover:bg-gray-50 transition-colors"
+                        className="flex-1 px-6 py-4"
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className={`text-xs px-2 py-1 rounded-full ${
                                 invoice.category === 'Productos'
-                                  ? 'bg-blue-100 text-blue-700'
+                                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
                                   : invoice.category === 'Servicios'
-                                  ? 'bg-green-100 text-green-700'
-                                  : 'bg-gray-100 text-gray-600'
+                                  ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                                  : 'bg-gray-500/20 text-gray-300 border border-gray-500/30'
                               }`}>
                                 {invoice.category || 'Sin categoria'}
                               </span>
 
-                              {/* Forma de pago con badge */}
+                              {/* Badge de forma de pago */}
                               <PaymentMethodBadge 
                                 method={invoice.payment_method || 'transfer'} 
                                 size="sm" 
                               />
                             </div>
 
-                            <p className="font-medium text-gray-900 mt-2">
+                            <p className="font-medium text-white mt-2">
                               {invoice.supplier || 'Proveedor desconocido'}
                             </p>
 
                             {invoice.items && invoice.items.length > 0 && (
-                              <p className="text-sm text-gray-500 mt-1">
+                              <p className="text-sm text-gray-400 mt-1">
                                 {invoice.items.length} item{invoice.items.length > 1 ? 's' : ''}
                               </p>
                             )}
                           </div>
 
                           <div className="text-right ml-4">
-                            <p className="text-lg font-bold text-gray-900">
-                              €{invoice.total_amount?.toFixed(2) || '0.00'}
+                            <p className="text-lg font-bold text-white">
+                              €{invoice.total_amount?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
                             </p>
                           </div>
                         </div>
