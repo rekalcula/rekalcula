@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { IconCalendar, IconDocument, IconTrash } from './Icons'
+import PaymentMethodBadge from './PaymentMethodBadge'  // ← NUEVO IMPORT
 
 interface Invoice {
   id: string
@@ -22,25 +23,6 @@ interface Invoice {
 interface InvoicesListWithSelectionProps {
   invoicesByDate: { [key: string]: Invoice[] }
   sortedDates: string[]
-}
-
-// Mapeo de formas de pago
-const getPaymentMethodLabel = (method: string | null): string => {
-  if (!method) return 'No especificado'
-  
-  const methodMap: { [key: string]: string } = {
-    'cash': 'Efectivo',
-    'card': 'Tarjeta',
-    'transfer': 'Transferencia',
-    'check': 'Cheque',
-    'bizum': 'Bizum',
-    'paypal': 'PayPal',
-    'direct_debit': 'Domiciliación',
-    'promissory_note': 'Pagaré',
-    'credit': 'Crédito'
-  }
-  
-  return methodMap[method] || method
 }
 
 // Colores según estado de pago
@@ -216,10 +198,12 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
                                 {invoice.category || 'Sin categoria'}
                               </span>
 
-                              {/* Forma de pago */}
-                              <span className="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-700 font-medium">
-                                {getPaymentMethodLabel(invoice.payment_method)}
-                              </span>
+                              {/* ========== CAMBIO AQUÍ: Forma de pago con badge ========== */}
+                              <PaymentMethodBadge 
+                                method={invoice.payment_method || 'transfer'} 
+                                size="sm" 
+                              />
+                              {/* ========================================================== */}
                             </div>
 
                             <p className="font-medium text-gray-900 mt-2">
