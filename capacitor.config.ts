@@ -4,17 +4,17 @@ const config: CapacitorConfig = {
   appId: 'com.rekalcula.app',
   appName: 'reKalcula',
   webDir: 'out',
+  
+  // ✅ RESTAURADO: server.url para cargar desde Vercel
   server: {
-    // URL de producción - la app cargará desde tu servidor Vercel
     url: 'https://rekalcula-99qi-fskondp8u-rekalculas-projects.vercel.app',
     cleartext: false,
-    // Permite que la app funcione como un navegador web apuntando a tu servidor
     androidScheme: 'https'
   },
+  
   plugins: {
     // Configuración del plugin de Cámara
     Camera: {
-      // Permisos de cámara
       permissions: ['camera', 'photos']
     },
     // Configuración de Notificaciones Push
@@ -23,7 +23,6 @@ const config: CapacitorConfig = {
     },
     // Configuración del plugin de Sistema de Archivos
     Filesystem: {
-      // Directorio por defecto para guardar archivos
       directory: 'Documents'
     },
     // Configuración de la Splash Screen
@@ -46,13 +45,10 @@ const config: CapacitorConfig = {
     }
   },
   android: {
-    // Permitir contenido mixto si es necesario
     allowMixedContent: false,
-    // Usar la versión más reciente de WebView
     webContentsDebuggingEnabled: false
   },
   ios: {
-    // Configuración específica de iOS
     contentInset: 'automatic',
     scrollEnabled: true
   }

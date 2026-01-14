@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import InvoicesFilters, { FilterState } from './InvoicesFilters'
+import PaymentMethodBadge from './PaymentMethodBadge'
 
 interface Invoice {
   id: number
@@ -13,6 +14,7 @@ interface Invoice {
   total_amount: number | null
   invoice_date: string | null
   category: string | null
+  payment_method?: string | null  // NUEVO
 }
 
 interface InvoicesListProps {
@@ -28,6 +30,7 @@ export default function InvoicesList({ invoices }: InvoicesListProps) {
     dateTo: '',
     minAmount: '',
     maxAmount: '',
+    paymentMethod: '',  // NUEVO
   })
 
   // Extraer categorías únicas
@@ -67,6 +70,13 @@ export default function InvoicesList({ invoices }: InvoicesListProps) {
       // Filtro por proveedor
       if (filters.supplier && invoice.supplier !== filters.supplier) {
         return false
+      }
+
+      // NUEVO: Filtro por forma de pago
+      if (filters.paymentMethod && filters.paymentMethod !== 'all') {
+        if (invoice.payment_method !== filters.paymentMethod) {
+          return false
+        }
       }
 
       // Filtro por monto mínimo
@@ -173,6 +183,10 @@ export default function InvoicesList({ invoices }: InvoicesListProps) {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Categoría
                 </th>
+                {/* NUEVA COLUMNA */}
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Forma de Pago
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Total
                 </th>
@@ -199,6 +213,13 @@ export default function InvoicesList({ invoices }: InvoicesListProps) {
                     <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
                       {invoice.category || 'Sin categoría'}
                     </span>
+                  </td>
+                  {/* NUEVA CELDA CON BADGE */}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <PaymentMethodBadge 
+                      method={invoice.payment_method || 'transfer'} 
+                      size="sm" 
+                    />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                     {invoice.total_amount ? `${invoice.total_amount.toFixed(2)}€` : '-'}

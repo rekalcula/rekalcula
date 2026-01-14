@@ -335,11 +335,11 @@ export default function UploadInvoiceTicket() {
     setProcessing(false)
 
     if (successCount > 0) {
-      setSuccess(`${successCount} factura(s) procesada(s) correctamente`)
+      setSuccess(`✅ ${successCount} factura(s) procesada(s) correctamente. Redirigiendo...`)
 
       setTimeout(() => {
-        router.refresh()
-      }, 3000)
+        window.location.href = '/dashboard/invoices'  // ✅ Redirección forzada
+      }, 2000)
     }
 
     if (errorCount > 0 && successCount === 0) {
@@ -455,9 +455,9 @@ export default function UploadInvoiceTicket() {
       })
       setShowManualForm(false)
 
-      setTimeout(() => {
-        router.refresh()
-      }, 2000)
+    setTimeout(() => {
+      window.location.href = '/dashboard/invoices'  // ✅
+    }, 2000)
 
     } catch (err: any) {
       setManualFormError(err.message)

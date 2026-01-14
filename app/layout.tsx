@@ -1,10 +1,16 @@
 import { TypographyProvider } from './providers/TypographyProvider'
 import { ClerkProvider } from '@clerk/nextjs'
-import { Inter } from 'next/font/google'
+import localFont from 'next/font/local'  // ← CAMBIO AQUÍ
 import './globals.css'
 import PWARegister from '@/components/PWARegister'
 
-const inter = Inter({ subsets: ['latin'] })
+// ← CAMBIO AQUÍ (6 líneas en lugar de 1)
+const inter = localFont({
+  src: './fonts/Inter-VariableFont.woff2',
+  variable: '--font-inter',
+  display: 'swap',
+  weight: '100 900',
+})
 
 export const metadata = {
   title: 'ReKalcula - Optimiza tu negocio con IA',
