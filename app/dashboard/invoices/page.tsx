@@ -62,31 +62,41 @@ export default async function InvoicesPage() {
             </div>
             <Link
               href="/dashboard/upload"
-              className="bg-[#0d0d0d] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2d2d2d] w-full sm:w-auto text-center"
+              className="bg-[#0d0d0d] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2d2d2d] transition-colors w-full sm:w-auto text-center border border-[#404040]"
             >
               + Subir Facturas
             </Link>
           </div>
 
-          {/* Resumen */}
-          <div className="bg-gray-200 rounded-xl shadow-sm p-6 mb-6">
-            <div className="grid md:grid-cols-3 gap-6">
-              <div>
-                <p className="text-xl text-gray-500">Gasto Total</p>
-                <p className="text-2xl font-bold text-red-600">€{totalGasto.toFixed(2)}</p>
-              </div>
-              <div>
-                <p className="text-xl text-gray-500">Número de Facturas</p>
-                <p className="text-2xl font-bold text-gray-900">{invoiceList.length}</p>
-              </div>
-              <div>
-                <p className="text-xl text-gray-500">Promedio por Factura</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  €{invoiceList.length > 0 ? (totalGasto / invoiceList.length).toFixed(2) : '0.00'}
-                </p>
-              </div>
+          {/* ========== RESUMEN REDISEÑADO (estilo Análisis de Ventas) ========== */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Tarjeta 1: Gasto Total */}
+            <div className="bg-[#1a1a1a] rounded-xl border border-[#404040] p-6 hover:border-[#d98c21] transition-colors">
+              <p className="text-gray-400 text-sm mb-2">Gasto Total</p>
+              <p className="text-4xl font-bold text-red-500">
+                €{totalGasto.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </div>
+
+            {/* Tarjeta 2: Número de Facturas */}
+            <div className="bg-[#1a1a1a] rounded-xl border border-[#404040] p-6 hover:border-[#d98c21] transition-colors">
+              <p className="text-gray-400 text-sm mb-2">Número de Facturas</p>
+              <p className="text-4xl font-bold text-[#FFFCFF]">
+                {invoiceList.length}
+              </p>
+            </div>
+
+            {/* Tarjeta 3: Promedio por Factura */}
+            <div className="bg-[#1a1a1a] rounded-xl border border-[#404040] p-6 hover:border-[#d98c21] transition-colors">
+              <p className="text-gray-400 text-sm mb-2">Promedio por Factura</p>
+              <p className="text-4xl font-bold text-[#FFFCFF]">
+                €{invoiceList.length > 0 
+                  ? (totalGasto / invoiceList.length).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                  : '0.00'}
+              </p>
             </div>
           </div>
+          {/* ====================================================================== */}
 
           {/* Lista con selección */}
           <InvoicesListWithSelection

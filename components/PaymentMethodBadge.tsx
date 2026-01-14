@@ -15,47 +15,47 @@ interface PaymentMethodBadgeProps {
 const PAYMENT_METHODS: Record<string, {
   label: string
   icon: any
-  color: string
+  color: string  // Colores adaptados para fondo oscuro
 }> = {
   cash: {
     label: 'Efectivo',
     icon: Banknote,
-    color: 'bg-green-100 text-green-700 border-green-300'
+    color: 'bg-green-500/20 text-green-300 border-green-500/30'
   },
   card: {
     label: 'Tarjeta',
     icon: CreditCard,
-    color: 'bg-blue-100 text-blue-700 border-blue-300'
+    color: 'bg-blue-500/20 text-blue-300 border-blue-500/30'
   },
   transfer: {
     label: 'Transferencia',
     icon: Building2,
-    color: 'bg-purple-100 text-purple-700 border-purple-300'
+    color: 'bg-purple-500/20 text-purple-300 border-purple-500/30'
   },
   promissory_note: {
     label: 'Pagaré',
     icon: FileText,
-    color: 'bg-amber-100 text-amber-700 border-amber-300'
+    color: 'bg-amber-500/20 text-amber-300 border-amber-500/30'
   },
   direct_debit: {
     label: 'Domiciliación',
     icon: Wallet,
-    color: 'bg-indigo-100 text-indigo-700 border-indigo-300'
+    color: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
   },
   credit_30: {
     label: 'Crédito 30 días',
     icon: Calendar,
-    color: 'bg-orange-100 text-orange-700 border-orange-300'
+    color: 'bg-orange-500/20 text-orange-300 border-orange-500/30'
   },
   credit_60: {
     label: 'Crédito 60 días',
     icon: Calendar,
-    color: 'bg-red-100 text-red-700 border-red-300'
+    color: 'bg-red-500/20 text-red-300 border-red-500/30'
   },
   credit_90: {
     label: 'Crédito 90 días',
     icon: Calendar,
-    color: 'bg-rose-100 text-rose-700 border-rose-300'
+    color: 'bg-rose-500/20 text-rose-300 border-rose-500/30'
   }
 }
 
