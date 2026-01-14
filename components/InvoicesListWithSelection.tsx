@@ -105,15 +105,15 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
           onChange={(e) => setPaymentMethodFilter(e.target.value)}
           className="w-full md:w-auto px-4 py-2 bg-[#262626] text-white border border-[#404040] rounded-lg focus:outline-none focus:border-[#d98c21] transition-colors"
         >
-          <option value="all">📋 Todas las formas de pago</option>
-          <option value="cash">💵 Efectivo</option>
-          <option value="card">💳 Tarjeta</option>
-          <option value="transfer">🏦 Transferencia</option>
-          <option value="promissory_note">📄 Pagaré</option>
-          <option value="direct_debit">💰 Domiciliación</option>
-          <option value="credit_30">📅 Crédito 30 días</option>
-          <option value="credit_60">📅 Crédito 60 días</option>
-          <option value="credit_90">📅 Crédito 90 días</option>
+          <option value="all"> Todas las formas de pago</option>
+          <option value="cash"> Efectivo</option>
+          <option value="card"> Tarjeta</option>
+          <option value="transfer"> Transferencia</option>
+          <option value="promissory_note"> Pagaré</option>
+          <option value="direct_debit"> Domiciliación</option>
+          <option value="credit_30"> Crédito 30 días</option>
+          <option value="credit_60"> Crédito 60 días</option>
+          <option value="credit_90"> Crédito 90 días</option>
         </select>
       </div>
       {/* ============================================================== */}
