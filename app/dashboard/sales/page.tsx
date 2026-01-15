@@ -87,32 +87,42 @@ export default async function SalesPage() {
             </div>
             <Link
               href="/dashboard/sales/upload"
-              className="bg-[#0d0d0d] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2d2d2d] w-full sm:w-auto text-center"
+              className="bg-[#0d0d0d] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2d2d2d] transition-colors w-full sm:w-auto text-center border border-[#404040]"
             >
               + Subir Ventas
             </Link>
           </div>
 
-          {/* ⭐ Resumen - Ahora muestra BASE IMPONIBLE (sin IVA) */}
-          <div className="bg-gray-200 rounded-xl shadow-sm p-6 border-2 border-[#979797] mb-6">
-            <div className="grid md:grid-cols-3 gap-6">
-              <div>
-                <p className="text-xl text-gray-500">Total Ventas</p>
-                <p className="text-2xl font-bold text-green-600">€{totalAmount.toFixed(2)}</p>
-                <p className="text-xs text-gray-400">Base imponible (sin IVA)</p>
-              </div>
-              <div>
-                <p className="text-xl text-gray-500">Número de Ventas</p>
-                <p className="text-2xl font-bold text-gray-900">{totalSalesCount}</p>
-              </div>
-              <div>
-                <p className="text-xl text-gray-500">Promedio por Venta</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  €{totalSalesCount > 0 ? (totalAmount / totalSalesCount).toFixed(2) : '0.00'}
-                </p>
-              </div>
+          {/* ========== RESUMEN REDISEÑADO (estilo coherente con Facturas) ========== */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Tarjeta 1: Total Ventas */}
+            <div className="bg-[#1a1a1a] rounded-xl border border-[#404040] p-6 hover:border-[#d98c21] transition-colors">
+              <p className="text-gray-400 text-sm mb-2">Total Ventas</p>
+              <p className="text-4xl font-bold text-green-600">
+                €{totalAmount.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">Base imponible (sin IVA)</p>
+            </div>
+
+            {/* Tarjeta 2: Número de Ventas */}
+            <div className="bg-[#1a1a1a] rounded-xl border border-[#404040] p-6 hover:border-[#d98c21] transition-colors">
+              <p className="text-gray-400 text-sm mb-2">Número de Ventas</p>
+              <p className="text-4xl font-bold text-[#FFFCFF]">
+                {totalSalesCount}
+              </p>
+            </div>
+
+            {/* Tarjeta 3: Promedio por Venta */}
+            <div className="bg-[#1a1a1a] rounded-xl border border-[#404040] p-6 hover:border-[#d98c21] transition-colors">
+              <p className="text-gray-400 text-sm mb-2">Promedio por Venta</p>
+              <p className="text-4xl font-bold text-[#FFFCFF]">
+                €{totalSalesCount > 0 
+                  ? (totalAmount / totalSalesCount).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                  : '0.00'}
+              </p>
             </div>
           </div>
+          {/* ====================================================================== */}
 
           {/* Lista con selección y paginación */}
           <SalesListWithSelection
