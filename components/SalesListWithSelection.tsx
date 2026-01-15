@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { IconCalendar, IconDocument, IconTrash } from './Icons'
+import ConfirmDialog from './ConfirmDialog'
 
 interface Sale {
   id: string
@@ -44,6 +45,7 @@ export default function SalesListWithSelection({
   const [hasMore, setHasMore] = useState(initialHasMore)
   const [loadedCount, setLoadedCount] = useState(initialLoadedCount)
   const [showScrollTop, setShowScrollTop] = useState(false)
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
 
   // Detectar scroll para mostrar botón "Volver arriba"
   useEffect(() => {
@@ -82,10 +84,12 @@ export default function SalesListWithSelection({
   const handleDeleteSelected = async () => {
     if (selectedIds.length === 0) return
 
-    if (!confirm(`¿Estás seguro de que quieres eliminar ${selectedIds.length} venta(s)?`)) {
-      return
-    }
+    // Mostrar modal de confirmación personalizado
+    setShowConfirmDialog(true)
+  }
 
+  const confirmDelete = async () => {
+    setShowConfirmDialog(false)
     setDeleting(true)
 
     try {
@@ -136,6 +140,10 @@ export default function SalesListWithSelection({
     } finally {
       setDeleting(false)
     }
+  }
+
+  const cancelDelete = () => {
+    setShowConfirmDialog(false)
   }
 
   // Función para cargar más ventas
@@ -368,6 +376,18 @@ export default function SalesListWithSelection({
           </>
         )}
       </div>
+
+      {/* Modal de confirmación de eliminación */}
+      <ConfirmDialog
+        isOpen={showConfirmDialog}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        title="Confirmar eliminación"
+        message={`¿Estás seguro de que quieres eliminar ${selectedIds.length} venta${selectedIds.length > 1 ? 's' : ''}? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        variant="danger"
+      />
 
       {/* Botón flotante "Volver arriba" */}
       {showScrollTop && (
