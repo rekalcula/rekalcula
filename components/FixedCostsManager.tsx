@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { IconMoney, IconTrash } from './Icons'
+import ConfirmDialog from './ConfirmDialog'
 
 // ========================================
 // CATEGORÍAS PREDEFINIDAS
@@ -69,6 +70,8 @@ export default function FixedCostsManager({
   const [costs, setCosts] = useState(initialCosts)
   const [showAddCost, setShowAddCost] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [costToDelete, setCostToDelete] = useState<string | null>(null)
 
   // Estado del formulario
   const [formData, setFormData] = useState({
@@ -221,15 +224,31 @@ export default function FixedCostsManager({
     }
   }
 
-  const handleDeleteCost = async (id: string) => {
-    if (!confirm('¿Eliminar este costo fijo?')) return
+  const handleDeleteCost = (id: string) => {
+    // Almacenar ID y mostrar modal de confirmación
+    setCostToDelete(id)
+    setShowConfirmDialog(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!costToDelete) return
+    
+    setShowConfirmDialog(false)
 
     try {
-      await fetch(`/api/fixed-costs?id=${id}`, { method: 'DELETE' })
-      setCosts(costs.filter(c => c.id !== id))
+      await fetch(`/api/fixed-costs?id=${costToDelete}`, { method: 'DELETE' })
+      setCosts(costs.filter(c => c.id !== costToDelete))
     } catch (error) {
       console.error('Error:', error)
+      alert('Error al eliminar el coste fijo')
+    } finally {
+      setCostToDelete(null)
     }
+  }
+
+  const cancelDelete = () => {
+    setShowConfirmDialog(false)
+    setCostToDelete(null)
   }
 
   const getMonthlyAmount = (cost: FixedCost) => {
@@ -575,12 +594,12 @@ export default function FixedCostsManager({
         const categoryTotal = categoryCosts.reduce((sum, c) => sum + getMonthlyAmount(c), 0)
 
         return (
-          <div key={category.id} className="bg-gray-200 rounded-xl shadow-sm overflow-hidden">
-            <div className="px-6 py-4 bg-gray-50 border-b flex justify-between items-center">
-              <h3 className="font-semibold text-gray-900 text-[20px]">
+          <div key={category.id} className="bg-[#1a1a1a] rounded-xl border border-[#404040] overflow-hidden">
+            <div className="px-6 py-4 bg-[#0d0d0d] border-b border-[#404040] flex justify-between items-center">
+              <h3 className="font-semibold text-white text-[20px]">
                 {category.icon} {category.name}
               </h3>
-              <span className="text-[20px] font-medium text-gray-600">
+              <span className="text-[20px] font-medium text-gray-400">
                 €{categoryTotal.toFixed(2)}/mes
               </span>
             </div>
@@ -589,7 +608,7 @@ export default function FixedCostsManager({
                 <div key={cost.id} className="px-6 py-4">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <p className="font-medium text-gray-900 text-[18px]">{cost.name}</p>
+                      <p className="font-medium text-white text-[18px]">{cost.name}</p>
                       {cost.description && (
                         <p className="text-gray-500 text-sm">{cost.description}</p>
                       )}
@@ -624,7 +643,7 @@ export default function FixedCostsManager({
                     
                     <div className="flex items-center space-x-4">
                       <div className="text-right">
-                        <p className="font-semibold text-gray-900 text-[18px]">
+                        <p className="font-semibold text-white text-[18px]">
                           €{(cost.base_amount || cost.amount).toFixed(2)}
                         </p>
                         {cost.frequency !== 'monthly' && (
@@ -650,9 +669,9 @@ export default function FixedCostsManager({
 
       {/* Costos sin categoría (legacy) */}
       {costs.filter(c => !c.cost_type && !COST_CATEGORIES.find(cat => cat.id === c.cost_type)).length > 0 && (
-        <div className="bg-gray-200 rounded-xl shadow-sm overflow-hidden">
-          <div className="px-6 py-4 bg-gray-50 border-b">
-            <h3 className="font-semibold text-gray-900 text-[20px]">📋 Otros (migrados)</h3>
+        <div className="bg-[#1a1a1a] rounded-xl border border-[#404040] overflow-hidden">
+          <div className="px-6 py-4 bg-[#0d0d0d] border-b border-[#404040]">
+            <h3 className="font-semibold text-white text-[20px]">📋 Otros (migrados)</h3>
           </div>
           <div className="divide-y">
             {costs.filter(c => !c.cost_type).map((cost) => (
@@ -674,14 +693,26 @@ export default function FixedCostsManager({
       )}
 
       {costs.length === 0 && (
-        <div className="bg-gray-200 rounded-xl shadow-sm p-12 text-center">
-          <IconMoney size={48} color="#9CA3AF" className="mx-auto mb-2" />
-          <p className="text-gray-500">No hay costos fijos registrados</p>
-          <p className="text-sm text-gray-400 mt-1">
+        <div className="bg-[#1a1a1a] rounded-xl border border-[#404040] p-12 text-center">
+          <IconMoney size={48} color="#666" className="mx-auto mb-2" />
+          <p className="text-gray-400">No hay costos fijos registrados</p>
+          <p className="text-sm text-gray-500 mt-1">
             Añade tus gastos fijos como alquiler, luz, nóminas, etc.
           </p>
         </div>
       )}
+
+      {/* Modal de confirmación de eliminación */}
+      <ConfirmDialog
+        isOpen={showConfirmDialog}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        title="Confirmar eliminación"
+        message="¿Estás seguro de que quieres eliminar este coste fijo? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        variant="danger"
+      />
     </div>
   )
 }
