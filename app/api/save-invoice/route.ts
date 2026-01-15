@@ -59,10 +59,47 @@ export async function POST(request: NextRequest) {
     const paymentStatus = isImmediatePayment ? 'paid' : 'pending'
 
     // ========================================
-    // ⭐ CÁLCULO CONTABLE CRÍTICO
+    // ⭐ CÁLCULO CONTABLE CRÍTICO CON VALIDACIÓN
     // Guardar SOLO base imponible, no total con IVA
     // ========================================
-    const baseAmount = analysis.base_amount || (analysis.total_amount - (analysis.tax_amount || 0))
+    
+    // Validar y normalizar datos numéricos
+    const totalAmount = typeof analysis.total_amount === 'number' && !isNaN(analysis.total_amount)
+      ? analysis.total_amount 
+      : (typeof analysis.total_amount === 'string' ? parseFloat(analysis.total_amount) : 0)
+    
+    const taxAmount = typeof analysis.tax_amount === 'number' && !isNaN(analysis.tax_amount)
+      ? analysis.tax_amount 
+      : (typeof analysis.tax_amount === 'string' ? parseFloat(analysis.tax_amount) : 0)
+    
+    const providedBaseAmount = typeof analysis.base_amount === 'number' && !isNaN(analysis.base_amount)
+      ? analysis.base_amount 
+      : (typeof analysis.base_amount === 'string' ? parseFloat(analysis.base_amount) : null)
+    
+    // Calcular base imponible
+    const baseAmount = providedBaseAmount !== null && providedBaseAmount > 0
+      ? providedBaseAmount 
+      : totalAmount - taxAmount
+    
+    // ⭐ VALIDACIÓN CRÍTICA: rechazar si no hay importe válido
+    if (!baseAmount || isNaN(baseAmount) || baseAmount <= 0) {
+      console.error('[save-invoice] Datos numéricos inválidos:', { 
+        analysis_received: analysis,
+        calculated_baseAmount: baseAmount,
+        totalAmount,
+        taxAmount,
+        providedBaseAmount
+      })
+      return NextResponse.json({ 
+        error: 'Los datos de la factura están incompletos o son inválidos. Verifica que el importe sea correcto.',
+        code: 'INVALID_AMOUNT',
+        debug: {
+          baseAmount,
+          totalAmount,
+          taxAmount
+        }
+      }, { status: 400 })
+    }
     
     const { data: invoiceData, error: dbError } = await supabase
       .from('invoices')
@@ -73,9 +110,9 @@ export async function POST(request: NextRequest) {
         supplier: analysis.supplier || null,
         // ⭐ CAMBIO CRÍTICO: Guardar base_amount (sin IVA) para contabilidad
         total_amount: baseAmount,
-        tax_amount: analysis.tax_amount || 0,
+        tax_amount: taxAmount,
         // ⭐ NUEVO: Almacenar el importe total original (con IVA) por referencia
-        gross_amount: analysis.total_amount,
+        gross_amount: totalAmount,
         invoice_date: analysis.invoice_date,
         invoice_number: analysis.invoice_number || null,
         category: analysis.category,
@@ -96,7 +133,10 @@ export async function POST(request: NextRequest) {
 
     if (dbError) {
       console.error('[save-invoice] Error guardando en BD:', dbError)
-      return NextResponse.json({ error: 'Error guardando los datos' }, { status: 500 })
+      return NextResponse.json({ 
+        error: 'Error guardando los datos en la base de datos',
+        details: dbError.message 
+      }, { status: 500 })
     }
 
     // ========================================
@@ -144,6 +184,9 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('[save-invoice] Error general:', error)
-    return NextResponse.json({ error: 'Error guardando la factura' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'Error guardando la factura',
+      message: error instanceof Error ? error.message : 'Error desconocido'
+    }, { status: 500 })
   }
 }
