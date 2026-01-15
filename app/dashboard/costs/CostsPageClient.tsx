@@ -48,9 +48,9 @@ export default function CostsPageClient({ categories, costs, monthlyTotal }: Pro
             <p className="mt-2 text-[#FFFCFF] text-[20px]">Gestiona tus gastos fijos mensuales</p>
           </div>
           
-          <div className="bg-gray-200 rounded-xl shadow-sm p-6 border-2 border-[#979797] text-center">
-            <p className="text-xl text-gray-500">Total Mensual</p>
-            <p className="text-3xl font-bold text-red-600">
+          <div className="bg-[#1a1a1a] rounded-xl border border-[#404040] p-6 text-center">
+            <p className="text-xl text-gray-400">Total Mensual</p>
+            <p className="text-3xl font-bold text-red-400">
               €{monthlyTotal.toFixed(2)}
             </p>
           </div>
@@ -98,9 +98,9 @@ export default function CostsPageClient({ categories, costs, monthlyTotal }: Pro
           </div>
           
           {/* Total Mensual a la derecha - en una línea */}
-          <div className="bg-gray-200 rounded-xl shadow-sm px-6 py-3 border-2 border-[#979797] flex items-center gap-3">
-            <span className="text-lg text-gray-500">Total Mensual</span>
-            <span className="text-2xl font-bold text-red-600">
+          <div className="bg-[#1a1a1a] rounded-xl border border-[#404040] px-6 py-3 flex items-center gap-3">
+            <span className="text-lg text-gray-400">Total Mensual</span>
+            <span className="text-2xl font-bold text-red-400">
               €{monthlyTotal.toFixed(2)}
             </span>
           </div>
