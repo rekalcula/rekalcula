@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { IconCalendar, IconDocument, IconTrash } from './Icons'
 import PaymentMethodBadge from './PaymentMethodBadge'
+import ConfirmDialog from './ConfirmDialog'
 
 interface Invoice {
   id: string
@@ -30,6 +31,7 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [deleting, setDeleting] = useState(false)
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>('all')
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
 
   // Obtener todos los IDs
   const allIds = sortedDates.flatMap(date => invoicesByDate[date].map(inv => inv.id))
@@ -69,10 +71,12 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
   const handleDeleteSelected = async () => {
     if (selectedIds.length === 0) return
 
-    if (!confirm(`¿Estas seguro de que quieres eliminar ${selectedIds.length} factura(s)?`)) {
-      return
-    }
+    // Mostrar modal de confirmación personalizado
+    setShowConfirmDialog(true)
+  }
 
+  const confirmDelete = async () => {
+    setShowConfirmDialog(false)
     setDeleting(true)
 
     try {
@@ -91,6 +95,10 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
     } finally {
       setDeleting(false)
     }
+  }
+
+  const cancelDelete = () => {
+    setShowConfirmDialog(false)
   }
 
   return (
@@ -271,6 +279,18 @@ export default function InvoicesListWithSelection({ invoicesByDate, sortedDates 
           })
         )}
       </div>
+
+      {/* Modal de confirmación de eliminación */}
+      <ConfirmDialog
+        isOpen={showConfirmDialog}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        title="Confirmar eliminación"
+        message={`¿Estás seguro de que quieres eliminar ${selectedIds.length} factura${selectedIds.length > 1 ? 's' : ''}? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        variant="danger"
+      />
     </>
   )
 }
