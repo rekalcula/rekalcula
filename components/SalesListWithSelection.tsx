@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { IconCalendar, IconDocument, IconTrash } from './Icons'
@@ -43,6 +43,22 @@ export default function SalesListWithSelection({
   const [currentPage, setCurrentPage] = useState(1)
   const [hasMore, setHasMore] = useState(initialHasMore)
   const [loadedCount, setLoadedCount] = useState(initialLoadedCount)
+  const [showScrollTop, setShowScrollTop] = useState(false)
+
+  // Detectar scroll para mostrar botón "Volver arriba"
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400)
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Función para scroll suave hacia arriba
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   // Obtener todos los IDs de las ventas cargadas
   const allIds = sortedDates.flatMap(date => salesByDate[date].map(s => s.id))
@@ -81,8 +97,40 @@ export default function SalesListWithSelection({
         throw new Error('Error al eliminar')
       }
 
+      // ⭐ CORRECCIÓN: Después de eliminar, recargar datos desde el inicio
+      // Resetear estado de paginación y recargar primera página
+      const reloadResponse = await fetch(`/api/sales?page=1&limit=${pageSize}`)
+      
+      if (reloadResponse.ok) {
+        const reloadData = await reloadResponse.json()
+        const newSales: Sale[] = reloadData.sales
+        
+        // Reconstruir salesByDate desde cero
+        const newSalesByDate: { [key: string]: Sale[] } = {}
+        newSales.forEach((sale) => {
+          const date = sale.sale_date || sale.created_at?.split('T')[0] || 'sin-fecha'
+          if (!newSalesByDate[date]) {
+            newSalesByDate[date] = []
+          }
+          newSalesByDate[date].push(sale)
+        })
+
+        const newSortedDates = Object.keys(newSalesByDate).sort((a, b) => {
+          if (a === 'sin-fecha') return 1
+          if (b === 'sin-fecha') return -1
+          return new Date(b).getTime() - new Date(a).getTime()
+        })
+
+        // Actualizar todo el estado
+        setSalesByDate(newSalesByDate)
+        setSortedDates(newSortedDates)
+        setCurrentPage(1)
+        setHasMore(reloadData.hasMore)
+        setLoadedCount(newSales.length)
+      }
+
       setSelectedIds([])
-      router.refresh()
+      router.refresh() // Actualizar metadata del server component
     } catch (error) {
       alert('Error al eliminar las ventas')
     } finally {
@@ -320,6 +368,30 @@ export default function SalesListWithSelection({
           </>
         )}
       </div>
+
+      {/* Botón flotante "Volver arriba" */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 bg-[#d98c21] hover:bg-[#e09b35] text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-50"
+          aria-label="Volver arriba"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 10l7-7m0 0l7 7m-7-7v18"
+            />
+          </svg>
+        </button>
+      )}
     </>
   )
 }
