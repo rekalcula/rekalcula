@@ -154,21 +154,21 @@ export default function SalesListWithSelection({
     <>
       {/* Barra de selección */}
       {allIds.length > 0 && (
-        <div className="bg-gray-200 rounded-xl shadow-sm p-4 mb-6 flex items-center justify-between">
+        <div className="bg-[#1a1a1a] rounded-xl border border-[#404040] p-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
             <label className="flex items-center space-x-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={selectedIds.length === allIds.length && allIds.length > 0}
                 onChange={toggleSelectAll}
-                className="w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                className="w-5 h-5 rounded border-[#404040] text-[#d98c21] focus:ring-[#d98c21] bg-[#262626]"
               />
-              <span className="text-gray-700 font-medium">
+              <span className="text-white font-medium">
                 {selectedIds.length === allIds.length ? 'Deseleccionar todo' : 'Seleccionar todo'}
               </span>
             </label>
             {selectedIds.length > 0 && (
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-gray-400">
                 ({selectedIds.length} seleccionado{selectedIds.length > 1 ? 's' : ''})
               </span>
             )}
@@ -190,12 +190,12 @@ export default function SalesListWithSelection({
       {/* Lista de ventas */}
       <div className="space-y-6">
         {sortedDates.length === 0 ? (
-          <div className="bg-gray-200 rounded-xl shadow-sm p-12 text-center">
-            <IconDocument size={48} color="#9CA3AF" className="mx-auto mb-2" />
-            <p className="text-gray-500">No hay ventas registradas</p>
+          <div className="bg-[#1a1a1a] rounded-xl border border-[#404040] p-12 text-center">
+            <IconDocument size={48} color="#666" className="mx-auto mb-2" />
+            <p className="text-gray-400">No hay ventas registradas</p>
             <Link
               href="/dashboard/sales/upload"
-              className="mt-4 inline-block text-green-600 hover:text-green-700 font-medium"
+              className="mt-4 inline-block text-[#d98c21] hover:text-[#e09b35] font-medium"
             >
               Subir primer ticket →
             </Link>
@@ -216,60 +216,60 @@ export default function SalesListWithSelection({
                 : 'Sin fecha'
 
               return (
-                <div key={date} className="bg-gray-200 rounded-xl shadow-sm overflow-hidden">
+                <div key={date} className="bg-[#1a1a1a] rounded-xl border border-[#404040] overflow-hidden">
                   {/* Cabecera de fecha */}
-                  <div className="px-6 py-4 bg-gray-50 border-b flex justify-between items-center">
-                    <h3 className="font-semibold text-gray-900 capitalize flex items-center gap-2">
-                      <IconCalendar size={20} color="#6B7280" />
+                  <div className="px-6 py-4 bg-[#0d0d0d] border-b border-[#404040] flex justify-between items-center">
+                    <h3 className="font-semibold text-white capitalize flex items-center gap-2">
+                      <IconCalendar size={20} color="#d98c21" />
                       {formattedDate}
                     </h3>
-                    <span className="text-green-600 font-semibold">
+                    <span className="text-green-400 font-semibold">
                       €{dateTotal.toFixed(2)}
                     </span>
                   </div>
 
                   {/* Ventas del día */}
-                  <div className="divide-y">
+                  <div className="divide-y divide-[#404040]">
                     {dateSales.map((sale: any) => (
-                      <div key={sale.id} className="flex items-center">
+                      <div key={sale.id} className="flex items-center hover:bg-[#262626] transition-colors">
                         {/* Checkbox */}
                         <div className="pl-4">
                           <input
                             type="checkbox"
                             checked={selectedIds.includes(sale.id)}
                             onChange={() => toggleSelect(sale.id)}
-                            className="w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                            className="w-5 h-5 rounded border-[#404040] text-[#d98c21] focus:ring-[#d98c21] bg-[#262626]"
                           />
                         </div>
 
                         {/* Contenido */}
                         <Link
                           href={`/dashboard/sales/${sale.id}`}
-                          className="flex-1 px-6 py-4 hover:bg-gray-50 transition-colors"
+                          className="flex-1 px-6 py-4"
                         >
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
                               <div className="flex items-center space-x-2">
                                 <span className={`text-xs px-2 py-1 rounded-full ${
                                   sale.source === 'ticket'
-                                    ? 'bg-blue-100 text-blue-700'
-                                    : 'bg-gray-100 text-gray-600'
+                                    ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                                    : 'bg-gray-500/20 text-gray-300 border border-gray-500/30'
                                 }`}>
                                   {sale.source === 'ticket' ? 'Ticket' : 'Manual'}
                                 </span>
                                 {sale.payment_method && sale.payment_method !== 'desconocido' && (
-                                  <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
+                                  <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-300 border border-green-500/30">
                                     {sale.payment_method}
                                   </span>
                                 )}
                               </div>
 
-                              <p className="font-medium text-gray-900 mt-2">
+                              <p className="font-medium text-white mt-2">
                                 {sale.notes?.replace('Negocio: ', '') || 'Venta'}
                               </p>
 
                               {sale.sale_items && sale.sale_items.length > 0 && (
-                                <p className="text-sm text-gray-500 mt-1">
+                                <p className="text-sm text-gray-400 mt-1">
                                   {sale.sale_items.length} item{sale.sale_items.length > 1 ? 's' : ''}
                                 </p>
                               )}
@@ -277,7 +277,7 @@ export default function SalesListWithSelection({
 
                             <div className="text-right ml-4">
                               {/* ⭐ CORRECCIÓN: Mostrar base imponible (subtotal) */}
-                              <p className="text-lg font-bold text-gray-900">
+                              <p className="text-lg font-bold text-white">
                                 €{getBaseAmount(sale).toFixed(2)}
                               </p>
                             </div>
