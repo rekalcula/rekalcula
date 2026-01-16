@@ -628,10 +628,10 @@ export default function FixedCostsManager({
                         )}
                       </div>
                       
-                      {/* Detalles de nómina con badges verticales centrados y grid responsive */}
+                      {/* Detalles de nómina con apilamiento vertical completo en móvil */}
                       {cost.is_payroll && cost.payroll_data && (
                         <div className="mt-3 bg-[#262626] border border-[#404040] rounded-lg p-3">
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                             {/* Salario Bruto */}
                             <div className=" bg-blue-500/10 border border-blue-500/30 rounded px-3 py-3">
                               <div className="text-xs text-blue-300 font-medium mb-1.5 text-center">Bruto</div>
