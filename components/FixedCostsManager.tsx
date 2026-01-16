@@ -628,32 +628,32 @@ export default function FixedCostsManager({
                         )}
                       </div>
                       
-                      {/* Detalles de nómina con apilamiento vertical completo en móvil */}
+                      {/* Detalles de nómina con mejor espaciado */}
                       {cost.is_payroll && cost.payroll_data && (
-                        <div className="mt-3 bg-[#262626] border border-[#404040] rounded-lg p-3">
-                          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                        <div className="mt-3 bg-[#262626] border border-[#404040] rounded-lg p-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {/* Salario Bruto */}
-                            <div className="w-full bg-blue-500/10 border border-blue-500/30 rounded px-3 py-2.5 flex justify-between items-center">
-                              <span className="text-xs text-blue-300 font-medium">Bruto</span>
-                              <span className="text-sm text-blue-100 font-semibold">€{cost.payroll_data.salario_bruto?.toFixed(2)}</span>
+                            <div className="w-full bg-blue-500/10 border border-blue-500/30 rounded px-4 py-3.5 flex justify-between items-center">
+                              <span className="text-sm text-blue-300 font-medium">Bruto</span>
+                              <span className="text-base text-blue-100 font-semibold">€{cost.payroll_data.salario_bruto?.toFixed(2)}</span>
                             </div>
                             
                             {/* SS Empresa */}
-                            <div className="w-full bg-red-500/10 border border-red-500/30 rounded px-3 py-2.5 flex justify-between items-center">
-                              <span className="text-xs text-red-300 font-medium">SS Empresa</span>
-                              <span className="text-sm text-red-100 font-semibold">€{cost.payroll_data.ss_empresa?.toFixed(2)}</span>
+                            <div className="w-full bg-red-500/10 border border-red-500/30 rounded px-4 py-3.5 flex justify-between items-center">
+                              <span className="text-sm text-red-300 font-medium">SS Empresa</span>
+                              <span className="text-base text-red-100 font-semibold">€{cost.payroll_data.ss_empresa?.toFixed(2)}</span>
                             </div>
                             
                             {/* Líquido a Percibir */}
-                            <div className="w-full bg-green-500/10 border border-green-500/30 rounded px-3 py-2.5 flex justify-between items-center">
-                              <span className="text-xs text-green-300 font-medium">Líquido</span>
-                              <span className="text-sm text-green-100 font-semibold">€{cost.payroll_data.liquido_percibir?.toFixed(2)}</span>
+                            <div className="w-full bg-green-500/10 border border-green-500/30 rounded px-4 py-3.5 flex justify-between items-center">
+                              <span className="text-sm text-green-300 font-medium">Líquido</span>
+                              <span className="text-base text-green-100 font-semibold">€{cost.payroll_data.liquido_percibir?.toFixed(2)}</span>
                             </div>
                             
                             {/* IRPF */}
-                            <div className="w-full bg-amber-500/10 border border-amber-500/30 rounded px-3 py-2.5 flex justify-between items-center">
-                              <span className="text-xs text-amber-300 font-medium">IRPF</span>
-                              <span className="text-sm text-amber-100 font-semibold">€{cost.payroll_data.irpf?.toFixed(2)}</span>
+                            <div className="w-full bg-amber-500/10 border border-amber-500/30 rounded px-4 py-3.5 flex justify-between items-center">
+                              <span className="text-sm text-amber-300 font-medium">IRPF</span>
+                              <span className="text-base text-amber-100 font-semibold">€{cost.payroll_data.irpf?.toFixed(2)}</span>
                             </div>
                           </div>
                         </div>
