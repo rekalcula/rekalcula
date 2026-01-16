@@ -506,7 +506,7 @@ export default function FixedCostsManager({
                 </div>
               </div>
 
-              {/* ⭐ CASILLA DE IVA - PROMINENTE */}
+              {/*  CASILLA DE IVA - PROMINENTE */}
               <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <label className="flex items-center gap-3 cursor-pointer">
@@ -537,7 +537,7 @@ export default function FixedCostsManager({
                 {/* Preview cálculo IVA */}
                 {formData.includes_vat && formData.amount && (
                   <div className="mt-4 pt-4 border-t border-amber-200">
-                    <p className="text-sm text-amber-800 font-semibold mb-2">📊 Desglose fiscal:</p>
+                    <p className="text-sm text-amber-800 font-semibold mb-2"> Desglose fiscal:</p>
                     <div className="grid grid-cols-3 gap-4 text-sm">
                       <div className="bg-white rounded p-2 text-center">
                         <span className="text-gray-500 block text-xs">Base imponible</span>
@@ -586,10 +586,10 @@ export default function FixedCostsManager({
         </div>
       )}
 
-      {/* 📦 COSTES OPERATIVOS */}
+      {/*  COSTES OPERATIVOS */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4 pb-2 border-b-2 border-orange-500">
-          <h2 className="text-2xl font-bold text-white">📦 Costes Operativos (Grupo 62 PGC)</h2>
+          <h2 className="text-2xl font-bold text-white"> Costes Operativos (Grupo 62 PGC)</h2>
           <div className="text-xl font-bold text-orange-400">
             €{costs.filter(c => !c.is_payroll).reduce((sum, c) => sum + getMonthlyAmount(c), 0).toFixed(2)}/mes
           </div>
