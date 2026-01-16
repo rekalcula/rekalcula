@@ -180,8 +180,7 @@ export async function GET(request: NextRequest) {
       .gte('sale_date', startDate.toISOString().split('T')[0])
       .lte('sale_date', endDate.toISOString().split('T')[0])
 
-    // Calcular ingresos
-    // Calcular ingresos - ✅ CORREGIDO: usar campos directos
+    // ✅ CORREGIDO: Usar campos directos de BD
     const baseImponibleIngresos = (sales || []).reduce((sum, sale) => sum + (sale.subtotal || sale.total || 0), 0)
     const ivaRepercutido = (sales || []).reduce((sum, sale) => sum + (sale.tax_amount || 0), 0)
     const ingresosBrutos = baseImponibleIngresos + ivaRepercutido
@@ -199,18 +198,15 @@ export async function GET(request: NextRequest) {
       .from('fixed_costs')
       .select('*')
       .eq('user_id', userId)
+      .eq('is_active', true)
 
     if (fixedCostsError) {
       console.error('[business-result] Error obteniendo costos fijos:', fixedCostsError)
     }
 
-    // Filtrar activos - ✅ CORREGIDO: usar is_active
-    const activeCosts = (fixedCosts || []).filter(cost => {
-      if (cost.is_active === false || cost.is_active === 'false') return false
-      return true
-    })
+    const activeCosts = fixedCosts || []
 
-    // Calcular costos fijos MENSUALES
+    // ✅ CORREGIDO: Calcular costos fijos MENSUALES - Solo usar amount
     const costosFijosMensuales = activeCosts.reduce((sum, cost) => {
       let monthly = cost.amount || 0
       if (cost.frequency === 'quarterly') monthly = monthly / 3
@@ -234,11 +230,10 @@ export async function GET(request: NextRequest) {
       .gte('invoice_date', startDate.toISOString().split('T')[0])
       .lte('invoice_date', endDate.toISOString().split('T')[0])
 
-    // Gastos de facturas (compras variables)
-    // Gastos de facturas (compras variables) - ✅ CORREGIDO
+    // ✅ CORREGIDO: Gastos de facturas (compras variables)
     const gastosFacturas = (invoices || []).reduce((sum, inv) => sum + (inv.total_amount || 0), 0)
     
-    // IVA soportado - usar campo directo
+    // ✅ CORREGIDO: IVA soportado - usar campo directo de BD
     const ivaSoportado = (invoices || []).reduce((sum, inv) => sum + (inv.tax_amount || 0), 0)
 
     // Facturas pagadas vs pendientes
