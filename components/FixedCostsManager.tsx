@@ -6,18 +6,18 @@ import { IconMoney, IconTrash } from './Icons'
 import ConfirmDialog from './ConfirmDialog'
 
 // ========================================
-// CATEGORÍAS PREDEFINIDAS
+// CATEGORÍAS PREDEFINIDAS (sin emojis)
 // ========================================
 const COST_CATEGORIES = [
-  { id: 'local', name: 'Local / Hipoteca', icon: '🏠' },
-  { id: 'seguros', name: 'Seguros', icon: '🛡️' },
-  { id: 'servicios', name: 'Servicios (Luz, Agua, Gas)', icon: '💡' },
-  { id: 'limpieza', name: 'Limpieza', icon: '🧹' },
-  { id: 'financiero', name: 'Financiero', icon: '🏦' },
-  { id: 'ayuntamiento', name: 'Ayuntamiento', icon: '🏛️' },
-  { id: 'material_oficina', name: 'Material de Oficina', icon: '📎' },
-  { id: 'personal', name: 'Personal', icon: '👥' },
-  { id: 'otros', name: 'Otros Gastos', icon: '📦' }
+  { id: 'local', name: 'Local / Hipoteca' },
+  { id: 'seguros', name: 'Seguros' },
+  { id: 'servicios', name: 'Servicios (Luz, Agua, Gas)' },
+  { id: 'limpieza', name: 'Limpieza' },
+  { id: 'financiero', name: 'Financiero' },
+  { id: 'ayuntamiento', name: 'Ayuntamiento' },
+  { id: 'material_oficina', name: 'Material de Oficina' },
+  { id: 'personal', name: 'Personal' },
+  { id: 'otros', name: 'Otros Gastos' }
 ]
 
 const VAT_RATES = [
@@ -307,7 +307,7 @@ export default function FixedCostsManager({
               <option value="">Seleccionar tipo...</option>
               {COST_CATEGORIES.map(cat => (
                 <option key={cat.id} value={cat.id}>
-                  {cat.icon} {cat.name}
+                  {cat.name}
                 </option>
               ))}
             </select>
@@ -317,7 +317,7 @@ export default function FixedCostsManager({
           {isPersonalSelected && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
               <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
-                👥 Datos de Nómina
+                Datos de Nómina
               </h4>
               
               <div className="grid md:grid-cols-2 gap-4">
@@ -597,7 +597,7 @@ export default function FixedCostsManager({
           <div key={category.id} className="bg-[#1a1a1a] rounded-xl border border-[#404040] overflow-hidden">
             <div className="px-6 py-4 bg-[#0d0d0d] border-b border-[#404040] flex justify-between items-center">
               <h3 className="font-semibold text-white text-[20px]">
-                {category.icon} {category.name}
+                {category.name}
               </h3>
               <span className="text-[20px] font-medium text-gray-400">
                 €{categoryTotal.toFixed(2)}/mes
@@ -671,7 +671,7 @@ export default function FixedCostsManager({
       {costs.filter(c => !c.cost_type && !COST_CATEGORIES.find(cat => cat.id === c.cost_type)).length > 0 && (
         <div className="bg-[#1a1a1a] rounded-xl border border-[#404040] overflow-hidden">
           <div className="px-6 py-4 bg-[#0d0d0d] border-b border-[#404040]">
-            <h3 className="font-semibold text-white text-[20px]">📋 Otros (migrados)</h3>
+            <h3 className="font-semibold text-white text-[20px]">Otros (migrados)</h3>
           </div>
           <div className="divide-y">
             {costs.filter(c => !c.cost_type).map((cost) => (
