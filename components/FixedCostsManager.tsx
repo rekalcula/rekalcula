@@ -586,25 +586,102 @@ export default function FixedCostsManager({
         </div>
       )}
 
-      {/* Lista de costos por categoría */}
-      {COST_CATEGORIES.map(category => {
-        const categoryCosts = costsByType[category.id] || []
-        if (categoryCosts.length === 0) return null
+      {/* 📦 COSTES OPERATIVOS */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4 pb-2 border-b-2 border-orange-500">
+          <h2 className="text-2xl font-bold text-white">📦 Costes Operativos (Grupo 62 PGC)</h2>
+          <div className="text-xl font-bold text-orange-400">
+            €{costs.filter(c => !c.is_payroll).reduce((sum, c) => sum + getMonthlyAmount(c), 0).toFixed(2)}/mes
+          </div>
+        </div>
+        
+        {COST_CATEGORIES.filter(cat => cat.id !== 'personal').map(category => {
+          const categoryCosts = costs.filter(c => c.cost_type === category.id && !c.is_payroll)
+          if (categoryCosts.length === 0) return null
 
-        const categoryTotal = categoryCosts.reduce((sum, c) => sum + getMonthlyAmount(c), 0)
+          const categoryTotal = categoryCosts.reduce((sum, cost) => {
+            return sum + getMonthlyAmount(cost)
+          }, 0)
 
-        return (
-          <div key={category.id} className="bg-[#1a1a1a] rounded-xl border border-[#404040] overflow-hidden">
+          return (
+            <div key={category.id} className="bg-[#1a1a1a] rounded-xl border border-[#404040] overflow-hidden mb-4">
+              <div className="px-6 py-4 bg-[#0d0d0d] border-b border-[#404040] flex justify-between items-center">
+                <h3 className="font-semibold text-white text-[20px]">
+                  {category.name}
+                </h3>
+                <span className="text-[20px] font-medium text-gray-400">
+                  €{categoryTotal.toFixed(2)}/mes
+                </span>
+              </div>
+              <div className="divide-y">
+                {categoryCosts.map((cost) => (
+                  <div key={cost.id} className="px-6 py-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <p className="font-medium text-white text-[18px]">{cost.name}</p>
+                        {cost.description && (
+                          <p className="text-gray-500 text-sm">{cost.description}</p>
+                        )}
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="text-sm text-gray-400">
+                            {frequencyLabels[cost.frequency]}
+                          </span>
+                          {cost.tax_amount && cost.tax_amount > 0 && (
+                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                              +IVA €{cost.tax_amount.toFixed(2)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-4">
+                        <div className="text-right">
+                          <p className="font-semibold text-white text-[18px]">
+                            €{(cost.base_amount || cost.amount).toFixed(2)}
+                          </p>
+                          {cost.frequency !== 'monthly' && (
+                            <p className="text-sm text-gray-500">
+                              €{getMonthlyAmount(cost).toFixed(2)}/mes
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => handleDeleteCost(cost.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <IconTrash size={20} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* 👥 GASTOS DE PERSONAL (NÓMINAS) */}
+      {costs.filter(c => c.is_payroll).length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4 pb-2 border-b-2 border-purple-500">
+            <h2 className="text-2xl font-bold text-white">👥 Gastos de Personal (Grupo 64 PGC)</h2>
+            <div className="text-xl font-bold text-purple-400">
+              €{costs.filter(c => c.is_payroll).reduce((sum, c) => sum + getMonthlyAmount(c), 0).toFixed(2)}/mes
+            </div>
+          </div>
+          
+          <div className="bg-[#1a1a1a] rounded-xl border border-[#404040] overflow-hidden">
             <div className="px-6 py-4 bg-[#0d0d0d] border-b border-[#404040] flex justify-between items-center">
               <h3 className="font-semibold text-white text-[20px]">
-                {category.name}
+                Nóminas
               </h3>
               <span className="text-[20px] font-medium text-gray-400">
-                €{categoryTotal.toFixed(2)}/mes
+                €{costs.filter(c => c.is_payroll).reduce((sum, c) => sum + getMonthlyAmount(c), 0).toFixed(2)}/mes
               </span>
             </div>
             <div className="divide-y">
-              {categoryCosts.map((cost) => (
+              {costs.filter(c => c.is_payroll).map((cost) => (
                 <div key={cost.id} className="px-6 py-4">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
@@ -616,44 +693,38 @@ export default function FixedCostsManager({
                         <span className="text-sm text-gray-400">
                           {frequencyLabels[cost.frequency]}
                         </span>
-                        {cost.tax_amount && cost.tax_amount > 0 && (
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                            +IVA €{cost.tax_amount.toFixed(2)}
-                          </span>
-                        )}
-                        {cost.is_payroll && (
-                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
-                            Nómina
-                          </span>
-                        )}
+                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
+                          👤 Nómina
+                        </span>
                       </div>
                       
-                      {/* Detalles de nómina con apilamiento vertical completo en móvil */}
-                      {cost.is_payroll && cost.payroll_data && (
+                      {/* Detalles de nómina */}
+                      {cost.payroll_data && (
                         <div className="mt-3 bg-[#262626] border border-[#404040] rounded-lg p-3">
                           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                            {/* Salario Bruto */}
-                            <div className=" bg-blue-500/10 border border-blue-500/30 rounded px-3 py-3">
+                            <div className="bg-blue-500/10 border border-blue-500/30 rounded px-3 py-3">
                               <div className="text-xs text-blue-300 font-medium mb-1.5 text-center">Bruto</div>
-                              <div className="text-sm text-blue-100 font-semibold text-center">€{cost.payroll_data.salario_bruto?.toFixed(2)}</div>
+                              <div className="text-sm text-blue-100 font-semibold text-center">
+                                €{cost.payroll_data.salario_bruto?.toFixed(2)}
+                              </div>
                             </div>
-                            
-                            {/* SS Empresa */}
-                            <div className=" bg-red-500/10 border border-red-500/30 rounded px-3 py-3">
+                            <div className="bg-red-500/10 border border-red-500/30 rounded px-3 py-3">
                               <div className="text-xs text-red-300 font-medium mb-1.5 text-center">SS Empresa</div>
-                              <div className="text-sm text-red-100 font-semibold text-center">€{cost.payroll_data.ss_empresa?.toFixed(2)}</div>
+                              <div className="text-sm text-red-100 font-semibold text-center">
+                                €{cost.payroll_data.ss_empresa?.toFixed(2)}
+                              </div>
                             </div>
-                            
-                            {/* Líquido a Percibir */}
-                            <div className=" bg-green-500/10 border border-green-500/30 rounded px-3 py-3">
+                            <div className="bg-green-500/10 border border-green-500/30 rounded px-3 py-3">
                               <div className="text-xs text-green-300 font-medium mb-1.5 text-center">Líquido</div>
-                              <div className="text-sm text-green-100 font-semibold text-center">€{cost.payroll_data.liquido_percibir?.toFixed(2)}</div>
+                              <div className="text-sm text-green-100 font-semibold text-center">
+                                €{cost.payroll_data.liquido_percibir?.toFixed(2)}
+                              </div>
                             </div>
-                            
-                            {/* IRPF */}
-                            <div className=" bg-amber-500/10 border border-amber-500/30 rounded px-3 py-3">
+                            <div className="bg-amber-500/10 border border-amber-500/30 rounded px-3 py-3">
                               <div className="text-xs text-amber-300 font-medium mb-1.5 text-center">IRPF</div>
-                              <div className="text-sm text-amber-100 font-semibold text-center">€{cost.payroll_data.irpf?.toFixed(2)}</div>
+                              <div className="text-sm text-amber-100 font-semibold text-center">
+                                €{cost.payroll_data.irpf?.toFixed(2)}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -683,8 +754,8 @@ export default function FixedCostsManager({
               ))}
             </div>
           </div>
-        )
-      })}
+        </div>
+      )}
 
       {/* Costos sin categoría (legacy) */}
       {costs.filter(c => !c.cost_type && !COST_CATEGORIES.find(cat => cat.id === c.cost_type)).length > 0 && (
