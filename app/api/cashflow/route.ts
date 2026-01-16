@@ -127,13 +127,92 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // OBTENER VENTAS
-    const { data: ventas } = await supabase
+    // ⭐⭐⭐ OBTENER VENTAS HISTÓRICAS (últimos 6 meses para calcular promedio)
+    const hace6Meses = new Date();
+    hace6Meses.setMonth(now.getMonth() - 6);
+    
+    const { data: todasVentas } = await supabase
       .from('sales')
       .select('id, total, subtotal, tax_amount, gross_total, payment_status, payment_method, payment_due_date, actual_payment_date, customer_name, sale_date, created_at, source')
       .eq('user_id', userId)
-      .gte('sale_date', startDate.toISOString().split('T')[0])
+      .gte('sale_date', hace6Meses.toISOString().split('T')[0])
       .lte('sale_date', now.toISOString().split('T')[0]);
+
+    // Filtrar ventas del período seleccionado
+    const ventas = todasVentas?.filter(v => {
+      const fecha = new Date(v.sale_date);
+      return fecha >= startDate && fecha <= now;
+    }) || [];
+
+    // ⭐⭐⭐ CALCULAR PROMEDIO MENSUAL DE VENTAS (últimos 3 meses con datos)
+    const ventasUltimos3Meses = todasVentas?.filter(v => {
+      const fecha = new Date(v.sale_date);
+      const hace3Meses = new Date();
+      hace3Meses.setMonth(now.getMonth() - 3);
+      return fecha >= hace3Meses;
+    }) || [];
+
+    // Contar meses únicos con ventas
+    const mesesConVentas = new Set(
+      ventasUltimos3Meses.map(v => new Date(v.sale_date).toISOString().slice(0, 7))
+    ).size;
+
+    const totalVentasUltimos3Meses = ventasUltimos3Meses.reduce((sum, v) => 
+      sum + (v.subtotal || v.total || 0), 0);
+    
+    const ventasMensualesPromedio = mesesConVentas > 0 
+      ? totalVentasUltimos3Meses / mesesConVentas 
+      : 0;
+
+    const ivaMensualesPromedio = mesesConVentas > 0
+      ? ventasUltimos3Meses.reduce((sum, v) => sum + (v.tax_amount || 0), 0) / mesesConVentas
+      : 0;
+
+    // ⭐⭐⭐ CALCULAR VENTAS DEL MES ACTUAL (REALES hasta hoy)
+    const ventasMesActual = todasVentas?.filter(v => {
+      const fecha = new Date(v.sale_date);
+      return fecha.getMonth() === now.getMonth() && fecha.getFullYear() === now.getFullYear();
+    }) || [];
+
+    const ventasRealesMesActual = ventasMesActual.reduce((sum, v) => 
+      sum + (v.subtotal || v.total || 0), 0);
+    const ivaRealesMesActual = ventasMesActual.reduce((sum, v) => 
+      sum + (v.tax_amount || 0), 0);
+
+    // ⭐⭐⭐ PROYECTAR RESTO DEL MES ACTUAL
+    const diasDelMes = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const diasTranscurridos = now.getDate();
+    const diasRestantes = diasDelMes - diasTranscurridos;
+
+    const proyeccionRestoDeMes = (ventasMensualesPromedio / diasDelMes) * diasRestantes;
+    const ivaProyeccionRestoDeMes = (ivaMensualesPromedio / diasDelMes) * diasRestantes;
+
+    const ventasProyectadasMesActual = ventasRealesMesActual + proyeccionRestoDeMes;
+    const ivaProyectadoMesActual = ivaRealesMesActual + ivaProyeccionRestoDeMes;
+
+    // ⭐⭐⭐ CALCULAR VENTAS PROYECTADAS SEGÚN PERÍODO
+    let ventasProyectadasTotal: number;
+    let ivaProyectadoTotal: number;
+    let mesesFuturos: number;
+
+    if (periodo === 'mes') {
+      ventasProyectadasTotal = ventasProyectadasMesActual;
+      ivaProyectadoTotal = ivaProyectadoMesActual;
+      mesesFuturos = 0;
+    } else if (periodo === '3meses') {
+      mesesFuturos = 2;
+      ventasProyectadasTotal = ventasProyectadasMesActual + (ventasMensualesPromedio * mesesFuturos);
+      ivaProyectadoTotal = ivaProyectadoMesActual + (ivaMensualesPromedio * mesesFuturos);
+    } else if (periodo === '6meses') {
+      mesesFuturos = 5;
+      ventasProyectadasTotal = ventasProyectadasMesActual + (ventasMensualesPromedio * mesesFuturos);
+      ivaProyectadoTotal = ivaProyectadoMesActual + (ivaMensualesPromedio * mesesFuturos);
+    } else {
+      // 'all' - usar solo datos históricos
+      ventasProyectadasTotal = ventas.reduce((sum, v) => sum + (v.subtotal || v.total || 0), 0);
+      ivaProyectadoTotal = ventas.reduce((sum, v) => sum + (v.tax_amount || 0), 0);
+      mesesFuturos = 0;
+    }
 
     // OBTENER FACTURAS
     const { data: facturas } = await supabase
@@ -143,23 +222,24 @@ export async function GET(request: NextRequest) {
       .gte('invoice_date', startDate.toISOString().split('T')[0])
       .lte('invoice_date', now.toISOString().split('T')[0]);
 
-    // ✅ CORREGIDO: OBTENER COSTOS FIJOS - Filtrar activos en BD
+    // OBTENER COSTOS FIJOS
     const { data: costosFijos } = await supabase
       .from('fixed_costs')
       .select('id, name, amount, tax_amount, vat_rate, frequency, is_active, cost_type')
       .eq('user_id', userId)
       .eq('is_active', true);
 
-    // ✅ CORREGIDO: Ya vienen filtrados de BD
     const activeCosts = costosFijos || [];
 
-    // ⭐ CALCULAR ENTRADAS - BASE IMPONIBLE
-    const ventasBaseImponible = ventas?.reduce((sum, v) => sum + (v.subtotal || v.total || 0), 0) || 0;
-    const ivaRepercutido = ventas?.reduce((sum, v) => sum + (v.tax_amount || 0), 0) || 0;
-    const ventasBruto = ventas?.reduce((sum, v) => sum + (v.gross_total || v.total || 0), 0) || 0;
-    const ventasCobradasBase = ventas?.filter(v => ventaEstaCobrada(v))
-      .reduce((sum, v) => sum + (v.subtotal || v.total || 0), 0) || 0;
-    const ventasPendientesBase = ventasBaseImponible - ventasCobradasBase;
+    // ⭐ VENTAS - Usar proyección
+    const ventasBaseImponible = ventasProyectadasTotal;
+    const ivaRepercutido = ivaProyectadoTotal;
+    const ventasBruto = ventasBaseImponible + ivaRepercutido;
+    
+    // Cobros (solo históricos)
+    const ventasCobradasBase = ventas.filter(v => ventaEstaCobrada(v))
+      .reduce((sum, v) => sum + (v.subtotal || v.total || 0), 0);
+    const ventasPendientesBase = ventasRealesMesActual - ventasCobradasBase;
 
     // ⭐ CALCULAR SALIDAS - BASE IMPONIBLE
     const facturasBaseImponible = facturas?.reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
@@ -169,7 +249,7 @@ export async function GET(request: NextRequest) {
       .reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
     const facturasPendientesBase = facturasBaseImponible - facturasPagadasBase;
 
-    // ✅ CORREGIDO: COSTOS FIJOS - Solo usar amount (campo principal sin IVA)
+    // COSTOS FIJOS
     const costosFijosMensuales = activeCosts.reduce((sum, c) => {
       let mensual = c.amount || 0;
       if (c.frequency === 'annual' || c.frequency === 'yearly') mensual = mensual / 12;
@@ -177,7 +257,6 @@ export async function GET(request: NextRequest) {
       return sum + mensual;
     }, 0);
     
-    // Calcular meses transcurridos hasta HOY dentro del periodo
     const mesesTranscurridosHastaHoy = Math.max(0, 
       (now.getFullYear() - startDate.getFullYear()) * 12 + 
       (now.getMonth() - startDate.getMonth()) + 
@@ -185,12 +264,11 @@ export async function GET(request: NextRequest) {
     );
     const mesesTranscurridos = Math.min(mesesTranscurridosHastaHoy, Math.ceil(mesesEnPeriodo));
     
-    // Separar: costos PASADOS (ya pagados) vs FUTUROS (por pagar)
     const costosFijosPasados = costosFijosMensuales * mesesTranscurridos;
     const costosFijosFuturos = costosFijosMensuales * Math.max(0, mesesEnPeriodo - mesesTranscurridos);
     const totalCostosFijos = costosFijosPasados + costosFijosFuturos;
 
-    // ⭐⭐⭐ IVA DE COSTOS FIJOS - SOLO DEDUCIBLE HASTA HOY
+    // IVA DE COSTOS FIJOS
     const ivaCostosFijosMensual = activeCosts.reduce((sum, c) => {
       let ivaMensual = c.tax_amount || 0;
       if (c.frequency === 'annual' || c.frequency === 'yearly') ivaMensual = ivaMensual / 12;
@@ -198,15 +276,12 @@ export async function GET(request: NextRequest) {
       return sum + ivaMensual;
     }, 0);
     
-    // SOLO IVA de meses transcurridos (deducible)
     const ivaCostosFijosPasados = ivaCostosFijosMensual * mesesTranscurridos;
     const ivaCostosFijosFuturos = ivaCostosFijosMensual * Math.max(0, mesesEnPeriodo - mesesTranscurridos);
     const ivaCostosFijosPeriodo = ivaCostosFijosPasados + ivaCostosFijosFuturos;
-
-    // ⭐⭐⭐ IVA SOPORTADO TOTAL = Facturas + Costos Fijos PASADOS
     const ivaSoportadoTotal = ivaSoportado + ivaCostosFijosPasados;
 
-    // ⭐ IVA TRIMESTRAL
+    // IVA TRIMESTRAL
     const trimestreActual = obtenerTrimestre(now);
     const rangoTrimestre = obtenerRangoTrimestre(trimestreActual, now.getFullYear());
     
@@ -222,7 +297,6 @@ export async function GET(request: NextRequest) {
     const ivaRepercutidoTrimestre = ventasTrimestre.reduce((sum, v) => sum + (v.tax_amount || 0), 0);
     const ivaSoportadoFacturasTrimestre = facturasTrimestre.reduce((sum, f) => sum + (f.tax_amount || 0), 0);
     
-    // IVA costos fijos del trimestre (solo meses transcurridos dentro del trimestre)
     const inicioTrimestre = rangoTrimestre.inicio;
     const finTrimestre = now < rangoTrimestre.fin ? now : rangoTrimestre.fin;
     const mesesTranscurridosTrimestre = Math.max(1, 
@@ -249,7 +323,7 @@ export async function GET(request: NextRequest) {
       const mesIndex = mesDate.getMonth();
       const año = mesDate.getFullYear();
       
-      const ventasMes = ventas?.filter(v => {
+      const ventasMes = todasVentas?.filter(v => {
         const f = new Date(v.sale_date || v.created_at);
         return f.getMonth() === mesIndex && f.getFullYear() === año;
       }) || [];
@@ -291,8 +365,19 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       entradas: {
-        total: ventasBaseImponible, cobrado: ventasCobradasBase,
-        pendiente: ventasPendientesBase, bruto: ventasBruto
+        total: ventasBaseImponible,
+        real: ventasRealesMesActual,
+        proyectado: proyeccionRestoDeMes + (ventasMensualesPromedio * mesesFuturos),
+        promedio_mensual: ventasMensualesPromedio,
+        cobrado: ventasCobradasBase,
+        pendiente: ventasPendientesBase,
+        bruto: ventasBruto,
+        proyeccion: {
+          mes_actual_real: ventasRealesMesActual,
+          mes_actual_proyectado: proyeccionRestoDeMes,
+          meses_futuros: mesesFuturos,
+          ventas_meses_futuros: ventasMensualesPromedio * mesesFuturos
+        }
       },
       salidas: {
         total: totalSalidasBase, 
@@ -344,7 +429,9 @@ export async function GET(request: NextRequest) {
       resumen: {
         periodoMeses: Math.round(mesesEnPeriodo * 10) / 10,
         mesesTranscurridos,
-        ventasBase: ventasBaseImponible, 
+        ventasBase: ventasBaseImponible,
+        ventasReales: ventasRealesMesActual,
+        ventasProyectadas: proyeccionRestoDeMes + (ventasMensualesPromedio * mesesFuturos),
         comprasBase: facturasBaseImponible,
         costosFijosTotales: totalCostosFijos,
         costosFijosPasados,
