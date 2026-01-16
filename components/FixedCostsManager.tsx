@@ -630,8 +630,8 @@ export default function FixedCostsManager({
                       
                       {/* Detalles de nómina con apilamiento vertical completo en móvil */}
                       {cost.is_payroll && cost.payroll_data && (
-                        <div className="mt-3 bg-[#262626] border border-[#404040] rounded-lg p-3">
-                          <div className="flex flex-col gap-3">
+                        <div className="mt-3 w-full bg-[#262626] border border-[#404040] rounded-lg p-3">
+                          <div className="flex flex-col gap-3 w-full">
                             {/* Salario Bruto */}
                             <div className="w-full bg-blue-500/10 border border-blue-500/30 rounded px-3 py-2.5 flex justify-between items-center">
                               <span className="text-xs text-blue-300 font-medium">Bruto</span>
