@@ -181,11 +181,10 @@ export async function GET(request: NextRequest) {
       .lte('sale_date', endDate.toISOString().split('T')[0])
 
     // Calcular ingresos
-    const ingresosBrutos = (sales || []).reduce((sum, sale) => sum + (sale.total || 0), 0)
-    
-    // Calcular IVA repercutido
-    const baseImponibleIngresos = ingresosBrutos / (1 + config.porcentajeIva / 100)
-    const ivaRepercutido = ingresosBrutos - baseImponibleIngresos
+    // Calcular ingresos - ✅ CORREGIDO: usar campos directos
+    const baseImponibleIngresos = (sales || []).reduce((sum, sale) => sum + (sale.subtotal || sale.total || 0), 0)
+    const ivaRepercutido = (sales || []).reduce((sum, sale) => sum + (sale.tax_amount || 0), 0)
+    const ingresosBrutos = baseImponibleIngresos + ivaRepercutido
 
     // Ventas cobradas vs pendientes
     const ventasCobradas = (sales || [])
@@ -236,11 +235,11 @@ export async function GET(request: NextRequest) {
       .lte('invoice_date', endDate.toISOString().split('T')[0])
 
     // Gastos de facturas (compras variables)
+    // Gastos de facturas (compras variables) - ✅ CORREGIDO
     const gastosFacturas = (invoices || []).reduce((sum, inv) => sum + (inv.total_amount || 0), 0)
     
-    // Calcular IVA soportado
-    const baseImponibleGastos = gastosFacturas / (1 + config.porcentajeIva / 100)
-    const ivaSoportado = gastosFacturas - baseImponibleGastos
+    // IVA soportado - usar campo directo
+    const ivaSoportado = (invoices || []).reduce((sum, inv) => sum + (inv.tax_amount || 0), 0)
 
     // Facturas pagadas vs pendientes
     const facturasPagadas = (invoices || [])
