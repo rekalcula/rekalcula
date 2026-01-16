@@ -53,9 +53,46 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    // ========================================
+    // ⭐ NORMALIZACIÓN: Transformar payment_method según constraint de BD
+    // PostgreSQL espera: ['cash', 'card', 'transfer', 'promissory_note', 
+    //                     'direct_debit', 'credit_30', 'credit_60', 'credit_90']
+    // ========================================
+    const normalizePaymentMethod = (method: string, terms?: string): string => {
+      // Caso 1: Pagos aplazados - fusionar método + plazo
+      if (method === 'deferred' || method === 'aplazado') {
+        if (terms === '30_days' || terms === '30days') return 'credit_30'
+        if (terms === '60_days' || terms === '60days') return 'credit_60'
+        if (terms === '90_days' || terms === '90days') return 'credit_90'
+        // Default para aplazados sin plazo específico
+        return 'credit_30'
+      }
+      
+      // Caso 2: Crédito directo ya viene con plazo
+      if (terms === '30_days' || terms === '30days') return 'credit_30'
+      if (terms === '60_days' || terms === '60days') return 'credit_60'
+      if (terms === '90_days' || terms === '90days') return 'credit_90'
+      
+      // Caso 3: Mapeo directo de métodos inmediatos
+      const methodMap: Record<string, string> = {
+        'cash': 'cash',
+        'card': 'card',
+        'transfer': 'transfer',
+        'bank_transfer': 'transfer',
+        'check': 'promissory_note',  // Cheque → pagaré (más cercano semánticamente)
+        'promissory_note': 'promissory_note',
+        'direct_debit': 'direct_debit',
+        'domiciliacion': 'direct_debit'
+      }
+      
+      return methodMap[method] || 'transfer'  // Default seguro
+    }
+
+    const normalizedPaymentMethod = normalizePaymentMethod(paymentMethod, paymentTerms)
+
     // Determinar estado de pago inicial
     // Si es pago inmediato (efectivo, tarjeta), marcar como pagado
-    const isImmediatePayment = paymentMethod === 'cash' || paymentMethod === 'card'
+    const isImmediatePayment = normalizedPaymentMethod === 'cash' || normalizedPaymentMethod === 'card'
     const paymentStatus = isImmediatePayment ? 'paid' : 'pending'
 
     // ========================================
@@ -118,8 +155,8 @@ export async function POST(request: NextRequest) {
         category: analysis.category,
         items: analysis.items,
         analysis: analysis.analysis,
-        // Forma de pago (ya confirmada)
-        payment_method: paymentMethod,
+        // Forma de pago (ya confirmada y normalizada)
+        payment_method: normalizedPaymentMethod,
         payment_terms: paymentTerms || 'immediate',
         payment_due_date: paymentDueDate || null,
         payment_status: paymentStatus,
