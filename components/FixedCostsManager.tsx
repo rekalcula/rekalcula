@@ -633,27 +633,27 @@ export default function FixedCostsManager({
                         <div className="mt-3 bg-[#262626] border border-[#404040] rounded-lg p-3">
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             {/* Salario Bruto */}
-                            <div className="flex flex-col items-center justify-center bg-blue-500/10 border border-blue-500/30 rounded px-3 py-2.5">
-                              <span className="text-xs text-blue-300 font-medium mb-1 text-center">Bruto</span>
-                              <span className="text-sm text-blue-100 font-semibold text-center">€{cost.payroll_data.salario_bruto?.toFixed(2)}</span>
+                            <div className=" bg-blue-500/10 border border-blue-500/30 rounded px-3 py-3">
+                              <div className="text-xs text-blue-300 font-medium mb-1.5 text-center">Bruto</div>
+                              <div className="text-sm text-blue-100 font-semibold text-center">€{cost.payroll_data.salario_bruto?.toFixed(2)}</div>
                             </div>
                             
                             {/* SS Empresa */}
-                            <div className="flex flex-col items-center justify-center bg-red-500/10 border border-red-500/30 rounded px-3 py-2.5">
-                              <span className="text-xs text-red-300 font-medium mb-1 text-center">SS Empresa</span>
-                              <span className="text-sm text-red-100 font-semibold text-center">€{cost.payroll_data.ss_empresa?.toFixed(2)}</span>
+                            <div className=" bg-red-500/10 border border-red-500/30 rounded px-3 py-3">
+                              <div className="text-xs text-red-300 font-medium mb-1.5 text-center">SS Empresa</div>
+                              <div className="text-sm text-red-100 font-semibold text-center">€{cost.payroll_data.ss_empresa?.toFixed(2)}</div>
                             </div>
                             
                             {/* Líquido a Percibir */}
-                            <div className="flex flex-col items-center justify-center bg-green-500/10 border border-green-500/30 rounded px-3 py-2.5">
-                              <span className="text-xs text-green-300 font-medium mb-1 text-center">Líquido</span>
-                              <span className="text-sm text-green-100 font-semibold text-center">€{cost.payroll_data.liquido_percibir?.toFixed(2)}</span>
+                            <div className=" bg-green-500/10 border border-green-500/30 rounded px-3 py-3">
+                              <div className="text-xs text-green-300 font-medium mb-1.5 text-center">Líquido</div>
+                              <div className="text-sm text-green-100 font-semibold text-center">€{cost.payroll_data.liquido_percibir?.toFixed(2)}</div>
                             </div>
                             
                             {/* IRPF */}
-                            <div className="flex flex-col items-center justify-center bg-amber-500/10 border border-amber-500/30 rounded px-3 py-2.5">
-                              <span className="text-xs text-amber-300 font-medium mb-1 text-center">IRPF</span>
-                              <span className="text-sm text-amber-100 font-semibold text-center">€{cost.payroll_data.irpf?.toFixed(2)}</span>
+                            <div className=" bg-amber-500/10 border border-amber-500/30 rounded px-3 py-3">
+                              <div className="text-xs text-amber-300 font-medium mb-1.5 text-center">IRPF</div>
+                              <div className="text-sm text-amber-100 font-semibold text-center">€{cost.payroll_data.irpf?.toFixed(2)}</div>
                             </div>
                           </div>
                         </div>
