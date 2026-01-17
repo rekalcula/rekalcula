@@ -110,7 +110,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 // Componente de Leyenda personalizada
 const CustomLegend = () => {
   return (
-    <div className="flex flex-wrap justify-center gap-4 mt-2 text-xs">
+    <div className="flex flex-wrap justify-center gap-4 mt-4 text-xs">
       <div className="flex items-center gap-1.5">
         <span className="w-3 h-3 rounded-sm bg-emerald-500"></span>
         <span className="text-gray-400">Entradas</span>
@@ -168,7 +168,7 @@ export default function CashFlowChart({
   const tendencia = balanceActual > 0 ? 'positiva' : balanceActual < 0 ? 'negativa' : 'neutral';
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col pb-2">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -219,11 +219,11 @@ export default function CashFlowChart({
       )}
 
       {/* Gráfico */}
-      <div className="flex-1 min-h-[250px]">
+      <div className="flex-1 min-h-[320px] sm:min-h-[350px]">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart
             data={chartData}
-            margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+            margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
           >
             <CartesianGrid 
               strokeDasharray="3 3" 
@@ -241,7 +241,7 @@ export default function CashFlowChart({
               tickLine={false}
               axisLine={false}
               tickFormatter={formatShort}
-              width={45}
+              width={60}
             />
             <Tooltip content={<CustomTooltip />} />
             

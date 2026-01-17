@@ -416,19 +416,21 @@ export default function CashFlowPage() {
             
             {/* GRÁFICO */}
             {data.datosHistoricos && data.datosHistoricos.length > 0 && (
-              <div className="bg-[#1a1a1a] rounded-lg p-6 border border-gray-700">
+              <div className="bg-[#1a1a1a] rounded-lg p-6 border border-gray-700 min-h-[500px] flex flex-col">
                 <h3 className="text-white font-semibold mb-4">Evolución Mensual</h3>
-                <CashFlowChart
-                  entradas={data.cajaOperativa.entradas}
-                  salidas={data.cajaOperativa.salidas}
-                  cobrado={data.cajaOperativa.desglose.cobrado}
-                  pendienteCobro={data.cajaOperativa.desglose.pendienteCobro}
-                  pagado={data.cajaOperativa.desglose.pagado}
-                  pendientePago={data.cajaOperativa.desglose.pendientePago}
-                  costosFijos={data.cajaOperativa.desglose.costosFijosPagados}
-                  periodo="all"
-                  datosHistoricos={data.datosHistoricos}
-                />
+                <div className="flex-1">
+                  <CashFlowChart
+                    entradas={data.cajaOperativa.entradas}
+                    salidas={data.cajaOperativa.salidas}
+                    cobrado={data.cajaOperativa.desglose.cobrado}
+                    pendienteCobro={data.cajaOperativa.desglose.pendienteCobro}
+                    pagado={data.cajaOperativa.desglose.pagado}
+                    pendientePago={data.cajaOperativa.desglose.pendientePago}
+                    costosFijos={data.cajaOperativa.desglose.costosFijosPagados}
+                    periodo="all"
+                    datosHistoricos={data.datosHistoricos}
+                  />
+                </div>
               </div>
             )}
 
