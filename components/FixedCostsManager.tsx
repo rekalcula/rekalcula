@@ -684,7 +684,7 @@ export default function FixedCostsManager({
               {costs.filter(c => c.is_payroll).map((cost) => (
                 <div key={cost.id} className="px-6 py-4">
                   <div className="flex justify-between items-start">
-                    <div className="flex-1">
+                    <div className="flex-1 mr-4">
                       <p className="font-medium text-white text-[18px]">{cost.name}</p>
                       {cost.description && (
                         <p className="text-gray-500 text-sm">{cost.description}</p>
@@ -700,26 +700,26 @@ export default function FixedCostsManager({
                       
                       {/* Detalles de nómina - FORMATO LISTA LIMPIA */}
                       {cost.payroll_data && (
-                        <div className="mt-3 space-y-2">
-                          <div className="flex justify-between p-2 bg-blue-500/5 rounded">
+                        <div className="mt-3 space-y-2 w-full">
+                          <div className="flex justify-between p-2 bg-blue-500/5 rounded w-full">
                             <span className="text-sm text-gray-400">Bruto</span>
                             <span className="text-blue-400 font-medium">
                               €{cost.payroll_data.salario_bruto?.toFixed(2)}
                             </span>
                           </div>
-                          <div className="flex justify-between p-2 bg-red-500/5 rounded">
+                          <div className="flex justify-between p-2 bg-red-500/5 rounded w-full">
                             <span className="text-sm text-gray-400">SS Empresa</span>
                             <span className="text-red-400 font-medium">
                               €{cost.payroll_data.ss_empresa?.toFixed(2)}
                             </span>
                           </div>
-                          <div className="flex justify-between p-2 bg-green-500/5 rounded">
+                          <div className="flex justify-between p-2 bg-green-500/5 rounded w-full">
                             <span className="text-sm text-gray-400">Líquido</span>
                             <span className="text-green-400 font-medium">
                               €{cost.payroll_data.liquido_percibir?.toFixed(2)}
                             </span>
                           </div>
-                          <div className="flex justify-between p-2 bg-amber-500/5 rounded">
+                          <div className="flex justify-between p-2 bg-amber-500/5 rounded w-full">
                             <span className="text-sm text-gray-400">IRPF</span>
                             <span className="text-amber-400 font-medium">
                               €{cost.payroll_data.irpf?.toFixed(2)}
