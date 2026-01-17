@@ -36,28 +36,52 @@ function obtenerTrimestre(fecha: Date): number {
 
 function obtenerRangoTrimestre(trimestre: number, año: number): { inicio: Date; fin: Date } {
   const inicios = [
-    new Date(año, 0, 1), new Date(año, 3, 1), new Date(año, 6, 1), new Date(año, 9, 1)
+    new Date(año, 0, 1),   // Q1: 1 enero
+    new Date(año, 3, 1),   // Q2: 1 abril
+    new Date(año, 6, 1),   // Q3: 1 julio
+    new Date(año, 9, 1)    // Q4: 1 octubre
   ];
   const fines = [
-    new Date(año, 2, 31), new Date(año, 5, 30), new Date(año, 8, 30), new Date(año, 11, 31)
+    new Date(año, 2, 31, 23, 59, 59),  // Q1: 31 marzo
+    new Date(año, 5, 30, 23, 59, 59),  // Q2: 30 junio
+    new Date(año, 8, 30, 23, 59, 59),  // Q3: 30 septiembre
+    new Date(año, 11, 31, 23, 59, 59)  // Q4: 31 diciembre
   ];
   return { inicio: inicios[trimestre - 1], fin: fines[trimestre - 1] };
 }
 
-function obtenerProximaLiquidacion(ahora: Date): { fecha: Date; trimestre: string; diasRestantes: number } {
+function obtenerProximaLiquidacion(ahora: Date): { 
+  fecha: Date; 
+  trimestre: string; 
+  diasRestantes: number;
+  trimestreLiquidar: number;
+} {
   const año = ahora.getFullYear();
+  const trimestreActual = obtenerTrimestre(ahora);
   
+  // Buscar la próxima fecha de liquidación
   for (const liq of FECHAS_LIQUIDACION_IVA) {
     const fechaLiq = new Date(año, liq.mes - 1, liq.dia);
     if (fechaLiq > ahora) {
       const diasRestantes = Math.ceil((fechaLiq.getTime() - ahora.getTime()) / (1000 * 60 * 60 * 24));
-      return { fecha: fechaLiq, trimestre: liq.nombre, diasRestantes };
+      return { 
+        fecha: fechaLiq, 
+        trimestre: liq.nombre, 
+        diasRestantes,
+        trimestreLiquidar: liq.trimestre
+      };
     }
   }
   
+  // Si no hay más liquidaciones este año, la próxima es en enero del año siguiente
   const fechaLiq = new Date(año + 1, 0, 30);
   const diasRestantes = Math.ceil((fechaLiq.getTime() - ahora.getTime()) / (1000 * 60 * 60 * 24));
-  return { fecha: fechaLiq, trimestre: 'Q4 (Oct-Dic)', diasRestantes };
+  return { 
+    fecha: fechaLiq, 
+    trimestre: 'Q4 (Oct-Dic)', 
+    diasRestantes,
+    trimestreLiquidar: 4
+  };
 }
 
 function ventaEstaCobrada(venta: any): boolean {
@@ -86,143 +110,34 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const searchParams = request.nextUrl.searchParams;
-    const periodo = searchParams.get('periodo') || 'mes';
-
     const now = new Date();
-    let startDate: Date;
-    let mesesEnPeriodo: number;
+    const trimestreActual = obtenerTrimestre(now);
+    const rangoTrimestre = obtenerRangoTrimestre(trimestreActual, now.getFullYear());
+    const proximaLiquidacion = obtenerProximaLiquidacion(now);
 
-    if (periodo === 'all') {
-      const { data: oldestSale } = await supabase
-        .from('sales').select('sale_date').eq('user_id', userId)
-        .order('sale_date', { ascending: true }).limit(1).single();
-
-      const { data: oldestInvoice } = await supabase
-        .from('invoices').select('invoice_date').eq('user_id', userId)
-        .order('invoice_date', { ascending: true }).limit(1).single();
-
-      if (oldestSale?.sale_date && oldestInvoice?.invoice_date) {
-        startDate = new Date(oldestSale.sale_date < oldestInvoice.invoice_date 
-          ? oldestSale.sale_date : oldestInvoice.invoice_date);
-      } else if (oldestSale?.sale_date) {
-        startDate = new Date(oldestSale.sale_date);
-      } else if (oldestInvoice?.invoice_date) {
-        startDate = new Date(oldestInvoice.invoice_date);
-      } else {
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      }
-
-      const monthsDiff = (now.getFullYear() - startDate.getFullYear()) * 12 + 
-                         (now.getMonth() - startDate.getMonth()) + (now.getDate() / 30);
-      mesesEnPeriodo = Math.max(1, monthsDiff);
-    } else {
-      switch (periodo) {
-        case '3meses':
-          startDate = new Date(); startDate.setMonth(now.getMonth() - 3); mesesEnPeriodo = 3; break;
-        case '6meses':
-          startDate = new Date(); startDate.setMonth(now.getMonth() - 6); mesesEnPeriodo = 6; break;
-        default:
-          startDate = new Date(now.getFullYear(), now.getMonth(), 1); mesesEnPeriodo = 1;
-      }
-    }
-
-    // ⭐⭐⭐ OBTENER VENTAS HISTÓRICAS (últimos 6 meses para calcular promedio)
-    const hace6Meses = new Date();
-    hace6Meses.setMonth(now.getMonth() - 6);
-    
-    const { data: todasVentas } = await supabase
+    // ========================================
+    // OBTENER VENTAS DEL TRIMESTRE ACTUAL
+    // ========================================
+    const { data: ventasTrimestre } = await supabase
       .from('sales')
       .select('id, total, subtotal, tax_amount, gross_total, payment_status, payment_method, payment_due_date, actual_payment_date, customer_name, sale_date, created_at, source')
       .eq('user_id', userId)
-      .gte('sale_date', hace6Meses.toISOString().split('T')[0])
+      .gte('sale_date', rangoTrimestre.inicio.toISOString().split('T')[0])
       .lte('sale_date', now.toISOString().split('T')[0]);
 
-    // Filtrar ventas del período seleccionado
-    const ventas = todasVentas?.filter(v => {
-      const fecha = new Date(v.sale_date);
-      return fecha >= startDate && fecha <= now;
-    }) || [];
-
-    // ⭐⭐⭐ CALCULAR PROMEDIO MENSUAL DE VENTAS (últimos 3 meses con datos)
-    const ventasUltimos3Meses = todasVentas?.filter(v => {
-      const fecha = new Date(v.sale_date);
-      const hace3Meses = new Date();
-      hace3Meses.setMonth(now.getMonth() - 3);
-      return fecha >= hace3Meses;
-    }) || [];
-
-    // Contar meses únicos con ventas
-    const mesesConVentas = new Set(
-      ventasUltimos3Meses.map(v => new Date(v.sale_date).toISOString().slice(0, 7))
-    ).size;
-
-    const totalVentasUltimos3Meses = ventasUltimos3Meses.reduce((sum, v) => 
-      sum + (v.subtotal || v.total || 0), 0);
-    
-    const ventasMensualesPromedio = mesesConVentas > 0 
-      ? totalVentasUltimos3Meses / mesesConVentas 
-      : 0;
-
-    const ivaMensualesPromedio = mesesConVentas > 0
-      ? ventasUltimos3Meses.reduce((sum, v) => sum + (v.tax_amount || 0), 0) / mesesConVentas
-      : 0;
-
-    // ⭐⭐⭐ CALCULAR VENTAS DEL MES ACTUAL (REALES hasta hoy)
-    const ventasMesActual = todasVentas?.filter(v => {
-      const fecha = new Date(v.sale_date);
-      return fecha.getMonth() === now.getMonth() && fecha.getFullYear() === now.getFullYear();
-    }) || [];
-
-    const ventasRealesMesActual = ventasMesActual.reduce((sum, v) => 
-      sum + (v.subtotal || v.total || 0), 0);
-    const ivaRealesMesActual = ventasMesActual.reduce((sum, v) => 
-      sum + (v.tax_amount || 0), 0);
-
-    // ⭐⭐⭐ PROYECTAR RESTO DEL MES ACTUAL
-    const diasDelMes = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    const diasTranscurridos = now.getDate();
-    const diasRestantes = diasDelMes - diasTranscurridos;
-
-    const proyeccionRestoDeMes = (ventasMensualesPromedio / diasDelMes) * diasRestantes;
-    const ivaProyeccionRestoDeMes = (ivaMensualesPromedio / diasDelMes) * diasRestantes;
-
-    const ventasProyectadasMesActual = ventasRealesMesActual + proyeccionRestoDeMes;
-    const ivaProyectadoMesActual = ivaRealesMesActual + ivaProyeccionRestoDeMes;
-
-    // ⭐⭐⭐ CALCULAR VENTAS PROYECTADAS SEGÚN PERÍODO
-    let ventasProyectadasTotal: number;
-    let ivaProyectadoTotal: number;
-    let mesesFuturos: number;
-
-    if (periodo === 'mes') {
-      ventasProyectadasTotal = ventasProyectadasMesActual;
-      ivaProyectadoTotal = ivaProyectadoMesActual;
-      mesesFuturos = 0;
-    } else if (periodo === '3meses') {
-      mesesFuturos = 2;
-      ventasProyectadasTotal = ventasProyectadasMesActual + (ventasMensualesPromedio * mesesFuturos);
-      ivaProyectadoTotal = ivaProyectadoMesActual + (ivaMensualesPromedio * mesesFuturos);
-    } else if (periodo === '6meses') {
-      mesesFuturos = 5;
-      ventasProyectadasTotal = ventasProyectadasMesActual + (ventasMensualesPromedio * mesesFuturos);
-      ivaProyectadoTotal = ivaProyectadoMesActual + (ivaMensualesPromedio * mesesFuturos);
-    } else {
-      // 'all' - usar solo datos históricos
-      ventasProyectadasTotal = ventas.reduce((sum, v) => sum + (v.subtotal || v.total || 0), 0);
-      ivaProyectadoTotal = ventas.reduce((sum, v) => sum + (v.tax_amount || 0), 0);
-      mesesFuturos = 0;
-    }
-
-    // OBTENER FACTURAS
-    const { data: facturas } = await supabase
+    // ========================================
+    // OBTENER FACTURAS DEL TRIMESTRE ACTUAL
+    // ========================================
+    const { data: facturasTrimestre } = await supabase
       .from('invoices')
       .select('id, total_amount, tax_amount, gross_amount, invoice_date, payment_status, payment_method, payment_due_date, actual_payment_date, category, supplier, payment_confirmed')
       .eq('user_id', userId)
-      .gte('invoice_date', startDate.toISOString().split('T')[0])
+      .gte('invoice_date', rangoTrimestre.inicio.toISOString().split('T')[0])
       .lte('invoice_date', now.toISOString().split('T')[0]);
 
+    // ========================================
     // OBTENER COSTOS FIJOS
+    // ========================================
     const { data: costosFijos } = await supabase
       .from('fixed_costs')
       .select('id, name, amount, tax_amount, vat_rate, frequency, is_active, cost_type')
@@ -231,222 +146,257 @@ export async function GET(request: NextRequest) {
 
     const activeCosts = costosFijos || [];
 
-    // ⭐ VENTAS - Usar proyección
-    const ventasBaseImponible = ventasProyectadasTotal;
-    const ivaRepercutido = ivaProyectadoTotal;
-    const ventasBruto = ventasBaseImponible + ivaRepercutido;
-    
-    // Cobros (solo históricos)
-    const ventasCobradasBase = ventas.filter(v => ventaEstaCobrada(v))
-      .reduce((sum, v) => sum + (v.subtotal || v.total || 0), 0);
-    const ventasPendientesBase = ventasRealesMesActual - ventasCobradasBase;
+    // ========================================
+    // CALCULAR MESES TRANSCURRIDOS DEL TRIMESTRE
+    // ========================================
+    const mesesTranscurridosTrimestre = Math.max(1, 
+      (now.getFullYear() - rangoTrimestre.inicio.getFullYear()) * 12 + 
+      (now.getMonth() - rangoTrimestre.inicio.getMonth()) + 1
+    );
 
-    // ⭐ CALCULAR SALIDAS - BASE IMPONIBLE
-    const facturasBaseImponible = facturas?.reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
-    const ivaSoportado = facturas?.reduce((sum, f) => sum + (f.tax_amount || 0), 0) || 0;
-    const facturasBruto = facturas?.reduce((sum, f) => sum + (f.gross_amount || f.total_amount || 0), 0) || 0;
-    const facturasPagadasBase = facturas?.filter(f => facturaEstaPagada(f))
-      .reduce((sum, f) => sum + (f.total_amount || 0), 0) || 0;
-    const facturasPendientesBase = facturasBaseImponible - facturasPagadasBase;
-
-    // COSTOS FIJOS
+    // ========================================
+    // COSTOS FIJOS MENSUALES
+    // ========================================
     const costosFijosMensuales = activeCosts.reduce((sum, c) => {
       let mensual = c.amount || 0;
       if (c.frequency === 'annual' || c.frequency === 'yearly') mensual = mensual / 12;
       if (c.frequency === 'quarterly') mensual = mensual / 3;
       return sum + mensual;
     }, 0);
-    
-    const mesesTranscurridosHastaHoy = Math.max(0, 
-      (now.getFullYear() - startDate.getFullYear()) * 12 + 
-      (now.getMonth() - startDate.getMonth()) + 
-      (now.getDate() >= startDate.getDate() ? 1 : 0)
-    );
-    const mesesTranscurridos = Math.min(mesesTranscurridosHastaHoy, Math.ceil(mesesEnPeriodo));
-    
-    const costosFijosPasados = costosFijosMensuales * mesesTranscurridos;
-    const costosFijosFuturos = costosFijosMensuales * Math.max(0, mesesEnPeriodo - mesesTranscurridos);
-    const totalCostosFijos = costosFijosPasados + costosFijosFuturos;
 
-    // IVA DE COSTOS FIJOS
     const ivaCostosFijosMensual = activeCosts.reduce((sum, c) => {
       let ivaMensual = c.tax_amount || 0;
       if (c.frequency === 'annual' || c.frequency === 'yearly') ivaMensual = ivaMensual / 12;
       if (c.frequency === 'quarterly') ivaMensual = ivaMensual / 3;
       return sum + ivaMensual;
     }, 0);
-    
-    const ivaCostosFijosPasados = ivaCostosFijosMensual * mesesTranscurridos;
-    const ivaCostosFijosFuturos = ivaCostosFijosMensual * Math.max(0, mesesEnPeriodo - mesesTranscurridos);
-    const ivaCostosFijosPeriodo = ivaCostosFijosPasados + ivaCostosFijosFuturos;
-    const ivaSoportadoTotal = ivaSoportado + ivaCostosFijosPasados;
 
-    // IVA TRIMESTRAL
-    const trimestreActual = obtenerTrimestre(now);
-    const rangoTrimestre = obtenerRangoTrimestre(trimestreActual, now.getFullYear());
-    
-    const ventasTrimestre = ventas?.filter(v => {
-      const f = new Date(v.sale_date);
-      return f >= rangoTrimestre.inicio && f <= rangoTrimestre.fin;
-    }) || [];
-    const facturasTrimestre = facturas?.filter(f => {
-      const fecha = new Date(f.invoice_date);
-      return fecha >= rangoTrimestre.inicio && fecha <= rangoTrimestre.fin;
-    }) || [];
+    const costosFijosTrimestre = costosFijosMensuales * mesesTranscurridosTrimestre;
+    const ivaCostosFijosTrimestre = ivaCostosFijosMensual * mesesTranscurridosTrimestre;
 
-    const ivaRepercutidoTrimestre = ventasTrimestre.reduce((sum, v) => sum + (v.tax_amount || 0), 0);
-    const ivaSoportadoFacturasTrimestre = facturasTrimestre.reduce((sum, f) => sum + (f.tax_amount || 0), 0);
+    // ========================================
+    // VENTAS - SEPARAR COBRADAS Y PENDIENTES
+    // ========================================
+    const ventas = ventasTrimestre || [];
     
-    const inicioTrimestre = rangoTrimestre.inicio;
-    const finTrimestre = now < rangoTrimestre.fin ? now : rangoTrimestre.fin;
-    const mesesTranscurridosTrimestre = Math.max(1, 
-      (finTrimestre.getFullYear() - inicioTrimestre.getFullYear()) * 12 + 
-      (finTrimestre.getMonth() - inicioTrimestre.getMonth()) + 1
-    );
-    const ivaCostosFijosTrimestre = ivaCostosFijosMensual * Math.min(mesesTranscurridosTrimestre, 3);
-    
-    const ivaSoportadoTrimestre = ivaSoportadoFacturasTrimestre + ivaCostosFijosTrimestre;
+    // COBRADAS (caja real)
+    const ventasCobradas = ventas.filter(v => ventaEstaCobrada(v));
+    const ventasCobradasBase = ventasCobradas.reduce((sum, v) => sum + (v.subtotal || v.total || 0), 0);
+    const ivaVentasCobradas = ventasCobradas.reduce((sum, v) => sum + (v.tax_amount || 0), 0);
+    const ventasCobradasBruto = ventasCobradasBase + ivaVentasCobradas;
+
+    // PENDIENTES DE COBRO
+    const ventasPendientes = ventas.filter(v => !ventaEstaCobrada(v));
+    const ventasPendientesBase = ventasPendientes.reduce((sum, v) => sum + (v.subtotal || v.total || 0), 0);
+    const ivaVentasPendientes = ventasPendientes.reduce((sum, v) => sum + (v.tax_amount || 0), 0);
+
+    // TOTAL VENTAS (devengado)
+    const ventasTotalesBase = ventasCobradasBase + ventasPendientesBase;
+    const ivaRepercutidoTotal = ivaVentasCobradas + ivaVentasPendientes;
+
+    // ========================================
+    // COMPRAS - SEPARAR PAGADAS Y PENDIENTES
+    // ========================================
+    const facturas = facturasTrimestre || [];
+
+    // PAGADAS (caja real)
+    const facturasPagadas = facturas.filter(f => facturaEstaPagada(f));
+    const facturasPagadasBase = facturasPagadas.reduce((sum, f) => sum + (f.total_amount || 0), 0);
+    const ivaFacturasPagadas = facturasPagadas.reduce((sum, f) => sum + (f.tax_amount || 0), 0);
+    const facturasPagadasBruto = facturasPagadasBase + ivaFacturasPagadas;
+
+    // PENDIENTES DE PAGO
+    const facturasPendientes = facturas.filter(f => !facturaEstaPagada(f));
+    const facturasPendientesBase = facturasPendientes.reduce((sum, f) => sum + (f.total_amount || 0), 0);
+    const ivaFacturasPendientes = facturasPendientes.reduce((sum, f) => sum + (f.tax_amount || 0), 0);
+
+    // TOTAL FACTURAS (devengado)
+    const facturasTotalesBase = facturasPagadasBase + facturasPendientesBase;
+    const ivaSoportadoFacturas = ivaFacturasPagadas + ivaFacturasPendientes;
+
+    // ========================================
+    // IVA TRIMESTRAL (Modelo 303)
+    // ========================================
+    // Solo se liquida el IVA de operaciones DEVENGADAS (facturadas), no solo cobradas
+    const ivaRepercutidoTrimestre = ivaRepercutidoTotal;
+    const ivaSoportadoTrimestre = ivaSoportadoFacturas + ivaCostosFijosTrimestre;
     const liquidacionIvaTrimestre = ivaRepercutidoTrimestre - ivaSoportadoTrimestre;
-    const proximaLiquidacion = obtenerProximaLiquidacion(now);
 
-    // TOTALES
-    const totalSalidasBase = facturasBaseImponible + totalCostosFijos;
-    const balanceOperativo = ventasBaseImponible - totalSalidasBase;
+    // ========================================
+    // RESULTADO OPERATIVO (Contable)
+    // ========================================
+    const ingresosTotales = ventasTotalesBase;
+    const gastosTotales = facturasTotalesBase + costosFijosTrimestre;
+    const resultadoContable = ingresosTotales - gastosTotales;
 
-    // DATOS HISTÓRICOS
-    const datosHistoricos: Array<{ periodo: string; entradas: number; salidas: number; ivaRepercutido: number; ivaSoportado: number }> = [];
-    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    const mesesAMostrar = Math.min(Math.ceil(mesesEnPeriodo), 12);
+    // ========================================
+    // IRPF - PAGO FRACCIONADO (Modelo 130)
+    // ========================================
+    // Solo para autónomos en estimación directa
+    // 20% sobre beneficio neto (o 5% sobre ingresos si <600k€ y sin empleados)
     
-    for (let i = mesesAMostrar - 1; i >= 0; i--) {
-      const mesDate = new Date(); mesDate.setMonth(now.getMonth() - i);
+    // Criterio: 20% sobre beneficio si es positivo
+    const irpfFraccionado = resultadoContable > 0 ? resultadoContable * 0.20 : 0;
+
+    // ========================================
+    // CAJA OPERATIVA REAL
+    // ========================================
+    // Dinero que REALMENTE ha entrado y salido
+    const cajaEntradas = ventasCobradasBruto; // Incluye IVA cobrado
+    const cajaSalidas = facturasPagadasBruto + (costosFijosTrimestre + ivaCostosFijosTrimestre);
+    const cajaBruta = cajaEntradas - cajaSalidas;
+
+    // Caja después de liquidar IVA e IRPF
+    const obligacionesFiscales = Math.max(0, liquidacionIvaTrimestre) + irpfFraccionado;
+    const cajaNeta = cajaBruta - obligacionesFiscales;
+
+    // ========================================
+    // DATOS HISTÓRICOS POR MES
+    // ========================================
+    const datosHistoricos: Array<{ 
+      periodo: string; 
+      entradas: number; 
+      salidas: number; 
+      ivaRepercutido: number; 
+      ivaSoportado: number;
+      resultado: number;
+    }> = [];
+    
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    
+    for (let i = 0; i < mesesTranscurridosTrimestre; i++) {
+      const mesDate = new Date(rangoTrimestre.inicio);
+      mesDate.setMonth(rangoTrimestre.inicio.getMonth() + i);
       const mesIndex = mesDate.getMonth();
       const año = mesDate.getFullYear();
       
-      const ventasMes = todasVentas?.filter(v => {
+      const ventasMes = ventas.filter(v => {
         const f = new Date(v.sale_date || v.created_at);
         return f.getMonth() === mesIndex && f.getFullYear() === año;
-      }) || [];
-      const facturasMes = facturas?.filter(f => {
+      });
+      
+      const facturasMes = facturas.filter(f => {
         const fecha = new Date(f.invoice_date);
         return fecha.getMonth() === mesIndex && fecha.getFullYear() === año;
-      }) || [];
+      });
+
+      const entradasMes = ventasMes.reduce((sum, v) => sum + (v.subtotal || v.total || 0), 0);
+      const salidasMes = facturasMes.reduce((sum, f) => sum + (f.total_amount || 0), 0) + costosFijosMensuales;
 
       datosHistoricos.push({
         periodo: meses[mesIndex],
-        entradas: ventasMes.reduce((sum, v) => sum + (v.subtotal || v.total || 0), 0),
-        salidas: facturasMes.reduce((sum, f) => sum + (f.total_amount || 0), 0) + costosFijosMensuales,
+        entradas: entradasMes,
+        salidas: salidasMes,
         ivaRepercutido: ventasMes.reduce((sum, v) => sum + (v.tax_amount || 0), 0),
-        ivaSoportado: facturasMes.reduce((sum, f) => sum + (f.tax_amount || 0), 0) + ivaCostosFijosMensual
+        ivaSoportado: facturasMes.reduce((sum, f) => sum + (f.tax_amount || 0), 0) + ivaCostosFijosMensual,
+        resultado: entradasMes - salidasMes
       });
     }
 
+    // ========================================
     // PRÓXIMOS COBROS Y PAGOS
+    // ========================================
     const ahora = new Date();
-    const en30Dias = new Date(ahora); en30Dias.setDate(ahora.getDate() + 30);
+    const en30Dias = new Date(ahora); 
+    en30Dias.setDate(ahora.getDate() + 30);
 
-    const proximosCobros = ventas?.filter(v => !ventaEstaCobrada(v) && v.payment_due_date && 
-      new Date(v.payment_due_date) >= ahora && new Date(v.payment_due_date) <= en30Dias)
+    const proximosCobros = ventasPendientes
+      .filter(v => v.payment_due_date && 
+        new Date(v.payment_due_date) >= ahora && 
+        new Date(v.payment_due_date) <= en30Dias)
       .sort((a, b) => new Date(a.payment_due_date!).getTime() - new Date(b.payment_due_date!).getTime())
-      .slice(0, 5).map(v => ({
-        id: String(v.id), concepto: v.customer_name || 'Venta pendiente',
-        monto: v.subtotal || v.total || 0, iva: v.tax_amount || 0,
+      .slice(0, 5)
+      .map(v => ({
+        id: String(v.id),
+        concepto: v.customer_name || 'Venta pendiente',
+        monto: v.subtotal || v.total || 0,
+        iva: v.tax_amount || 0,
         fecha: v.payment_due_date || v.sale_date
-      })) || [];
+      }));
 
-    const proximosPagos = facturas?.filter(f => !facturaEstaPagada(f) && f.payment_due_date &&
-      new Date(f.payment_due_date) >= ahora && new Date(f.payment_due_date) <= en30Dias)
+    const proximosPagos = facturasPendientes
+      .filter(f => f.payment_due_date &&
+        new Date(f.payment_due_date) >= ahora && 
+        new Date(f.payment_due_date) <= en30Dias)
       .sort((a, b) => new Date(a.payment_due_date!).getTime() - new Date(b.payment_due_date!).getTime())
-      .slice(0, 5).map(f => ({
-        id: String(f.id), concepto: f.supplier || `Factura ${f.category || 'compra'}`,
-        monto: f.total_amount || 0, iva: f.tax_amount || 0,
+      .slice(0, 5)
+      .map(f => ({
+        id: String(f.id),
+        concepto: f.supplier || `Factura ${f.category || 'compra'}`,
+        monto: f.total_amount || 0,
+        iva: f.tax_amount || 0,
         fecha: f.payment_due_date || f.invoice_date
-      })) || [];
+      }));
 
+    // ========================================
+    // RESPUESTA
+    // ========================================
     return NextResponse.json({
-      entradas: {
-        total: ventasBaseImponible,
-        real: ventasRealesMesActual,
-        proyectado: proyeccionRestoDeMes + (ventasMensualesPromedio * mesesFuturos),
-        promedio_mensual: ventasMensualesPromedio,
-        cobrado: ventasCobradasBase,
-        pendiente: ventasPendientesBase,
-        bruto: ventasBruto,
-        proyeccion: {
-          mes_actual_real: ventasRealesMesActual,
-          mes_actual_proyectado: proyeccionRestoDeMes,
-          meses_futuros: mesesFuturos,
-          ventas_meses_futuros: ventasMensualesPromedio * mesesFuturos
-        }
+      trimestre: {
+        numero: trimestreActual,
+        nombre: `Q${trimestreActual} ${now.getFullYear()}`,
+        inicio: rangoTrimestre.inicio.toISOString().split('T')[0],
+        fin: rangoTrimestre.fin.toISOString().split('T')[0],
+        mesesTranscurridos: mesesTranscurridosTrimestre
       },
-      salidas: {
-        total: totalSalidasBase, 
-        pagado: facturasPagadasBase + costosFijosPasados,
-        pendiente: facturasPendientesBase + costosFijosFuturos,
-        bruto: facturasBruto + ivaCostosFijosPeriodo,
+      resultadoContable: {
+        ingresos: ingresosTotales,
+        gastos: gastosTotales,
+        resultado: resultadoContable,
         desglose: {
-          facturas: facturasBaseImponible, 
-          facturasPagadas: facturasPagadasBase,
-          facturasPendientes: facturasPendientesBase, 
-          costosFijos: totalCostosFijos,
-          costosFijosMensuales,
-          costosFijosPasados,
-          costosFijosFuturos,
-          ivaCostosFijos: ivaCostosFijosPeriodo,
-          ivaCostosFijosPasados,
-          ivaCostosFijosFuturos,
-          ivaCostosFijosMensual
+          ventas: ventasTotalesBase,
+          compras: facturasTotalesBase,
+          costosFijos: costosFijosTrimestre
         }
       },
-      balance: balanceOperativo,
+      cajaOperativa: {
+        entradas: ventasCobradasBase,
+        entradasBruto: cajaEntradas,
+        salidas: facturasPagadasBase + costosFijosTrimestre,
+        salidasBruto: cajaSalidas,
+        cajaBruta: cajaBruta,
+        obligacionesFiscales: obligacionesFiscales,
+        cajaNeta: cajaNeta,
+        desglose: {
+          cobrado: ventasCobradasBase,
+          pendienteCobro: ventasPendientesBase,
+          pagado: facturasPagadasBase,
+          pendientePago: facturasPendientesBase,
+          costosFijosPagados: costosFijosTrimestre
+        }
+      },
       iva: {
-        repercutido: ivaRepercutido, 
-        soportado: ivaSoportadoTotal,
-        soportadoFacturas: ivaSoportado,
-        soportadoCostosFijos: ivaCostosFijosPasados,
-        liquidacion: ivaRepercutido - ivaSoportadoTotal,
-        trimestre: {
-          numero: trimestreActual, nombre: `Q${trimestreActual}`,
-          repercutido: ivaRepercutidoTrimestre, 
-          soportado: ivaSoportadoTrimestre,
-          soportadoFacturas: ivaSoportadoFacturasTrimestre,
-          soportadoCostosFijos: ivaCostosFijosTrimestre,
-          liquidacion: liquidacionIvaTrimestre,
-          inicio: rangoTrimestre.inicio.toISOString().split('T')[0],
-          fin: rangoTrimestre.fin.toISOString().split('T')[0]
-        },
-        proximaLiquidacion: {
-          fecha: proximaLiquidacion.fecha.toISOString().split('T')[0],
-          trimestre: proximaLiquidacion.trimestre,
-          diasRestantes: proximaLiquidacion.diasRestantes,
-          importeEstimado: liquidacionIvaTrimestre
+        repercutido: ivaRepercutidoTrimestre,
+        soportado: ivaSoportadoTrimestre,
+        soportadoFacturas: ivaSoportadoFacturas,
+        soportadoCostosFijos: ivaCostosFijosTrimestre,
+        liquidacion: liquidacionIvaTrimestre,
+        desglose: {
+          ivaCobrado: ivaVentasCobradas,
+          ivaPendienteCobro: ivaVentasPendientes,
+          ivaPagado: ivaFacturasPagadas,
+          ivaPendientePago: ivaFacturasPendientes
         }
       },
-      proximosCobros, proximosPagos, datosHistoricos,
-      mesesEnPeriodo: Math.round(mesesEnPeriodo * 10) / 10,
-      mesesTranscurridos,
-      costosFijosMensuales,
-      resumen: {
-        periodoMeses: Math.round(mesesEnPeriodo * 10) / 10,
-        mesesTranscurridos,
-        ventasBase: ventasBaseImponible,
-        ventasReales: ventasRealesMesActual,
-        ventasProyectadas: proyeccionRestoDeMes + (ventasMensualesPromedio * mesesFuturos),
-        comprasBase: facturasBaseImponible,
-        costosFijosTotales: totalCostosFijos,
-        costosFijosPasados,
-        costosFijosFuturos,
-        gastosTotales: totalSalidasBase,
-        beneficioBruto: balanceOperativo,
-        ivaRepercutido, 
-        ivaSoportado: ivaSoportadoTotal,
-        ivaSoportadoFacturas: ivaSoportado,
-        ivaSoportadoCostosFijos: ivaCostosFijosPasados,
-        ivaAPagar: Math.max(0, ivaRepercutido - ivaSoportadoTotal),
-        ivaACompensar: Math.max(0, ivaSoportadoTotal - ivaRepercutido),
-        ventasBruto, comprasBruto: facturasBruto
-      }
+      irpf: {
+        baseFraccionado: resultadoContable,
+        fraccionado: irpfFraccionado,
+        porcentaje: 20
+      },
+      proximaLiquidacion: {
+        fecha: proximaLiquidacion.fecha.toISOString().split('T')[0],
+        trimestre: proximaLiquidacion.trimestre,
+        diasRestantes: proximaLiquidacion.diasRestantes,
+        importeIva: liquidacionIvaTrimestre,
+        importeIrpf: irpfFraccionado,
+        importeTotal: liquidacionIvaTrimestre + irpfFraccionado
+      },
+      proximosCobros,
+      proximosPagos,
+      datosHistoricos,
+      costosFijosMensuales
     });
+
   } catch (error) {
     console.error('Error en API cashflow:', error);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
@@ -464,12 +414,14 @@ export async function POST(request: NextRequest) {
     if (action === 'mark_paid') {
       const table = type === 'invoice' ? 'invoices' : 'sales';
       const { error } = await supabase.from(table).update({ 
-        payment_status: 'paid', actual_payment_date: new Date().toISOString().split('T')[0]
+        payment_status: 'paid', 
+        actual_payment_date: new Date().toISOString().split('T')[0]
       }).eq('id', id).eq('user_id', userId);
 
       if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
       return NextResponse.json({ success: true });
     }
+    
     return NextResponse.json({ error: 'Acción no válida' }, { status: 400 });
   } catch (error) {
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });

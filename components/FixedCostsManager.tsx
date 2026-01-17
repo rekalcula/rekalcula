@@ -553,7 +553,7 @@ export default function FixedCostsManager({
                       </div>
                     </div>
                     <p className="text-xs text-amber-700 mt-3 flex items-center gap-1">
-                      ⚡ Se contabilizará <strong>€{vatCalc.base.toFixed(2)}</strong> como gasto (base imponible)
+                       Se contabilizará <strong>€{vatCalc.base.toFixed(2)}</strong> como gasto (base imponible)
                     </p>
                   </div>
                 )}
