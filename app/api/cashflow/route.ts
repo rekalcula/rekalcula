@@ -84,6 +84,33 @@ function obtenerProximaLiquidacion(ahora: Date): {
   };
 }
 
+function obtenerFechaLiquidacionTrimestre(trimestre: number, año: number): {
+  fecha: Date;
+  trimestre: string;
+  diasRestantes: number;
+} {
+  // Encontrar la configuración de liquidación para este trimestre
+  const configLiquidacion = FECHAS_LIQUIDACION_IVA.find(liq => liq.trimestre === trimestre);
+  
+  if (!configLiquidacion) {
+    throw new Error(`Configuración de liquidación no encontrada para trimestre ${trimestre}`);
+  }
+  
+  // La liquidación se hace en el año actual si el trimestre no es Q4
+  // Q4 se liquida en enero del año siguiente
+  const añoLiquidacion = trimestre === 4 ? año + 1 : año;
+  const fechaLiq = new Date(añoLiquidacion, configLiquidacion.mes - 1, configLiquidacion.dia);
+  
+  const ahora = new Date();
+  const diasRestantes = Math.ceil((fechaLiq.getTime() - ahora.getTime()) / (1000 * 60 * 60 * 24));
+  
+  return {
+    fecha: fechaLiq,
+    trimestre: configLiquidacion.nombre,
+    diasRestantes: Math.max(0, diasRestantes)
+  };
+}
+
 function ventaEstaCobrada(venta: any): boolean {
   if (venta.payment_status === 'paid') return true;
   if (venta.source === 'ticket') return true;
@@ -113,7 +140,9 @@ export async function GET(request: NextRequest) {
     const now = new Date();
     const trimestreActual = obtenerTrimestre(now);
     const rangoTrimestre = obtenerRangoTrimestre(trimestreActual, now.getFullYear());
-    const proximaLiquidacion = obtenerProximaLiquidacion(now);
+    
+    // Calcular fecha de liquidación DEL TRIMESTRE ACTUAL (no la próxima del calendario)
+    const fechaLiquidacionTrimestreActual = obtenerFechaLiquidacionTrimestre(trimestreActual, now.getFullYear());
 
     // ========================================
     // OBTENER VENTAS DEL TRIMESTRE ACTUAL
@@ -384,9 +413,9 @@ export async function GET(request: NextRequest) {
         porcentaje: 20
       },
       proximaLiquidacion: {
-        fecha: proximaLiquidacion.fecha.toISOString().split('T')[0],
-        trimestre: proximaLiquidacion.trimestre,
-        diasRestantes: proximaLiquidacion.diasRestantes,
+        fecha: fechaLiquidacionTrimestreActual.fecha.toISOString().split('T')[0],
+        trimestre: fechaLiquidacionTrimestreActual.trimestre,
+        diasRestantes: fechaLiquidacionTrimestreActual.diasRestantes,
         importeIva: liquidacionIvaTrimestre,
         importeIrpf: irpfFraccionado,
         importeTotal: liquidacionIvaTrimestre + irpfFraccionado
