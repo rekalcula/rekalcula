@@ -8,9 +8,16 @@ export default function DeleteSaleButton({ saleId }: { saleId: string }) {
   const [deleting, setDeleting] = useState(false)
 
   const handleDelete = async () => {
-    if (!confirm('¿Estás seguro de que quieres eliminar esta venta?')) {
-      return
-    }
+  <ConfirmDialog
+    isOpen={showConfirmDialog}
+    onConfirm={confirmDelete}
+    onCancel={cancelDelete}
+    title="Confirmar eliminación"
+    message="¿Estás seguro de que quieres eliminar 1 factura? Esta acción no se puede deshacer."
+    confirmText="Eliminar"
+    cancelText="Cancelar"
+    variant="danger"
+  />
 
     setDeleting(true)
 
