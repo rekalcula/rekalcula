@@ -1,9 +1,10 @@
 import Link from 'next/link'
 import { ArrowRight, CheckCircle, Zap, TrendingUp, Shield } from 'lucide-react'
+import LandingFooter from '@/components/LandingFooter'
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen" style={{backgroundColor: '#262626'}}>
+    <div className="min-h-screen flex flex-col" style={{backgroundColor: '#262626'}}>
       {/* Header / Navegacion */}
       <header className="container mx-auto px-4 py-4 sm:py-6">
         <nav className="flex flex-wrap justify-between items-center gap-2">
@@ -22,7 +23,7 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section - Ocupa pantalla completa en movil */}
-      <main className="container mx-auto px-4">
+      <main className="container mx-auto px-4 flex-1">
         <div className="min-h-[calc(100vh-80px)] sm:min-h-0 flex flex-col justify-center sm:py-20">
           <div className="max-w-4xl mx-auto text-center">
 
@@ -169,12 +170,8 @@ export default function HomePage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 py-6 sm:py-8">
-        <div className="container mx-auto px-4 text-center text-[#FFFCFF] text-sm sm:text-base">
-          <p>2024 ReKalcula. Todos los derechos reservados.</p>
-        </div>
-      </footer>
+      {/* Footer con enlaces dinámicos */}
+      <LandingFooter />
     </div>
   )
 }
