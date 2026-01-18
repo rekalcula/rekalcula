@@ -2,6 +2,7 @@
 
 import DateRangePicker from '@/components/DateRangePicker'
 import AdvisorExportButton from '@/components/AdvisorExportButton'
+import ConfirmDialog from '@/components/ConfirmDialog'
 import { useState, useEffect } from 'react'
 import { Recomendacion, Prioridad } from '@/lib/advisor/types'
 import { 
@@ -78,6 +79,10 @@ export default function AdvisorPage() {
   const [consejosAplicados, setConsejosAplicados] = useState<ConsejoAplicado[]>([])
   const [seleccionadosAplicados, setSeleccionadosAplicados] = useState<Set<string>>(new Set())
 
+  // Estados para ConfirmDialog
+  const [showDeleteGuardados, setShowDeleteGuardados] = useState(false)
+  const [showDeleteAplicados, setShowDeleteAplicados] = useState(false)
+
   useEffect(() => {
     cargarAnalisisGuardados()
     cargarConsejosAplicados()
@@ -125,11 +130,7 @@ export default function AdvisorPage() {
     }
   }
 
-  const eliminarConsejosAplicados = () => {
-    if (seleccionadosAplicados.size === 0) return
-    
-    if (!confirm(`¿Eliminar ${seleccionadosAplicados.size} consejos aplicados?`)) return
-
+  const eliminarConsejosAplicados = async () => {
     const nuevosConsejos = consejosAplicados.filter(c => !seleccionadosAplicados.has(c.id))
     setConsejosAplicados(nuevosConsejos)
     localStorage.setItem('consejosAplicados', JSON.stringify(nuevosConsejos))
@@ -241,10 +242,6 @@ export default function AdvisorPage() {
   }
 
   const borrarSeleccionados = async () => {
-    if (seleccionados.size === 0) return
-
-    if (!confirm(`¿Eliminar ${seleccionados.size} análisis?`)) return
-
     setBorrando(true)
     try {
       const ids = Array.from(seleccionados).join(',')
@@ -556,7 +553,7 @@ export default function AdvisorPage() {
 
                 {seleccionadosAplicados.size > 0 && (
                   <button
-                    onClick={eliminarConsejosAplicados}
+                    onClick={() => setShowDeleteAplicados(true)}
                     className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -643,7 +640,7 @@ export default function AdvisorPage() {
 
                 {seleccionados.size > 0 && (
                   <button
-                    onClick={borrarSeleccionados}
+                    onClick={() => setShowDeleteGuardados(true)}
                     disabled={borrando}
                     className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 font-medium"
                   >
@@ -804,6 +801,29 @@ export default function AdvisorPage() {
         )}
 
       </div>
+
+      {/* Diálogos de confirmación */}
+      <ConfirmDialog
+        isOpen={showDeleteGuardados}
+        onClose={() => setShowDeleteGuardados(false)}
+        onConfirm={borrarSeleccionados}
+        title="Confirmar eliminación"
+        message={`¿Eliminar ${seleccionados.size} análisis? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        variant="danger"
+      />
+
+      <ConfirmDialog
+        isOpen={showDeleteAplicados}
+        onClose={() => setShowDeleteAplicados(false)}
+        onConfirm={eliminarConsejosAplicados}
+        title="Confirmar eliminación"
+        message={`¿Eliminar ${seleccionadosAplicados.size} consejos aplicados? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        variant="danger"
+      />
     </div>
   )
 }
