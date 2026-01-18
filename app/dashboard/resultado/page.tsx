@@ -5,6 +5,7 @@ import { useUser } from '@clerk/nextjs'
 import DashboardNav from '@/components/DashboardNav'
 import BusinessResultSummary from '@/components/BusinessResultSummary'
 import WaterfallChart from '@/components/WaterfallChart'
+import ConfirmDialog from '@/components/ConfirmDialog'
 import { 
   IconRefresh, 
   IconLightbulb,
@@ -97,6 +98,9 @@ export default function ResultadoPage() {
   
   const [analisisDetalle, setAnalisisDetalle] = useState<AnalysisDetail | null>(null)
   const [cargandoDetalle, setCargandoDetalle] = useState(false)
+
+  // Estado para ConfirmDialog
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   useEffect(() => {
     cargarAnalisisGuardados()
@@ -199,10 +203,6 @@ export default function ResultadoPage() {
   }
 
   const borrarSeleccionados = async () => {
-    if (seleccionados.size === 0) return
-
-    if (!confirm(`¿Eliminar ${seleccionados.size} análisis?`)) return
-
     setBorrando(true)
     try {
       const ids = Array.from(seleccionados).join(',')
@@ -477,7 +477,7 @@ export default function ResultadoPage() {
 
                   {seleccionados.size > 0 && (
                     <button
-                      onClick={borrarSeleccionados}
+                      onClick={() => setShowDeleteConfirm(true)}
                       disabled={borrando}
                       className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 font-medium"
                     >
@@ -660,6 +660,18 @@ export default function ResultadoPage() {
 
         </div>
       </div>
+
+      {/* Diálogo de confirmación */}
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={borrarSeleccionados}
+        title="Confirmar eliminación"
+        message={`¿Eliminar ${seleccionados.size} análisis? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        variant="danger"
+      />
     </>
   )
 }
