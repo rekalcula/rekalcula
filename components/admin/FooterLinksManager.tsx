@@ -113,7 +113,7 @@ export default function FooterLinksManager() {
       </div>
 
       {/* Formulario de edición/creación */}
-      {(editingLink || isCreating) && (
+      {editingLink && (
         <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6 shadow-sm">
           <h3 className="text-lg font-semibold mb-4">
             {isCreating ? 'Nuevo Enlace' : 'Editar Enlace'}
