@@ -7,8 +7,7 @@ const config: CapacitorConfig = {
   
   // ✅ RESTAURADO: server.url para cargar desde Vercel
   server: {
-    url: 'https://rekalcula-99qi-fskondp8u-rekalculas-projects.vercel.app',
-    cleartext: false,
+    url: 'https://rekalcula-99qi.vercel.app',    cleartext: false,
     androidScheme: 'https'
   },
   
