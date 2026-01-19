@@ -1,6 +1,5 @@
 'use client'
 
-import { TrendingUp } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -68,7 +67,6 @@ export default function DashboardNav() {
     { href: '/dashboard/analytics/sales', label: 'Analisis Ventas' },
     { href: '/dashboard/advisor', label: 'Asesor IA' },
     { href: '/dashboard/cashflow', label: 'Cash Flow' },
-    { href: '/dashboard/prevision', label: 'Previsión tesorería' },
     { href: '/dashboard/resultado', label: 'Resultado Empresa' },
 
   ]
