@@ -2,11 +2,20 @@
 
 import { useState, useEffect } from 'react'
 import DashboardNav from '@/components/DashboardNav'
+import NotificationDialog from '@/components/NotificationDialog'
 import type { FiscalConfig, TipoEntidad, RegimenFiscal, TipoIVA } from '@/lib/fiscal/types'
 
 export default function FiscalPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+
+  // 🔥 Estado para el diálogo de notificación
+  const [showNotification, setShowNotification] = useState(false)
+  const [notification, setNotification] = useState({
+    title: '',
+    message: '',
+    type: 'info' as 'success' | 'error' | 'info'
+  })
 
   const [config, setConfig] = useState<FiscalConfig>({
     tipo_entidad: 'autonomo',
@@ -19,7 +28,6 @@ export default function FiscalPage() {
     umbral_alerta_2: 1000000.00,
   })
 
-  // 🔥 Detectar si es SL/SA para deshabilitar régimen fiscal
   const esSociedad = config.tipo_entidad === 'sl' || config.tipo_entidad === 'sa'
 
   useEffect(() => {
@@ -53,23 +61,36 @@ export default function FiscalPage() {
       const data = await response.json()
 
       if (data.success) {
-        alert('Configuración guardada correctamente')
+        setNotification({
+          title: '✅ Configuración guardada',
+          message: 'Tu configuración fiscal se ha guardado correctamente',
+          type: 'success'
+        })
+        setShowNotification(true)
       } else {
-        alert(`Error guardando: ${data.error}`)
+        setNotification({
+          title: '❌ Error al guardar',
+          message: data.error || 'No se pudo guardar la configuración',
+          type: 'error'
+        })
+        setShowNotification(true)
       }
     } catch (error) {
       console.error('Error:', error)
-      alert('Error de conexión al guardar')
+      setNotification({
+        title: '❌ Error de conexión',
+        message: 'No se pudo conectar con el servidor',
+        type: 'error'
+      })
+      setShowNotification(true)
     } finally {
       setSaving(false)
     }
   }
 
-  // 🔥 Manejar cambio de tipo de entidad
   const handleTipoEntidadChange = (nuevoTipo: TipoEntidad) => {
     const nuevoConfig = { ...config, tipo_entidad: nuevoTipo }
     
-    // Si cambia a SL o SA, forzar régimen general
     if (nuevoTipo === 'sl' || nuevoTipo === 'sa') {
       nuevoConfig.regimen_fiscal = 'general'
     }
@@ -238,6 +259,15 @@ export default function FiscalPage() {
           </div>
         </div>
       </div>
+
+      {/* 🔥 Modal de notificación */}
+      <NotificationDialog
+        isOpen={showNotification}
+        onClose={() => setShowNotification(false)}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </>
   )
 }
