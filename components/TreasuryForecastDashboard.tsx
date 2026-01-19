@@ -2,14 +2,97 @@
 
 import { useState, useEffect } from 'react';
 import { AlertTriangle, TrendingDown, TrendingUp, Plus, Save } from 'lucide-react';
-import { treasuryForecastService, type ForecastPeriod, type TreasuryForecast } from '@/lib/treasuryForecastService';
+
+// ============================================
+// TIPOS Y LÓGICA (TODO EN UN ARCHIVO)
+// ============================================
+
+interface ForecastPeriod {
+  period_date: string;
+  initial_balance: number;
+  planned_income: number;
+  planned_expenses: number;
+  final_balance: number;
+  notes?: string;
+  alert_level?: 'safe' | 'warning' | 'danger';
+}
+
+interface TreasuryForecast {
+  id?: string;
+  user_id?: string;
+  period_type: 'monthly' | 'weekly';
+  start_date: string;
+  forecast_data: ForecastPeriod[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+const calculateAlertLevel = (balance: number): 'safe' | 'warning' | 'danger' => {
+  if (balance < 0) return 'danger';
+  if (balance < 2000) return 'warning';
+  return 'safe';
+};
+
+const generateEmptyPeriods = (
+  startDate: string,
+  periodType: 'monthly' | 'weekly',
+  count: number,
+  initialBalance: number
+): ForecastPeriod[] => {
+  const periods: ForecastPeriod[] = [];
+  const date = new Date(startDate);
+  let currentBalance = initialBalance;
+
+  for (let i = 0; i < count; i++) {
+    const periodDate = new Date(date);
+    
+    periods.push({
+      period_date: periodDate.toISOString().split('T')[0],
+      initial_balance: currentBalance,
+      planned_income: 0,
+      planned_expenses: 0,
+      final_balance: currentBalance,
+      alert_level: calculateAlertLevel(currentBalance),
+      notes: ''
+    });
+
+    if (periodType === 'monthly') {
+      date.setMonth(date.getMonth() + 1);
+    } else {
+      date.setDate(date.getDate() + 7);
+    }
+  }
+
+  return periods;
+};
+
+const recalculateBalances = (periods: ForecastPeriod[]): ForecastPeriod[] => {
+  return periods.map((period, index) => {
+    const finalBalance = period.initial_balance + period.planned_income - period.planned_expenses;
+    
+    const updated = {
+      ...period,
+      final_balance: finalBalance,
+      alert_level: calculateAlertLevel(finalBalance)
+    };
+
+    if (index < periods.length - 1) {
+      periods[index + 1].initial_balance = finalBalance;
+    }
+
+    return updated;
+  });
+};
+
+// ============================================
+// COMPONENTE PRINCIPAL
+// ============================================
 
 export default function TreasuryForecastDashboard() {
   const [forecast, setForecast] = useState<TreasuryForecast | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [periodType, setPeriodType] = useState<'monthly' | 'weekly'>('monthly');
-  const [startDate, setStartDate] = useState('');
   const [initialBalance, setInitialBalance] = useState(0);
 
   useEffect(() => {
@@ -25,7 +108,6 @@ export default function TreasuryForecastDashboard() {
       if (result.data) {
         setForecast(result.data);
         setPeriodType(result.data.period_type);
-        setStartDate(result.data.start_date);
       }
     } catch (error) {
       console.error('Error cargando previsión:', error);
@@ -53,7 +135,7 @@ export default function TreasuryForecastDashboard() {
     const defaultStart = new Date(today.getFullYear(), today.getMonth() + 1, 1);
     const startDateStr = defaultStart.toISOString().split('T')[0];
     
-    const periods = treasuryForecastService.generateEmptyPeriods(
+    const periods = generateEmptyPeriods(
       startDateStr,
       periodType,
       periodType === 'monthly' ? 12 : 24,
@@ -67,7 +149,6 @@ export default function TreasuryForecastDashboard() {
     };
 
     setForecast(newForecast);
-    setStartDate(startDateStr);
   };
 
   const handlePeriodChange = (index: number, field: 'planned_income' | 'planned_expenses', value: string) => {
@@ -77,7 +158,7 @@ export default function TreasuryForecastDashboard() {
     const updatedPeriods = [...forecast.forecast_data];
     updatedPeriods[index][field] = numValue;
 
-    const recalculated = treasuryForecastService.recalculateBalances(updatedPeriods);
+    const recalculated = recalculateBalances(updatedPeriods);
 
     setForecast({
       ...forecast,
