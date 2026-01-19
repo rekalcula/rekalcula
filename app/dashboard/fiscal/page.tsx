@@ -19,6 +19,9 @@ export default function FiscalPage() {
     umbral_alerta_2: 1000000.00,
   })
 
+  // 🔥 Detectar si es SL/SA para deshabilitar régimen fiscal
+  const esSociedad = config.tipo_entidad === 'sl' || config.tipo_entidad === 'sa'
+
   useEffect(() => {
     cargarConfiguracion()
   }, [])
@@ -50,16 +53,28 @@ export default function FiscalPage() {
       const data = await response.json()
 
       if (data.success) {
-        alert('Configuracion guardada')
+        alert('Configuración guardada correctamente')
       } else {
-        alert('Error guardando')
+        alert(`Error guardando: ${data.error}`)
       }
     } catch (error) {
       console.error('Error:', error)
-      alert('Error guardando')
+      alert('Error de conexión al guardar')
     } finally {
       setSaving(false)
     }
+  }
+
+  // 🔥 Manejar cambio de tipo de entidad
+  const handleTipoEntidadChange = (nuevoTipo: TipoEntidad) => {
+    const nuevoConfig = { ...config, tipo_entidad: nuevoTipo }
+    
+    // Si cambia a SL o SA, forzar régimen general
+    if (nuevoTipo === 'sl' || nuevoTipo === 'sa') {
+      nuevoConfig.regimen_fiscal = 'general'
+    }
+    
+    setConfig(nuevoConfig)
   }
 
   if (loading) {
@@ -84,7 +99,7 @@ export default function FiscalPage() {
       <div className="min-h-screen bg-[#262626]">
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="mb-6">
-            <h1 className="text-3xl font-bold text-[#d98c21]">Configuracion Fiscal</h1>
+            <h1 className="text-3xl font-bold text-[#d98c21]">Configuración Fiscal</h1>
             <p className="text-xl text-[#FFFCFF] mt-1">Optimiza tus impuestos</p>
           </div>
 
@@ -94,27 +109,44 @@ export default function FiscalPage() {
               <label className="block text-[18px] font-medium text-[#ACACAC] mb-2">Tipo de Entidad</label>
               <select
                 value={config.tipo_entidad}
-                onChange={(e) => setConfig({ ...config, tipo_entidad: e.target.value as TipoEntidad })}
+                onChange={(e) => handleTipoEntidadChange(e.target.value as TipoEntidad)}
                 className="w-full px-4 py-2 bg-[#262626] border border-[#3d3d3d] text-[#FFFCFF] rounded-lg focus:ring-2 focus:ring-[#d98c21]"
               >
-                <option value="autonomo">Autonomo</option>
+                <option value="autonomo">Autónomo</option>
                 <option value="sl">SL</option>
                 <option value="sa">SA</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-[18px] font-medium text-[#ACACAC] mb-2">Regimen Fiscal</label>
+              <label className="block text-[18px] font-medium text-[#ACACAC] mb-2">
+                Régimen Fiscal
+                {esSociedad && (
+                  <span className="ml-2 text-sm text-[#d98c21]">(Solo General para sociedades)</span>
+                )}
+              </label>
               <select
                 value={config.regimen_fiscal}
                 onChange={(e) => setConfig({ ...config, regimen_fiscal: e.target.value as RegimenFiscal })}
-                className="w-full px-4 py-2 bg-[#262626] border border-[#3d3d3d] text-[#FFFCFF] rounded-lg focus:ring-2 focus:ring-[#d98c21]"
+                disabled={esSociedad}
+                className={`w-full px-4 py-2 bg-[#262626] border border-[#3d3d3d] text-[#FFFCFF] rounded-lg focus:ring-2 focus:ring-[#d98c21] ${
+                  esSociedad ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
               >
                 <option value="general">General</option>
-                <option value="simplificado">Simplificado</option>
-                <option value="modulos">Modulos</option>
-                <option value="recargo">Recargo</option>
+                {!esSociedad && (
+                  <>
+                    <option value="simplificado">Simplificado</option>
+                    <option value="modulos">Módulos</option>
+                    <option value="recargo">Recargo</option>
+                  </>
+                )}
               </select>
+              {esSociedad && (
+                <p className="text-xs text-[#ACACAC] mt-1">
+                  Las sociedades (SL/SA) solo pueden usar el régimen general
+                </p>
+              )}
             </div>
 
             {config.tipo_entidad === 'autonomo' && (
@@ -157,7 +189,7 @@ export default function FiscalPage() {
               </div>
             </div>
 
-            {(config.tipo_entidad === 'sl' || config.tipo_entidad === 'sa') && (
+            {esSociedad && (
               <div>
                 <label className="block text-[18px] font-medium text-[#ACACAC] mb-2">Impuesto Sociedades (%)</label>
                 <input
@@ -198,7 +230,7 @@ export default function FiscalPage() {
               <button
                 onClick={guardarConfiguracion}
                 disabled={saving}
-                className="px-6 py-3 bg-[#d98c21] text-[#0d0d0d] font-semibold rounded-lg hover:bg-[#b87619] disabled:opacity-50"
+                className="px-6 py-3 bg-[#d98c21] text-[#0d0d0d] font-semibold rounded-lg hover:bg-[#b87619] disabled:opacity-50 transition-colors"
               >
                 {saving ? 'Guardando...' : 'Guardar'}
               </button>
