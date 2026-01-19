@@ -34,8 +34,9 @@ export default function HomePage() {
             </h1>
 
             <p className="text-base sm:text-xl text-[#FFFCFF] mb-8 sm:mb-8 max-w-2xl mx-auto leading-relaxed px-4">
-              Fotografía tus facturas, configura tu régimen fiscal y recibe un análisis con IA en 3 minutos, 
-              con tu cash flow, el resultado de la empresa y descubre exactamente cómo aumentar tus beneficios.
+              Sube tus ventas, facturas, costes, configura tu régimen fiscal y recibe un análisis con IA en 3 minutos, 
+              con tu cash flow, el resultado de la empresa y descubre exactamente cómo aumentar tus beneficios 
+              tal y como hacen las GRANDES EMPRESAS.
               
             </p>
 
@@ -82,7 +83,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-lg sm:text-xl font-semibold text-[#262626] mb-2 sm:mb-3">Analisis en 3 minutos</h3>
               <p className="text-sm sm:text-base text-[#262626]">
-                Sube tus facturas y recibe un analisis completo instantaneo. Sin esperas, sin complicaciones.
+                Sube tus facturas y recibe un analisis completo instantaneo. Sin esperas, sin complicaciones con tu propio asesor 24/7.
               </p>
             </div>
 
@@ -124,7 +125,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-lg sm:text-xl font-semibold text-[#FFFCFF] mb-2 sm:mb-3">Fotografia facturas</h3>
               <p className="text-sm sm:text-base text-[#FFFCFF] px-4 sm:px-0">
-                Sube fotos de tus facturas mensuales. La IA las procesa automaticamente en segundos.
+                Sube tus facturas mensuales. La IA las procesa automaticamente en segundos.
               </p>
             </div>
 
