@@ -1,4 +1,5 @@
-import { createClient } from '@/lib/supabase/client';
+// Servicio de Previsión de Tesorería
+// Este servicio contiene la lógica de negocio para calcular previsiones
 
 export interface ForecastPeriod {
   period_date: string;
@@ -87,88 +88,5 @@ export const treasuryForecastService = {
 
       return updated;
     });
-  },
-
-  /**
-   * Obtener previsión activa del usuario
-   */
-  async getActiveForecast(userId: string): Promise<TreasuryForecast | null> {
-    const supabase = createClient();
-
-    const { data, error } = await supabase
-      .from('treasury_forecasts')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (error || !data) return null;
-
-    return data as TreasuryForecast;
-  },
-
-  /**
-   * Guardar o actualizar previsión
-   */
-  async saveForecast(forecast: TreasuryForecast): Promise<{ success: boolean; data?: TreasuryForecast; error?: string }> {
-    const supabase = createClient();
-
-    if (forecast.id) {
-      // Actualizar existente
-      const { data, error } = await supabase
-        .from('treasury_forecasts')
-        .update({
-          period_type: forecast.period_type,
-          start_date: forecast.start_date,
-          forecast_data: forecast.forecast_data,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', forecast.id)
-        .select()
-        .single();
-
-      if (error) {
-        return { success: false, error: error.message };
-      }
-
-      return { success: true, data: data as TreasuryForecast };
-    } else {
-      // Crear nueva
-      const { data, error } = await supabase
-        .from('treasury_forecasts')
-        .insert({
-          user_id: forecast.user_id,
-          period_type: forecast.period_type,
-          start_date: forecast.start_date,
-          forecast_data: forecast.forecast_data
-        })
-        .select()
-        .single();
-
-      if (error) {
-        return { success: false, error: error.message };
-      }
-
-      return { success: true, data: data as TreasuryForecast };
-    }
-  },
-
-  /**
-   * Obtener saldo inicial real de caja (desde cashflow)
-   */
-  async getCurrentCashBalance(userId: string): Promise<number> {
-    const supabase = createClient();
-
-    // Obtener última fecha con datos
-    const { data: cashflowData } = await supabase
-      .from('monthly_cashflow')
-      .select('balance_final')
-      .eq('user_id', userId)
-      .order('periodo', { ascending: false })
-      .limit(1)
-      .single();
-
-    return cashflowData?.balance_final || 0;
   }
 };

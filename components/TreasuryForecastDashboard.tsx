@@ -1,13 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, TrendingDown, TrendingUp, Calendar, Plus, Save } from 'lucide-react';
+import { AlertTriangle, TrendingDown, TrendingUp, Plus, Save } from 'lucide-react';
 import { treasuryForecastService, type ForecastPeriod, type TreasuryForecast } from '@/lib/treasuryForecastService';
 
 export default function TreasuryForecastDashboard() {
@@ -124,98 +118,101 @@ export default function TreasuryForecastDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold">Previsión de Tesorería</h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-gray-600 mt-1">
             Planifica tus cobros y pagos futuros para anticipar tu liquidez
           </p>
         </div>
         
         {forecast && (
-          <Button onClick={handleSave} disabled={saving}>
-            <Save className="mr-2 h-4 w-4" />
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+          >
+            <Save className="h-4 w-4" />
             {saving ? 'Guardando...' : 'Guardar previsión'}
-          </Button>
+          </button>
         )}
       </div>
 
       {/* Configuración inicial */}
       {!forecast && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Crear nueva previsión</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label>Saldo inicial actual</Label>
-                <Input
-                  type="number"
-                  value={initialBalance}
-                  onChange={(e) => setInitialBalance(parseFloat(e.target.value) || 0)}
-                  className="mt-1"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Saldo obtenido del último mes de cashflow
-                </p>
-              </div>
-
-              <div>
-                <Label>Periodicidad</Label>
-                <Select value={periodType} onValueChange={(v: any) => setPeriodType(v)}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="monthly">Mensual</SelectItem>
-                    <SelectItem value="weekly">Semanal</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex items-end">
-                <Button onClick={handleCreateForecast} className="w-full">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Crear previsión
-                </Button>
-              </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-4">Crear nueva previsión</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Saldo inicial actual</label>
+              <input
+                type="number"
+                value={initialBalance}
+                onChange={(e) => setInitialBalance(parseFloat(e.target.value) || 0)}
+                className="w-full px-3 py-2 border rounded-md"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Saldo obtenido del último mes de cashflow
+              </p>
             </div>
-          </CardContent>
-        </Card>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Periodicidad</label>
+              <select
+                value={periodType}
+                onChange={(e) => setPeriodType(e.target.value as 'monthly' | 'weekly')}
+                className="w-full px-3 py-2 border rounded-md"
+              >
+                <option value="monthly">Mensual</option>
+                <option value="weekly">Semanal</option>
+              </select>
+            </div>
+
+            <div className="flex items-end">
+              <button
+                onClick={handleCreateForecast}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+              >
+                <Plus className="h-4 w-4" />
+                Crear previsión
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Tabla de previsión */}
       {forecast && (
-        <Card>
-          <CardHeader>
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-6 border-b">
             <div className="flex items-center justify-between">
-              <CardTitle>
+              <h2 className="text-xl font-semibold">
                 Previsión {periodType === 'monthly' ? 'Mensual' : 'Semanal'}
-              </CardTitle>
-              <div className="text-sm text-muted-foreground">
+              </h2>
+              <div className="text-sm text-gray-600">
                 Desde: {new Date(forecast.start_date).toLocaleDateString('es-ES')}
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+          
+          <div className="p-6">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-3 font-medium">Periodo</th>
-                    <th className="text-right p-3 font-medium">Saldo inicial</th>
-                    <th className="text-right p-3 font-medium">Cobros previstos</th>
-                    <th className="text-right p-3 font-medium">Pagos previstos</th>
-                    <th className="text-right p-3 font-medium">Saldo final</th>
-                    <th className="text-center p-3 font-medium">Estado</th>
+                  <tr className="border-b-2">
+                    <th className="text-left p-3 font-semibold">Periodo</th>
+                    <th className="text-right p-3 font-semibold">Saldo inicial</th>
+                    <th className="text-right p-3 font-semibold">Cobros previstos</th>
+                    <th className="text-right p-3 font-semibold">Pagos previstos</th>
+                    <th className="text-right p-3 font-semibold">Saldo final</th>
+                    <th className="text-center p-3 font-semibold">Estado</th>
                   </tr>
                 </thead>
                 <tbody>
                   {forecast.forecast_data.map((period, index) => (
-                    <tr key={index} className="border-b hover:bg-muted/50">
+                    <tr key={index} className="border-b hover:bg-gray-50">
                       <td className="p-3">
                         {new Date(period.period_date).toLocaleDateString('es-ES', { 
                           month: 'short', 
@@ -226,20 +223,20 @@ export default function TreasuryForecastDashboard() {
                         {period.initial_balance.toFixed(2)} €
                       </td>
                       <td className="text-right p-3">
-                        <Input
+                        <input
                           type="number"
                           value={period.planned_income}
                           onChange={(e) => handlePeriodChange(index, 'planned_income', e.target.value)}
-                          className="w-32 text-right"
+                          className="w-32 px-2 py-1 text-right border rounded"
                           step="0.01"
                         />
                       </td>
                       <td className="text-right p-3">
-                        <Input
+                        <input
                           type="number"
                           value={period.planned_expenses}
                           onChange={(e) => handlePeriodChange(index, 'planned_expenses', e.target.value)}
-                          className="w-32 text-right"
+                          className="w-32 px-2 py-1 text-right border rounded"
                           step="0.01"
                         />
                       </td>
@@ -270,25 +267,25 @@ export default function TreasuryForecastDashboard() {
             {/* Alertas */}
             <div className="mt-6 space-y-2">
               {forecast.forecast_data.some(p => p.alert_level === 'danger') && (
-                <Alert variant="destructive">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
+                <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-md">
+                  <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-red-800">
                     <strong>¡Alerta!</strong> Hay periodos con saldo negativo previsto. 
                     Planifica financiación o ajusta pagos.
-                  </AlertDescription>
-                </Alert>
+                  </div>
+                </div>
               )}
               {forecast.forecast_data.some(p => p.alert_level === 'warning') && (
-                <Alert>
-                  <TrendingDown className="h-4 w-4" />
-                  <AlertDescription>
+                <div className="flex items-start gap-3 p-4 bg-orange-50 border border-orange-200 rounded-md">
+                  <TrendingDown className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-orange-800">
                     <strong>Atención:</strong> Algunos periodos tienen liquidez ajustada (menos de 2.000 €).
-                  </AlertDescription>
-                </Alert>
+                  </div>
+                </div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );
