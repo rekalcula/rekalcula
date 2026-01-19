@@ -125,10 +125,11 @@ export default function TreasuryForecastDashboard() {
       
       console.log('📊 Respuesta completa del API cashflow:', result);
       
+      let balance = 0;
+      
+      // CASO 1: Si result.data es un array (estructura antigua)
       if (result.data?.length > 0) {
-        console.log('📈 Total de registros de cashflow:', result.data.length);
-        
-        // Ordenar por fecha para asegurar que obtenemos el más reciente
+        console.log('📈 Estructura de array detectada');
         const sortedData = [...result.data].sort((a, b) => {
           const dateA = new Date(a.month || a.period || a.fecha || a.date);
           const dateB = new Date(b.month || b.period || b.fecha || b.date);
@@ -136,26 +137,54 @@ export default function TreasuryForecastDashboard() {
         });
         
         const lastMonth = sortedData[0];
-        console.log('📅 Último mes de cashflow:', lastMonth);
-        
-        // Intentar varios campos posibles para el saldo final
-        const balance = parseFloat(
+        balance = parseFloat(
           lastMonth.balance_final || 
           lastMonth.final_balance || 
           lastMonth.saldo_final || 
           lastMonth.balance || 
-          lastMonth.ending_balance ||
-          lastMonth.net_cashflow ||
           0
         );
-        
-        setInitialBalance(balance);
-        
-        console.log('💰 Saldo inicial establecido:', balance, '€');
-      } else {
-        console.warn('⚠️ No hay datos de cashflow disponibles. Respuesta:', result);
-        setInitialBalance(0);
+        console.log('💰 Saldo desde array:', balance);
       }
+      // CASO 2: Si result tiene datosHistoricos (estructura nueva)
+      else if (result.datosHistoricos?.length > 0) {
+        console.log('📈 Estructura con datosHistoricos detectada');
+        const ultimoMes = result.datosHistoricos[result.datosHistoricos.length - 1];
+        console.log('📅 Último mes histórico:', ultimoMes);
+        
+        balance = parseFloat(
+          ultimoMes.balance_final || 
+          ultimoMes.saldoFinal ||
+          ultimoMes.final_balance || 
+          ultimoMes.balance || 
+          0
+        );
+        console.log('💰 Saldo desde datosHistoricos:', balance);
+      }
+      // CASO 3: Si viene en cajaOperativa o trimestre
+      else if (result.cajaOperativa || result.trimestre) {
+        console.log('📈 Estructura con cajaOperativa/trimestre detectada');
+        
+        const caja = result.cajaOperativa || {};
+        const trim = result.trimestre || {};
+        
+        balance = parseFloat(
+          caja.saldoFinal ||
+          caja.balance_final ||
+          trim.saldoFinal ||
+          trim.balance_final ||
+          0
+        );
+        console.log('💰 Saldo desde cajaOperativa/trimestre:', balance);
+      }
+      
+      if (balance === 0) {
+        console.warn('⚠️ No se pudo obtener el saldo. Estructura del API:', result);
+      }
+      
+      setInitialBalance(balance);
+      console.log('✅ Saldo inicial establecido:', balance, '€');
+      
     } catch (error) {
       console.error('❌ Error obteniendo saldo del cashflow:', error);
       setInitialBalance(0);
