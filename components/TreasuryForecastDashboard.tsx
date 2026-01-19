@@ -92,6 +92,7 @@ export default function TreasuryForecastDashboard() {
   const [forecast, setForecast] = useState<TreasuryForecast | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [loadingBalance, setLoadingBalance] = useState(false);
   const [periodType, setPeriodType] = useState<'monthly' | 'weekly'>('monthly');
   const [initialBalance, setInitialBalance] = useState(0);
 
@@ -117,16 +118,39 @@ export default function TreasuryForecastDashboard() {
   };
 
   const loadCurrentBalance = async () => {
+    setLoadingBalance(true);
     try {
       const response = await fetch('/api/cashflow');
       const result = await response.json();
       
       if (result.data?.length > 0) {
-        const lastMonth = result.data[result.data.length - 1];
-        setInitialBalance(lastMonth.balance_final || 0);
+        // Ordenar por fecha para asegurar que obtenemos el más reciente
+        const sortedData = [...result.data].sort((a, b) => 
+          new Date(b.month || b.period || b.fecha).getTime() - 
+          new Date(a.month || a.period || a.fecha).getTime()
+        );
+        
+        const lastMonth = sortedData[0];
+        
+        // Intentar varios campos posibles para el saldo final
+        const balance = lastMonth.balance_final || 
+                       lastMonth.final_balance || 
+                       lastMonth.saldo_final || 
+                       lastMonth.balance || 
+                       0;
+        
+        setInitialBalance(balance);
+        
+        console.log('Saldo inicial obtenido del cashflow:', balance);
+      } else {
+        console.log('No hay datos de cashflow disponibles');
+        setInitialBalance(0);
       }
     } catch (error) {
       console.error('Error obteniendo saldo:', error);
+      setInitialBalance(0);
+    } finally {
+      setLoadingBalance(false);
     }
   };
 
@@ -235,14 +259,64 @@ export default function TreasuryForecastDashboard() {
                 <Wallet className="h-4 w-4" />
                 Saldo inicial actual
               </label>
-              <input
-                type="number"
-                value={initialBalance}
-                onChange={(e) => setInitialBalance(parseFloat(e.target.value) || 0)}
-                className="w-full px-4 py-3 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
-              />
-              <p className="text-xs text-gray-500 mt-2">
-                Saldo obtenido del último mes de cashflow
+              <div className="relative">
+                <input
+                  type="number"
+                  value={initialBalance}
+                  onChange={(e) => setInitialBalance(parseFloat(e.target.value) || 0)}
+                  disabled={loadingBalance}
+                  className={`w-full px-4 py-3 pr-32 bg-[#0a0a0a] border rounded-lg text-lg font-semibold focus:ring-1 transition-colors disabled:opacity-50 ${
+                    initialBalance < 0 
+                      ? 'border-red-500 text-red-400 focus:border-red-500 focus:ring-red-500' 
+                      : initialBalance < 2000 && initialBalance > 0
+                        ? 'border-orange-500 text-orange-400 focus:border-orange-500 focus:ring-orange-500'
+                        : 'border-gray-700 text-white focus:border-green-500 focus:ring-green-500'
+                  }`}
+                  placeholder="0.00"
+                  step="0.01"
+                />
+                {loadingBalance && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <div className="animate-spin h-5 w-5 border-2 border-orange-500 border-t-transparent rounded-full"></div>
+                  </div>
+                )}
+                {!loadingBalance && initialBalance !== 0 && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                    <button
+                      onClick={loadCurrentBalance}
+                      className="text-xs text-gray-400 hover:text-orange-500 transition-colors"
+                      title="Actualizar desde cashflow"
+                    >
+                      🔄
+                    </button>
+                    <div className={`text-xs px-2 py-1 rounded whitespace-nowrap ${
+                      initialBalance < 0
+                        ? 'bg-red-600/20 text-red-400'
+                        : initialBalance < 2000
+                          ? 'bg-orange-600/20 text-orange-400'
+                          : 'bg-green-600/20 text-green-400'
+                    }`}>
+                      Cashflow
+                    </div>
+                  </div>
+                )}
+              </div>
+              <p className={`text-xs mt-2 ${
+                initialBalance < 0 
+                  ? 'text-red-400' 
+                  : initialBalance < 2000 && initialBalance > 0
+                    ? 'text-orange-400'
+                    : 'text-gray-500'
+              }`}>
+                {loadingBalance 
+                  ? 'Obteniendo saldo del cashflow...'
+                  : initialBalance < 0
+                    ? `⚠️ Saldo negativo: ${initialBalance.toFixed(2)} € - Necesitas financiación`
+                    : initialBalance < 2000 && initialBalance > 0
+                      ? `⚡ Liquidez ajustada: ${initialBalance.toFixed(2)} € - Planifica con cuidado`
+                      : initialBalance !== 0 
+                        ? `✓ Saldo: ${initialBalance.toFixed(2)} € (último mes de cashflow)` 
+                        : 'Introduce el saldo inicial manualmente o se obtendrá del cashflow'}
               </p>
             </div>
 
