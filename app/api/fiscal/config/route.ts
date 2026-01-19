@@ -39,6 +39,20 @@ export async function POST(request: NextRequest) {
 
     const config: FiscalConfig = await request.json()
 
+    // 🔥 FILTRAR SOLO CAMPOS VÁLIDOS
+    const configData = {
+      tipo_entidad: config.tipo_entidad,
+      regimen_fiscal: config.regimen_fiscal,
+      retencion_irpf: config.retencion_irpf,
+      tipo_iva: config.tipo_iva,
+      porcentaje_iva: config.porcentaje_iva,
+      tipo_impuesto_sociedades: config.tipo_impuesto_sociedades,
+      umbral_alerta_1: config.umbral_alerta_1,
+      umbral_alerta_2: config.umbral_alerta_2,
+      facturacion_estimada_anual: config.facturacion_estimada_anual || null,
+      gastos_estimados_anual: config.gastos_estimados_anual || null
+    }
+
     const { data: existing } = await supabase
       .from('fiscal_config')
       .select('id')
@@ -50,14 +64,14 @@ export async function POST(request: NextRequest) {
     if (existing) {
       result = await supabase
         .from('fiscal_config')
-        .update({ ...config, updated_at: new Date().toISOString() })
+        .update({ ...configData, updated_at: new Date().toISOString() })
         .eq('user_id', userId)
         .select()
         .single()
     } else {
       result = await supabase
         .from('fiscal_config')
-        .insert({ ...config, user_id: userId })
+        .insert({ ...configData, user_id: userId })
         .select()
         .single()
     }
@@ -67,6 +81,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, config: result.data })
   } catch (error) {
     console.error('Error guardando config fiscal:', error)
-    return NextResponse.json({ success: false, error: 'Error guardando' }, { status: 500 })
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Error guardando', 
+      details: error instanceof Error ? error.message : 'Unknown error' 
+    }, { status: 500 })
   }
 }
