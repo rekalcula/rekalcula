@@ -1,10 +1,12 @@
 'use client'
 
+import { TrendingUp } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { UserButton } from '@clerk/nextjs'
 import CreditsDisplay from './CreditsDisplay'
+
 
 // Configuración de apariencia para Clerk
 const clerkAppearance = {
@@ -66,7 +68,9 @@ export default function DashboardNav() {
     { href: '/dashboard/analytics/sales', label: 'Analisis Ventas' },
     { href: '/dashboard/advisor', label: 'Asesor IA' },
     { href: '/dashboard/cashflow', label: 'Cash Flow' },
+    { href: '/dashboard/prevision', label: 'Previsión tesorería' },
     { href: '/dashboard/resultado', label: 'Resultado Empresa' },
+
   ]
 
   return (
