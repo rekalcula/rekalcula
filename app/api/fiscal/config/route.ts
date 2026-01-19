@@ -39,14 +39,19 @@ export async function POST(request: NextRequest) {
 
     const config: FiscalConfig = await request.json()
 
+    // 🔥 VALIDACIÓN: SL/SA solo pueden tener régimen general
+    if ((config.tipo_entidad === 'sl' || config.tipo_entidad === 'sa') && config.regimen_fiscal !== 'general') {
+      config.regimen_fiscal = 'general' // Corregir automáticamente
+    }
+
     // 🔥 FILTRAR SOLO CAMPOS VÁLIDOS
     const configData = {
       tipo_entidad: config.tipo_entidad,
       regimen_fiscal: config.regimen_fiscal,
-      retencion_irpf: config.retencion_irpf,
+      retencion_irpf: config.retencion_irpf || 0,
       tipo_iva: config.tipo_iva,
       porcentaje_iva: config.porcentaje_iva,
-      tipo_impuesto_sociedades: config.tipo_impuesto_sociedades,
+      tipo_impuesto_sociedades: config.tipo_impuesto_sociedades || 25,
       umbral_alerta_1: config.umbral_alerta_1,
       umbral_alerta_2: config.umbral_alerta_2,
       facturacion_estimada_anual: config.facturacion_estimada_anual || null,
@@ -83,7 +88,7 @@ export async function POST(request: NextRequest) {
     console.error('Error guardando config fiscal:', error)
     return NextResponse.json({ 
       success: false, 
-      error: 'Error guardando', 
+      error: 'Error guardando configuración', 
       details: error instanceof Error ? error.message : 'Unknown error' 
     }, { status: 500 })
   }
