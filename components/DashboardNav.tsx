@@ -6,6 +6,28 @@ import { usePathname } from 'next/navigation'
 import { UserButton } from '@clerk/nextjs'
 import CreditsDisplay from './CreditsDisplay'
 
+// Configuración de apariencia para Clerk
+const clerkAppearance = {
+  elements: {
+    avatarBox: "w-10 h-10",
+    userButtonPopoverCard: "bg-[#1a1a1a] border border-gray-700",
+    userButtonPopoverActionButton: "text-gray-300 hover:bg-gray-700 hover:text-white",
+    userButtonPopoverActionButtonText: "text-gray-300",
+    userButtonPopoverActionButtonIcon: "text-gray-400",
+    userButtonPopoverFooter: "hidden",
+    userPreviewMainIdentifier: "text-white",
+    userPreviewSecondaryIdentifier: "text-gray-400",
+  },
+  variables: {
+    colorBackground: "#1a1a1a",
+    colorText: "#ffffff",
+    colorTextSecondary: "#9ca3af",
+    colorPrimary: "#D98C21",
+    colorDanger: "#ef4444",
+    borderRadius: "0.5rem",
+  }
+}
+
 export default function DashboardNav() {
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -67,7 +89,10 @@ export default function DashboardNav() {
           <Link href="/dashboard" className="font-bold text-white" style={{ fontSize: '35px' }}>
             re<span style={{ color: '#D98C21' }}>K</span>alcula
           </Link>
-          <UserButton afterSignOutUrl="/" />
+          <UserButton 
+            afterSignOutUrl="/" 
+            appearance={clerkAppearance}
+          />
         </div>
       </header>
 
@@ -119,16 +144,16 @@ export default function DashboardNav() {
           })}
         </nav>
 
-        {/* ========================================
-            COMPONENTE DE CRÉDITOS
-        ======================================== */}
         <div className="px-3 pb-3">
           <CreditsDisplay compact />
         </div>
 
         <div className="hidden md:block border-t border-gray-700">
           <div className="flex items-center space-x-3 p-4">
-            <UserButton afterSignOutUrl="/" />
+            <UserButton 
+              afterSignOutUrl="/" 
+              appearance={clerkAppearance}
+            />
             <span className="text-gray-300" style={{ fontSize: '20px' }}>Mi cuenta</span>
           </div>
           <Link
