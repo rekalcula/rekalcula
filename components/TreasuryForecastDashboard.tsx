@@ -123,31 +123,41 @@ export default function TreasuryForecastDashboard() {
       const response = await fetch('/api/cashflow');
       const result = await response.json();
       
+      console.log('📊 Respuesta completa del API cashflow:', result);
+      
       if (result.data?.length > 0) {
+        console.log('📈 Total de registros de cashflow:', result.data.length);
+        
         // Ordenar por fecha para asegurar que obtenemos el más reciente
-        const sortedData = [...result.data].sort((a, b) => 
-          new Date(b.month || b.period || b.fecha).getTime() - 
-          new Date(a.month || a.period || a.fecha).getTime()
-        );
+        const sortedData = [...result.data].sort((a, b) => {
+          const dateA = new Date(a.month || a.period || a.fecha || a.date);
+          const dateB = new Date(b.month || b.period || b.fecha || b.date);
+          return dateB.getTime() - dateA.getTime();
+        });
         
         const lastMonth = sortedData[0];
+        console.log('📅 Último mes de cashflow:', lastMonth);
         
         // Intentar varios campos posibles para el saldo final
-        const balance = lastMonth.balance_final || 
-                       lastMonth.final_balance || 
-                       lastMonth.saldo_final || 
-                       lastMonth.balance || 
-                       0;
+        const balance = parseFloat(
+          lastMonth.balance_final || 
+          lastMonth.final_balance || 
+          lastMonth.saldo_final || 
+          lastMonth.balance || 
+          lastMonth.ending_balance ||
+          lastMonth.net_cashflow ||
+          0
+        );
         
         setInitialBalance(balance);
         
-        console.log('Saldo inicial obtenido del cashflow:', balance);
+        console.log('💰 Saldo inicial establecido:', balance, '€');
       } else {
-        console.log('No hay datos de cashflow disponibles');
+        console.warn('⚠️ No hay datos de cashflow disponibles. Respuesta:', result);
         setInitialBalance(0);
       }
     } catch (error) {
-      console.error('Error obteniendo saldo:', error);
+      console.error('❌ Error obteniendo saldo del cashflow:', error);
       setInitialBalance(0);
     } finally {
       setLoadingBalance(false);
@@ -280,24 +290,26 @@ export default function TreasuryForecastDashboard() {
                     <div className="animate-spin h-5 w-5 border-2 border-orange-500 border-t-transparent rounded-full"></div>
                   </div>
                 )}
-                {!loadingBalance && initialBalance !== 0 && (
+                {!loadingBalance && (
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                     <button
                       onClick={loadCurrentBalance}
-                      className="text-xs text-gray-400 hover:text-orange-500 transition-colors"
+                      className="text-sm px-3 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white rounded transition-colors flex items-center gap-1"
                       title="Actualizar desde cashflow"
                     >
-                      🔄
+                      🔄 Obtener
                     </button>
-                    <div className={`text-xs px-2 py-1 rounded whitespace-nowrap ${
-                      initialBalance < 0
-                        ? 'bg-red-600/20 text-red-400'
-                        : initialBalance < 2000
-                          ? 'bg-orange-600/20 text-orange-400'
-                          : 'bg-green-600/20 text-green-400'
-                    }`}>
-                      Cashflow
-                    </div>
+                    {initialBalance !== 0 && (
+                      <div className={`text-xs px-2 py-1 rounded whitespace-nowrap ${
+                        initialBalance < 0
+                          ? 'bg-red-600/20 text-red-400'
+                          : initialBalance < 2000
+                            ? 'bg-orange-600/20 text-orange-400'
+                            : 'bg-green-600/20 text-green-400'
+                      }`}>
+                        Cashflow
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -316,7 +328,7 @@ export default function TreasuryForecastDashboard() {
                       ? `⚡ Liquidez ajustada: ${initialBalance.toFixed(2)} € - Planifica con cuidado`
                       : initialBalance !== 0 
                         ? `✓ Saldo: ${initialBalance.toFixed(2)} € (último mes de cashflow)` 
-                        : 'Introduce el saldo inicial manualmente o se obtendrá del cashflow'}
+                        : 'Introduce manualmente o haz clic en "Obtener" para cargar desde cashflow'}
               </p>
             </div>
 
