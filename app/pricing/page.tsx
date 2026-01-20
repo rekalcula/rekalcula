@@ -25,7 +25,7 @@ export default function PricingPage() {
   const { isSignedIn } = useAuth()
   const [loading, setLoading] = useState<string | null>(null)
   const [plans, setPlans] = useState<Plan[]>([])
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly')
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
   const [loadingPlans, setLoadingPlans] = useState(true)
 
   useEffect(() => {
