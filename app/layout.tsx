@@ -23,7 +23,7 @@ export const metadata = {
 }
 
 export const viewport = {
-  themeColor: '#ffffff',
+  themeColor: '#0d0d0d',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -38,6 +38,17 @@ export default function RootLayout({
   return (
     <ClerkProvider
       appearance={{
+        // ⚠️ VARIABLES GLOBALES - Esto fuerza los colores base
+        variables: {
+          colorText: '#ffffff',              // Texto principal: BLANCO
+          colorTextSecondary: '#9ca3af',     // Texto secundario: GRIS CLARO
+          colorBackground: '#1a1a1a',        // Fondo: OSCURO
+          colorPrimary: '#D98C21',           // Color primario: NARANJA
+          colorDanger: '#ef4444',            // Rojo para errores
+          fontSize: '16px',                  // Tamaño de fuente base: 16px
+          fontSizeSm: '14px',                // Tamaño pequeño: 14px
+        },
+        
         elements: {
           // ============================================
           // USER BUTTON - Avatar y menú desplegable
@@ -50,21 +61,21 @@ export default function RootLayout({
           userButtonPopoverCard: "bg-[#1a1a1a] border border-gray-800 shadow-2xl",
           userButtonPopoverActions: "bg-[#1a1a1a]",
           
-          // ⚠️ BOTONES DEL MENÚ - TAMAÑO Y COLOR MEJORADOS
-          userButtonPopoverActionButton: "text-white hover:bg-[#2a2a2a] transition-colors text-base py-3",
-          userButtonPopoverActionButtonText: "text-white font-medium text-base",
-          userButtonPopoverActionButtonIcon: "text-white w-5 h-5",
+          // ⚠️ BOTONES DEL MENÚ - CON !IMPORTANT FORZADO EN TAILWIND
+          userButtonPopoverActionButton: "!text-white hover:bg-[#2a2a2a] transition-colors !text-base !py-3 !font-normal",
+          userButtonPopoverActionButtonText: "!text-white !font-medium !text-base",
+          userButtonPopoverActionButtonIcon: "!text-white !w-5 !h-5",
           
           // Separador entre opciones
           userButtonPopoverActionButtonDivider: "bg-gray-700",
           
-          // ⚠️ PREVIEW DEL USUARIO - NOMBRE Y EMAIL CON MEJOR TAMAÑO
+          // ⚠️ PREVIEW DEL USUARIO - NOMBRE Y EMAIL
           userPreview: "bg-[#1a1a1a] px-4 py-4",
           userPreviewTextContainer: "text-white",
-          userPreviewMainIdentifier: "text-white font-semibold text-base",
-          userPreviewSecondaryIdentifier: "text-gray-400 text-sm",
+          userPreviewMainIdentifier: "!text-white !font-semibold !text-base",
+          userPreviewSecondaryIdentifier: "!text-gray-400 !text-sm",
           
-          // ⚠️ FOOTER - "Secured by Clerk" y "Development mode"
+          // ⚠️ FOOTER
           userButtonPopoverFooter: "bg-[#1a1a1a] border-t border-gray-800 px-4 py-3",
           
           // ============================================
@@ -75,25 +86,25 @@ export default function RootLayout({
           card: "bg-[#1a1a1a] border border-gray-800 shadow-xl",
           
           // Headers
-          headerTitle: "text-white text-2xl",
-          headerSubtitle: "text-gray-400 text-base",
+          headerTitle: "!text-white !text-2xl",
+          headerSubtitle: "!text-gray-400 !text-base",
           
           // Inputs
-          formFieldInput: "bg-[#2a2a2a] border-gray-700 text-white text-base placeholder:text-gray-500 focus:border-orange-500 focus:ring-orange-500",
-          formFieldLabel: "text-gray-300 font-medium text-base",
+          formFieldInput: "bg-[#2a2a2a] border-gray-700 !text-white !text-base placeholder:text-gray-500 focus:border-orange-500 focus:ring-orange-500",
+          formFieldLabel: "!text-gray-300 !font-medium !text-base",
           
           // Botones
-          formButtonPrimary: "bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-lg transition-colors text-base py-3",
+          formButtonPrimary: "bg-orange-500 hover:bg-orange-600 !text-white !font-semibold shadow-lg transition-colors !text-base py-3",
           
           // Botones sociales
-          socialButtonsBlockButton: "bg-[#2a2a2a] border-gray-700 text-gray-200 hover:bg-[#3a3a3a] transition-colors text-base",
+          socialButtonsBlockButton: "bg-[#2a2a2a] border-gray-700 !text-gray-200 hover:bg-[#3a3a3a] transition-colors !text-base",
           
           // Links
-          footerActionLink: "text-orange-500 hover:text-orange-400 font-medium text-base",
+          footerActionLink: "!text-orange-500 hover:!text-orange-400 !font-medium !text-base",
           
           // Divisores
           dividerLine: "bg-gray-700",
-          dividerText: "text-gray-500 text-sm",
+          dividerText: "!text-gray-500 !text-sm",
         },
       }}
     >
