@@ -45,8 +45,7 @@ export default function RootLayout({
           colorBackground: '#1a1a1a',        // Fondo: OSCURO
           colorPrimary: '#D98C21',           // Color primario: NARANJA
           colorDanger: '#ef4444',            // Rojo para errores
-          fontSize: '16px',                  // Tamaño de fuente base: 16px
-          fontSizeSm: '14px',                // Tamaño pequeño: 14px
+          fontSize: '16px',                // Tamaño de fuente base: 16px
         },
         
         elements: {
