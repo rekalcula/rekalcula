@@ -40,3 +40,37 @@ body {
 .bg-gray-50 {
   background-color: var(--background) !important;
 }
+
+/* Fix para inputs de Clerk - texto negro en campos de formulario */
+/* Fix para inputs de Clerk - texto negro en campos de formulario */
+.cl-formFieldInput,
+.cl-input,
+.cl-formFieldInput__input,
+.cl-formFieldInput input,
+.cl-internal-input,
+input[type="email"],
+input[type="password"],
+input[type="text"],
+input[data-clerk-input],
+div[data-clerk-element] input {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  opacity: 1 !important;
+}
+
+/* Fix para placeholders */
+.cl-formFieldInput::placeholder,
+.cl-input::placeholder,
+input::placeholder {
+  color: #666666 !important;
+  opacity: 0.6 !important;
+}
+
+/* Fix para estados focus y autofill */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #000000 !important;
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+}
