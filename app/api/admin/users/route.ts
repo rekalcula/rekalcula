@@ -20,42 +20,57 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     const offset = (page - 1) * limit
 
+    // 1. Obtener suscripciones (sin JOIN)
     const { data: subscriptions, error, count } = await supabase
       .from('subscriptions')
-      .select(`
-        *,
-        user_credits (
-          invoices_available,
-          tickets_available,
-          analyses_available,
-          invoices_used_this_month,
-          tickets_used_this_month,
-          analyses_used_this_month
-        )
-      `, { count: 'exact' })
+      .select('*', { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
     if (error) throw error
 
-    const userIds = subscriptions?.map(s => s.user_id) || []
+    if (!subscriptions || subscriptions.length === 0) {
+      return NextResponse.json({
+        success: true,
+        users: [],
+        pagination: {
+          page,
+          limit,
+          total: 0,
+          totalPages: 0
+        }
+      })
+    }
 
+    const userIds = subscriptions.map(s => s.user_id)
+
+    // 2. Obtener créditos por separado
+    const { data: allCredits } = await supabase
+      .from('user_credits')
+      .select('*')
+      .in('user_id', userIds)
+
+    // 3. Obtener conteo de facturas
     const { data: invoiceCounts } = await supabase
       .from('invoices')
       .select('user_id')
       .in('user_id', userIds)
 
+    // 4. Obtener conteo de tickets
     const { data: ticketCounts } = await supabase
       .from('sales')
       .select('user_id')
       .in('user_id', userIds)
 
-    const usersWithCounts = subscriptions?.map(sub => {
+    // 5. Combinar datos
+    const usersWithCounts = subscriptions.map(sub => {
+      const credits = allCredits?.find(c => c.user_id === sub.user_id)
       const invoices = invoiceCounts?.filter(i => i.user_id === sub.user_id).length || 0
       const tickets = ticketCounts?.filter(t => t.user_id === sub.user_id).length || 0
 
       return {
         ...sub,
+        user_credits: credits ? [credits] : [],
         total_invoices: invoices,
         total_tickets: tickets
       }
@@ -72,11 +87,10 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error: any) {
+    console.error('Error in GET /api/admin/users:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
-
-// Añadir al final del archivo existente
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -93,25 +107,12 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Eliminar en orden para evitar errores de FK
-    // 1. Eliminar créditos del usuario
-    await supabase
-      .from('user_credits')
-      .delete()
-      .eq('user_id', userIdToDelete)
-
-    // 2. Eliminar facturas
-    await supabase
-      .from('invoices')
-      .delete()
-      .eq('user_id', userIdToDelete)
-
-    // 3. Eliminar ventas/tickets
-    await supabase
-      .from('sales')
-      .delete()
-      .eq('user_id', userIdToDelete)
-
-    // 4. Eliminar suscripción
+    await supabase.from('credit_transactions').delete().eq('user_id', userIdToDelete)
+    await supabase.from('user_credits').delete().eq('user_id', userIdToDelete)
+    await supabase.from('invoices').delete().eq('user_id', userIdToDelete)
+    await supabase.from('sales').delete().eq('user_id', userIdToDelete)
+    await supabase.from('terms_acceptance_log').delete().eq('user_id', userIdToDelete)
+    
     const { error } = await supabase
       .from('subscriptions')
       .delete()
