@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "516971826017",
+    "project_id": "rekalcula-notifications",
+    "storage_bucket": "rekalcula-notifications.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:516971826017:android:59675e22d16fd3f050d320",
+        "android_client_info": {
+          "package_name": "com.rekalcula.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAx3RAkMXmqOJvL6ejHhsUZWLMY-47dDRM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
