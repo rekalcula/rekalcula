@@ -194,7 +194,6 @@ export async function GET(request: NextRequest) {
 
     // 12. Generar recomendaciones
     let recomendaciones
-    let creditosUsados = false
 
     if (usarIA) {
       try {
@@ -209,7 +208,6 @@ export async function GET(request: NextRequest) {
           }, { status: 402 })
         }
 
-        creditosUsados = true
         recomendaciones = await generarRecomendaciones(oportunidades, true)
       } catch (error) {
         console.error('Error con IA, usando fallback:', error)
@@ -230,8 +228,7 @@ export async function GET(request: NextRequest) {
       periodo: fechaInicio && fechaFin ? `${fechaInicio} - ${fechaFin}` : traducirPeriodo(periodo),
       recomendaciones,
       sinRecomendaciones: false,
-      mensaje: mensajeDatos || undefined,
-      creditosUsados
+      mensaje: mensajeDatos || undefined
     }
 
     return NextResponse.json(response)
