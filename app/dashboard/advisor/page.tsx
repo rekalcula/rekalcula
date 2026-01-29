@@ -18,7 +18,7 @@ import {
   Plus,
   FileText
 } from 'lucide-react'
-import { triggerCreditsUpdate } from '@/components/CreditsDisplay'
+
 interface AdvisorResponse {
   success: boolean
   sector: string
@@ -168,7 +168,9 @@ export default function AdvisorPage() {
 
       setAnalisisActual(result)
       // ✅ Actualizar créditos en el sidebar
-    triggerCreditsUpdate()
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('credits-updated'))
+      }
     } catch (err: any) {
       setError(err.message || 'Error generando análisis')
     } finally {

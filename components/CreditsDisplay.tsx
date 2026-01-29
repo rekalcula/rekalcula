@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { FileText, Receipt, Brain, AlertTriangle, Zap } from 'lucide-react'
 import Link from 'next/link'
 
@@ -16,11 +16,7 @@ export default function CreditsDisplay({ compact = false }: { compact?: boolean 
   const [credits, setCredits] = useState<Credits | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchCredits()
-  }, [])
-
-  const fetchCredits = async () => {
+  const fetchCredits = useCallback(async () => {
     try {
       const res = await fetch('/api/credits')
       const data = await res.json()
@@ -32,7 +28,23 @@ export default function CreditsDisplay({ compact = false }: { compact?: boolean 
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchCredits()
+
+    // ✅ Escuchar evento personalizado para actualizar créditos
+    const handleCreditsUpdate = () => {
+      fetchCredits()
+    }
+
+    window.addEventListener('credits-updated', handleCreditsUpdate)
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('credits-updated', handleCreditsUpdate)
+    }
+  }, [fetchCredits])
 
   if (loading) {
     return (
@@ -76,7 +88,7 @@ export default function CreditsDisplay({ compact = false }: { compact?: boolean 
           <FileText className="w-3 h-3 text-purple-400" />
           <div className="flex-1 bg-[#444] rounded-full h-1.5">
             <div 
-              className={`h-1.5 rounded-full ${getBarColor(getPercentage(credits.invoices.available, credits.invoices.limit))}`}
+              className={`h-1.5 rounded-full transition-all duration-300 ${getBarColor(getPercentage(credits.invoices.available, credits.invoices.limit))}`}
               style={{ width: `${Math.min(getPercentage(credits.invoices.available, credits.invoices.limit), 100)}%` }}
             />
           </div>
@@ -88,7 +100,7 @@ export default function CreditsDisplay({ compact = false }: { compact?: boolean 
           <Receipt className="w-3 h-3 text-orange-400" />
           <div className="flex-1 bg-[#444] rounded-full h-1.5">
             <div 
-              className={`h-1.5 rounded-full ${getBarColor(getPercentage(credits.tickets.available, credits.tickets.limit))}`}
+              className={`h-1.5 rounded-full transition-all duration-300 ${getBarColor(getPercentage(credits.tickets.available, credits.tickets.limit))}`}
               style={{ width: `${Math.min(getPercentage(credits.tickets.available, credits.tickets.limit), 100)}%` }}
             />
           </div>
@@ -100,7 +112,7 @@ export default function CreditsDisplay({ compact = false }: { compact?: boolean 
           <Brain className="w-3 h-3 text-blue-400" />
           <div className="flex-1 bg-[#444] rounded-full h-1.5">
             <div 
-              className={`h-1.5 rounded-full ${getBarColor(getPercentage(credits.analyses.available, credits.analyses.limit))}`}
+              className={`h-1.5 rounded-full transition-all duration-300 ${getBarColor(getPercentage(credits.analyses.available, credits.analyses.limit))}`}
               style={{ width: `${Math.min(getPercentage(credits.analyses.available, credits.analyses.limit), 100)}%` }}
             />
           </div>
@@ -146,7 +158,7 @@ export default function CreditsDisplay({ compact = false }: { compact?: boolean 
           </div>
           <div className="w-full bg-[#444] rounded-full h-2">
             <div 
-              className={`h-2 rounded-full transition-all ${getBarColor(getPercentage(credits.invoices.available, credits.invoices.limit))}`}
+              className={`h-2 rounded-full transition-all duration-300 ${getBarColor(getPercentage(credits.invoices.available, credits.invoices.limit))}`}
               style={{ width: `${Math.min(getPercentage(credits.invoices.available, credits.invoices.limit), 100)}%` }}
             />
           </div>
@@ -168,7 +180,7 @@ export default function CreditsDisplay({ compact = false }: { compact?: boolean 
           </div>
           <div className="w-full bg-[#444] rounded-full h-2">
             <div 
-              className={`h-2 rounded-full transition-all ${getBarColor(getPercentage(credits.tickets.available, credits.tickets.limit))}`}
+              className={`h-2 rounded-full transition-all duration-300 ${getBarColor(getPercentage(credits.tickets.available, credits.tickets.limit))}`}
               style={{ width: `${Math.min(getPercentage(credits.tickets.available, credits.tickets.limit), 100)}%` }}
             />
           </div>
@@ -190,7 +202,7 @@ export default function CreditsDisplay({ compact = false }: { compact?: boolean 
           </div>
           <div className="w-full bg-[#444] rounded-full h-2">
             <div 
-              className={`h-2 rounded-full transition-all ${getBarColor(getPercentage(credits.analyses.available, credits.analyses.limit))}`}
+              className={`h-2 rounded-full transition-all duration-300 ${getBarColor(getPercentage(credits.analyses.available, credits.analyses.limit))}`}
               style={{ width: `${Math.min(getPercentage(credits.analyses.available, credits.analyses.limit), 100)}%` }}
             />
           </div>
