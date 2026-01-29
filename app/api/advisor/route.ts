@@ -28,6 +28,7 @@ import {
   obtenerResumen,
   AdvisorResponse
 } from '@/lib/advisor'
+import { hasCredits, useCredits } from '@/lib/credits'
 
 // Cliente Supabase con service role
 const supabase = createClient(
@@ -57,7 +58,19 @@ export async function GET(request: NextRequest) {
     const fechaInicio = searchParams.get('fechaInicio')
     const fechaFin = searchParams.get('fechaFin')
 
-    // 3. Calcular rangos de fecha
+    // 3. Verificar créditos disponibles SI se va a usar IA
+    if (usarIA) {
+      const tieneCreditos = await hasCredits(userId, 'analyses')
+      if (!tieneCreditos) {
+        return NextResponse.json({
+          success: false,
+          error: 'No tienes créditos de análisis disponibles',
+          creditError: true
+        }, { status: 402 })
+      }
+    }
+
+    // 4. Calcular rangos de fecha
     let rangoFechas
     let diasSeleccionados = 0
 
@@ -72,7 +85,7 @@ export async function GET(request: NextRequest) {
 
     const { inicioActual, finActual, inicioAnterior, finAnterior } = rangoFechas
 
-    // 4. Obtener ventas del período actual
+    // 5. Obtener ventas del período actual
     const { data: ventasActuales, error: errorActuales } = await supabase
       .from('sales')
       .select(`
@@ -98,7 +111,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 5. Obtener ventas del período anterior (para tendencias)
+    // 6. Obtener ventas del período anterior (para tendencias)
     const { data: ventasAnteriores, error: errorAnteriores } = await supabase
       .from('sales')
       .select(`
@@ -121,15 +134,13 @@ export async function GET(request: NextRequest) {
       // No es crítico, continuamos sin datos de tendencia
     }
 
-    // 6. Verificar que hay datos
+    // 7. Verificar que hay datos
     if (!ventasActuales || ventasActuales.length === 0) {
       const response: AdvisorResponse = {
         success: true,
         sector: 'desconocido',
         confianzaSector: 0,
-        periodo: fechaInicio && fechaFin ? `${fechaInicio} - ${fechaFin}` : traducirPeriodo(periodo)
-          ? `${fechaInicio} - ${fechaFin}`
-          : traducirPeriodo(periodo),
+        periodo: fechaInicio && fechaFin ? `${fechaInicio} - ${fechaFin}` : traducirPeriodo(periodo),
         recomendaciones: [],
         sinRecomendaciones: true,
         mensaje:
@@ -138,7 +149,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(response)
     }
 
-    // 7. Agregar métricas
+    // 8. Agregar métricas
     const metricas = agregarMetricas(
       {
         ventasActuales: ventasActuales || [],
@@ -147,7 +158,7 @@ export async function GET(request: NextRequest) {
       periodo
     )
 
-    // 8. Verificar si hay datos suficientes
+    // 9. Verificar si hay datos suficientes
     const { suficientes, mensaje: mensajeDatos } = hayDatosSuficientes(metricas)
 
     if (!suficientes) {
@@ -155,9 +166,7 @@ export async function GET(request: NextRequest) {
         success: true,
         sector: metricas.sector,
         confianzaSector: metricas.confianzaSector,
-        periodo: fechaInicio && fechaFin ? `${fechaInicio} - ${fechaFin}` : traducirPeriodo(periodo)
-          ? `${fechaInicio} - ${fechaFin}`
-          : traducirPeriodo(periodo),
+        periodo: fechaInicio && fechaFin ? `${fechaInicio} - ${fechaFin}` : traducirPeriodo(periodo),
         recomendaciones: [],
         sinRecomendaciones: true,
         mensaje: mensajeDatos
@@ -165,18 +174,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(response)
     }
 
-    // 9. Detectar oportunidades
+    // 10. Detectar oportunidades
     const oportunidades = detectarOportunidades(metricas, 5)
 
-    // 10. Si no hay oportunidades
+    // 11. Si no hay oportunidades
     if (oportunidades.length === 0) {
       const response: AdvisorResponse = {
         success: true,
         sector: metricas.sector,
         confianzaSector: metricas.confianzaSector,
-        periodo: fechaInicio && fechaFin ? `${fechaInicio} - ${fechaFin}` : traducirPeriodo(periodo)
-          ? `${fechaInicio} - ${fechaFin}`
-          : traducirPeriodo(periodo),
+        periodo: fechaInicio && fechaFin ? `${fechaInicio} - ${fechaFin}` : traducirPeriodo(periodo),
         recomendaciones: [],
         sinRecomendaciones: true,
         mensaje:
@@ -185,11 +192,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(response)
     }
 
-    // 11. Generar recomendaciones
+    // 12. Generar recomendaciones
     let recomendaciones
+    let creditosUsados = false
 
     if (usarIA) {
       try {
+        // ✅ DESCONTAR CRÉDITO ANTES DE USAR LA IA
+        const creditResult = await useCredits(userId, 'analyses')
+        
+        if (!creditResult.success && !creditResult.isBetaTester) {
+          return NextResponse.json({
+            success: false,
+            error: creditResult.error || 'No tienes créditos de análisis disponibles',
+            creditError: true
+          }, { status: 402 })
+        }
+
+        creditosUsados = true
         recomendaciones = await generarRecomendaciones(oportunidades, true)
       } catch (error) {
         console.error('Error con IA, usando fallback:', error)
@@ -199,20 +219,19 @@ export async function GET(request: NextRequest) {
       recomendaciones = generarRecomendacionesSinIA(oportunidades)
     }
 
-    // 12. Obtener resumen
+    // 13. Obtener resumen
     const resumen = obtenerResumen(oportunidades)
 
-    // 13. Construir respuesta
+    // 14. Construir respuesta
     const response: AdvisorResponse = {
       success: true,
       sector: metricas.sector,
       confianzaSector: metricas.confianzaSector,
-      periodo: fechaInicio && fechaFin ? `${fechaInicio} - ${fechaFin}` : traducirPeriodo(periodo)
-        ? `${fechaInicio} - ${fechaFin}`
-        : traducirPeriodo(periodo),
+      periodo: fechaInicio && fechaFin ? `${fechaInicio} - ${fechaFin}` : traducirPeriodo(periodo),
       recomendaciones,
       sinRecomendaciones: false,
-      mensaje: mensajeDatos || undefined
+      mensaje: mensajeDatos || undefined,
+      creditosUsados
     }
 
     return NextResponse.json(response)
