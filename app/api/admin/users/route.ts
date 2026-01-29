@@ -75,3 +75,53 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
+
+// Añadir al final del archivo existente
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { userId } = await auth()
+    if (!userId || !(await isAdmin(userId))) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const userIdToDelete = searchParams.get('userId')
+
+    if (!userIdToDelete) {
+      return NextResponse.json({ error: 'userId requerido' }, { status: 400 })
+    }
+
+    // Eliminar en orden para evitar errores de FK
+    // 1. Eliminar créditos del usuario
+    await supabase
+      .from('user_credits')
+      .delete()
+      .eq('user_id', userIdToDelete)
+
+    // 2. Eliminar facturas
+    await supabase
+      .from('invoices')
+      .delete()
+      .eq('user_id', userIdToDelete)
+
+    // 3. Eliminar ventas/tickets
+    await supabase
+      .from('sales')
+      .delete()
+      .eq('user_id', userIdToDelete)
+
+    // 4. Eliminar suscripción
+    const { error } = await supabase
+      .from('subscriptions')
+      .delete()
+      .eq('user_id', userIdToDelete)
+
+    if (error) throw error
+
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    console.error('Error deleting user:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
