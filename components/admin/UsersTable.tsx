@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search, Trash2, AlertTriangle } from 'lucide-react'
 
 interface UserCredits {
   invoices_available: number
@@ -31,6 +31,9 @@ export default function UsersTable() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [search, setSearch] = useState('')
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [userToDelete, setUserToDelete] = useState<User | null>(null)
 
   useEffect(() => {
     fetchUsers()
@@ -49,6 +52,37 @@ export default function UsersTable() {
       console.error('Error:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDeleteClick = (user: User) => {
+    setUserToDelete(user)
+    setShowDeleteModal(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!userToDelete) return
+
+    setDeleting(userToDelete.user_id)
+    try {
+      const res = await fetch(`/api/admin/users?userId=${userToDelete.user_id}`, {
+        method: 'DELETE'
+      })
+      const data = await res.json()
+      
+      if (data.success) {
+        // Actualizar lista
+        setUsers(users.filter(u => u.user_id !== userToDelete.user_id))
+        setShowDeleteModal(false)
+        setUserToDelete(null)
+      } else {
+        alert('Error al eliminar: ' + data.error)
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Error al eliminar usuario')
+    } finally {
+      setDeleting(null)
     }
   }
 
@@ -113,53 +147,78 @@ export default function UsersTable() {
                 <th className="text-left text-gray-400 text-sm font-medium px-6 py-4">Uso Total</th>
                 <th className="text-left text-gray-400 text-sm font-medium px-6 py-4">Créditos</th>
                 <th className="text-left text-gray-400 text-sm font-medium px-6 py-4">Registro</th>
+                <th className="text-center text-gray-400 text-sm font-medium px-6 py-4">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
-              {filteredUsers.map((user) => {
-                const credits = user.user_credits?.[0]
-                
-                return (
-                  <tr key={user.user_id} className="hover:bg-[#333] transition">
-                    <td className="px-6 py-4">
-                      <p className="text-white font-mono text-sm">
-                        {user.user_id.substring(0, 20)}...
-                      </p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-white capitalize">{user.plan || 'trial'}</p>
-                      <p className="text-xs text-gray-500">{user.billing_cycle || '-'}</p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(user.status)}`}>
-                        {getStatusLabel(user.status)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm">
-                        <p className="text-gray-300">{user.total_invoices} facturas</p>
-                        <p className="text-gray-300">{user.total_tickets} tickets</p>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {credits ? (
-                        <div className="text-sm text-gray-300">
-                          <p>F: {credits.invoices_available}</p>
-                          <p>T: {credits.tickets_available}</p>
-                          <p>A: {credits.analyses_available}</p>
+              {filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                    No hay usuarios registrados
+                  </td>
+                </tr>
+              ) : (
+                filteredUsers.map((user) => {
+                  const credits = user.user_credits?.[0]
+                  
+                  return (
+                    <tr key={user.user_id} className="hover:bg-[#333] transition">
+                      <td className="px-6 py-4">
+                        <p className="text-white font-mono text-sm">
+                          {user.user_id.substring(0, 20)}...
+                        </p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-white capitalize">{user.plan || 'trial'}</p>
+                        <p className="text-xs text-gray-500">{user.billing_cycle || '-'}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(user.status)}`}>
+                          {getStatusLabel(user.status)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm">
+                          <p className="text-gray-300">{user.total_invoices} facturas</p>
+                          <p className="text-gray-300">{user.total_tickets} tickets</p>
                         </div>
-                      ) : (
-                        <span className="text-gray-500 text-sm">Sin datos</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-gray-400 text-sm">
-                        {new Date(user.created_at).toLocaleDateString('es-ES')}
-                      </p>
-                    </td>
-                  </tr>
-                )
-              })}
+                      </td>
+                      <td className="px-6 py-4">
+                        {credits ? (
+                          <div className="text-sm text-gray-300">
+                            <p>F: {credits.invoices_available}</p>
+                            <p>T: {credits.tickets_available}</p>
+                            <p>A: {credits.analyses_available}</p>
+                          </div>
+                        ) : (
+                          <span className="text-gray-500 text-sm">Sin datos</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-gray-400 text-sm">
+                          {new Date(user.created_at).toLocaleDateString('es-ES')}
+                        </p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex justify-center">
+                          <button
+                            onClick={() => handleDeleteClick(user)}
+                            disabled={deleting === user.user_id}
+                            className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Eliminar usuario"
+                          >
+                            {deleting === user.user_id ? (
+                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-400"></div>
+                            ) : (
+                              <Trash2 className="w-5 h-5" />
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
             </tbody>
           </table>
         </div>
@@ -167,7 +226,7 @@ export default function UsersTable() {
         {/* Pagination */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-gray-700">
           <p className="text-sm text-gray-400">
-            Página {page} de {totalPages}
+            Página {page} de {totalPages || 1}
           </p>
           <div className="flex items-center gap-2">
             <button
@@ -179,7 +238,7 @@ export default function UsersTable() {
             </button>
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
+              disabled={page === totalPages || totalPages === 0}
               className="p-2 text-gray-400 hover:text-white hover:bg-[#333] rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ChevronRight className="w-5 h-5" />
@@ -187,6 +246,59 @@ export default function UsersTable() {
           </div>
         </div>
       </div>
+
+      {/* Modal de confirmación */}
+      {showDeleteModal && userToDelete && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-[#262626] rounded-xl p-6 max-w-md w-full mx-4 border border-gray-700">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-red-500/20 rounded-full">
+                <AlertTriangle className="w-6 h-6 text-red-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-white">Eliminar Usuario</h3>
+            </div>
+            
+            <p className="text-gray-300 mb-2">
+              ¿Estás seguro de que quieres eliminar este usuario?
+            </p>
+            <p className="text-sm text-gray-500 mb-4 font-mono bg-[#333] p-2 rounded">
+              {userToDelete.user_id}
+            </p>
+            <p className="text-sm text-red-400 mb-6">
+              ⚠️ Esta acción eliminará todos los datos asociados: suscripción, créditos, facturas y tickets. No se puede deshacer.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false)
+                  setUserToDelete(null)
+                }}
+                className="flex-1 px-4 py-2 bg-[#333] text-gray-300 rounded-lg hover:bg-[#444] transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={deleting !== null}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {deleting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Eliminando...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Eliminar
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
