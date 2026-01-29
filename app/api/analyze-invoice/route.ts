@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { createClient } from '@supabase/supabase-js'
 import Anthropic from '@anthropic-ai/sdk'
-import { hasCredits } from '@/lib/credits'
+import { hasCredits, useCredits } from '@/lib/credits'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -202,6 +202,14 @@ Responde SOLO con el JSON, sin texto adicional.`
     }
 
     // ========================================
+    // ✅ DESCONTAR CRÉDITO DESPUÉS DEL ÉXITO
+    // ========================================
+    const creditResult = await useCredits(userId, 'invoices')
+    if (!creditResult.success && !creditResult.isBetaTester) {
+      console.warn('[analyze-invoice] Error descontando crédito:', creditResult.error)
+    }
+
+    // ========================================
     // SUBIR ARCHIVO A STORAGE (temporal)
     // ========================================
     const timestamp = Date.now()
@@ -236,7 +244,9 @@ Responde SOLO con el JSON, sin texto adicional.`
         fileSize: file.size
       },
       // Flag que indica que requiere confirmación de pago ANTES de guardar
-      requiresPaymentConfirmation: true
+      requiresPaymentConfirmation: true,
+      // ✅ Créditos restantes
+      creditsRemaining: creditResult.remaining
     })
 
   } catch (error) {
