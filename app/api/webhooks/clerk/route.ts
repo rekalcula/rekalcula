@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ⚠️ INICIALIZAR SUPABASE
+    // Inicializar Supabase
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -59,8 +59,8 @@ export async function POST(req: NextRequest) {
     if (evt.type === 'user.created') {
       const userData = evt.data;
 
-      // Guardar en BD con términos aceptados
-      const { error } = await supabase.from('users').insert({
+      // 1. Guardar en BD con términos aceptados
+      const { error: userError } = await supabase.from('users').insert({
         id: userData.id,
         email: userData.email_addresses[0].email_address,
         terms_accepted: userData.unsafe_metadata?.termsAccepted || false,
@@ -69,15 +69,73 @@ export async function POST(req: NextRequest) {
         created_at: new Date().toISOString(),
       });
 
-      if (error) {
-        console.error('Error guardando usuario en BD:', error);
+      if (userError) {
+        console.error('Error guardando usuario en BD:', userError);
         return NextResponse.json(
           { error: 'Database error' },
           { status: 500 }
         );
       }
 
-      // Log de auditoría
+      // 2. Obtener configuración del trial
+      const { data: trialConfig } = await supabase
+        .from('trial_config')
+        .select('*')
+        .eq('is_active', true)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      // Usar valores de la BD o por defecto
+      const trialDays = trialConfig?.trial_days || 7;
+      const invoicesLimit = trialConfig?.invoices_limit || 10;
+      const ticketsLimit = trialConfig?.tickets_limit || 10;
+      const analysesLimit = trialConfig?.analyses_limit || 5;
+
+      const trialEnd = new Date();
+      trialEnd.setDate(trialEnd.getDate() + trialDays);
+
+      // 3. Crear suscripción trial
+      const { error: subError } = await supabase.from('subscriptions').insert({
+        user_id: userData.id,
+        status: 'trialing',
+        plan: 'trial',
+        trial_start: new Date().toISOString(),
+        trial_end: trialEnd.toISOString()
+      });
+
+      if (subError) {
+        console.error('Error creando suscripción:', subError);
+      }
+
+      // 4. Crear créditos iniciales
+      const { error: creditsError } = await supabase.from('user_credits').insert({
+        user_id: userData.id,
+        invoices_available: invoicesLimit,
+        tickets_available: ticketsLimit,
+        analyses_available: analysesLimit,
+        invoices_used_this_month: 0,
+        tickets_used_this_month: 0,
+        analyses_used_this_month: 0,
+        is_trial: true,
+        last_reset_date: new Date().toISOString().split('T')[0],
+        updated_at: new Date().toISOString()
+      });
+
+      if (creditsError) {
+        console.error('Error creando créditos:', creditsError);
+      }
+
+      // 5. Registrar transacción de créditos
+      await supabase.from('credit_transactions').insert({
+        user_id: userData.id,
+        transaction_type: 'trial_start',
+        credit_type: 'invoices',
+        amount: invoicesLimit,
+        description: `Créditos de prueba gratuita (${trialDays} días): ${invoicesLimit} facturas, ${ticketsLimit} tickets, ${analysesLimit} análisis`
+      });
+
+      // 6. Log de auditoría de términos
       if (userData.unsafe_metadata?.termsAccepted) {
         await supabase.from('terms_acceptance_log').insert({
           user_id: userData.id,
@@ -87,6 +145,24 @@ export async function POST(req: NextRequest) {
           user_agent: req.headers.get('user-agent') || 'unknown',
         });
       }
+
+      console.log(`Usuario ${userData.id} creado con trial de ${trialDays} días y ${invoicesLimit}/${ticketsLimit}/${analysesLimit} créditos`);
+    }
+
+    // Procesar evento de usuario eliminado
+    if (evt.type === 'user.deleted') {
+      const userData = evt.data;
+
+      // Limpiar datos del usuario en orden (por foreign keys)
+      await supabase.from('credit_transactions').delete().eq('user_id', userData.id);
+      await supabase.from('user_credits').delete().eq('user_id', userData.id);
+      await supabase.from('invoices').delete().eq('user_id', userData.id);
+      await supabase.from('sales').delete().eq('user_id', userData.id);
+      await supabase.from('subscriptions').delete().eq('user_id', userData.id);
+      await supabase.from('terms_acceptance_log').delete().eq('user_id', userData.id);
+      await supabase.from('users').delete().eq('id', userData.id);
+
+      console.log(`Usuario ${userData.id} eliminado completamente`);
     }
 
     return NextResponse.json({ success: true }, { status: 200 });

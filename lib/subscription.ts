@@ -37,10 +37,40 @@ export async function hasActiveSubscription(userId: string): Promise<boolean> {
   return sub.status === 'active'
 }
 
+// Obtener configuración del trial desde la BD
+async function getTrialConfig() {
+  const { data, error } = await supabase
+    .from('trial_config')
+    .select('*')
+    .eq('is_active', true)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  if (error) {
+    console.error('Error fetching trial config:', error)
+    // Valores por defecto si no hay configuración
+    return {
+      invoices_limit: 10,
+      tickets_limit: 10,
+      analyses_limit: 5,
+      trial_days: 7
+    }
+  }
+
+  return data
+}
+
 export async function createTrialSubscription(userId: string) {
-  const trialEnd = new Date()
-  trialEnd.setDate(trialEnd.getDate() + 7)
+  // Obtener configuración del trial desde la BD
+  const trialConfig = await getTrialConfig()
   
+  const trialDays = trialConfig?.trial_days || 7
+  
+  const trialEnd = new Date()
+  trialEnd.setDate(trialEnd.getDate() + trialDays)
+  
+  // Crear suscripción
   const { data } = await supabase
     .from('subscriptions')
     .upsert({
@@ -49,9 +79,40 @@ export async function createTrialSubscription(userId: string) {
       plan: 'trial',
       trial_start: new Date().toISOString(),
       trial_end: trialEnd.toISOString()
-    })
+    }, { onConflict: 'user_id' })
     .select()
     .single()
+
+  // Inicializar créditos con los límites del trial
+  if (data) {
+    const { error: creditsError } = await supabase
+      .from('user_credits')
+      .upsert({
+        user_id: userId,
+        invoices_available: trialConfig.invoices_limit,
+        tickets_available: trialConfig.tickets_limit,
+        analyses_available: trialConfig.analyses_limit,
+        invoices_used_this_month: 0,
+        tickets_used_this_month: 0,
+        analyses_used_this_month: 0,
+        is_trial: true,
+        last_reset_date: new Date().toISOString().split('T')[0],
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' })
+
+    if (creditsError) {
+      console.error('Error initializing trial credits:', creditsError)
+    }
+
+    // Registrar transacción de créditos
+    await supabase.from('credit_transactions').insert({
+      user_id: userId,
+      transaction_type: 'trial_start',
+      credit_type: 'invoices',
+      amount: trialConfig.invoices_limit,
+      description: `Créditos de prueba gratuita (${trialDays} días): ${trialConfig.invoices_limit} facturas, ${trialConfig.tickets_limit} tickets, ${trialConfig.analyses_limit} análisis`
+    })
+  }
   
   return data
 }
