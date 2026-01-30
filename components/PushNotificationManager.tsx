@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Bell, BellOff, CheckCircle, XCircle, Loader2 } from 'lucide-react'
-import { getFCMToken, onForegroundMessage } from '@/lib/firebase-client'
+import { getFCMToken, onForegroundMessage } from '@/lib/firebase'
 
 interface PushNotificationManagerProps {
   onStatusChange?: (enabled: boolean) => void
