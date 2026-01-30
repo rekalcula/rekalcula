@@ -7,10 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Bell, BellOff, CheckCircle, XCircle, Loader2 } from 'lucide-react'
-
-// VAPID Key pública de Firebase (necesitas generarla en Firebase Console)
-// Firebase Console > Configuración del proyecto > Cloud Messaging > Certificados push web
-const VAPID_KEY = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || ''
+import { getFCMToken, onForegroundMessage } from '@/lib/firebase-client'
 
 interface PushNotificationManagerProps {
   onStatusChange?: (enabled: boolean) => void
@@ -25,72 +22,70 @@ export function PushNotificationManager({
 }: PushNotificationManagerProps) {
   const [permission, setPermission] = useState<NotificationPermission>('default')
   const [isSubscribed, setIsSubscribed] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [swRegistration, setSwRegistration] = useState<ServiceWorkerRegistration | null>(null)
 
   // ============================================================
   // Verificar estado inicial
   // ============================================================
   useEffect(() => {
     if (typeof window === 'undefined' || !('Notification' in window)) {
+      setIsLoading(false)
       return
     }
 
     setPermission(Notification.permission)
 
-    // Registrar Service Worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js')
-        .then((registration) => {
-          console.log('[Push] Service Worker registrado')
-          setSwRegistration(registration)
-          
-          // Verificar si ya está suscrito
-          registration.pushManager.getSubscription()
-            .then((subscription) => {
-              const isActive = subscription !== null
-              setIsSubscribed(isActive)
-              onStatusChange?.(isActive)
-            })
-        })
-        .catch((err) => {
-          console.error('[Push] Error registrando SW:', err)
-        })
+    // Verificar si ya tiene token registrado
+    const checkSubscription = async () => {
+      try {
+        const response = await fetch('/api/notifications/test', { method: 'GET' })
+        const data = await response.json()
+        
+        if (data.success && data.notificationsEnabled) {
+          setIsSubscribed(true)
+          onStatusChange?.(true)
+        }
+      } catch (error) {
+        console.log('[Push] Error verificando suscripción')
+      } finally {
+        setIsLoading(false)
+      }
     }
+
+    checkSubscription()
+
+    // Listener para mensajes en primer plano
+    onForegroundMessage((payload) => {
+      console.log('[Push] Mensaje en primer plano:', payload)
+      // Mostrar notificación manualmente si la app está en primer plano
+      if (Notification.permission === 'granted') {
+        new Notification(payload.notification?.title || 'ReKalcula', {
+          body: payload.notification?.body,
+          icon: '/icons/icon-192x192.svg'
+        })
+      }
+    })
   }, [onStatusChange])
 
   // ============================================================
   // Solicitar permiso y suscribir
   // ============================================================
   const subscribeToPush = useCallback(async () => {
-    if (!swRegistration) {
-      setError('Service Worker no disponible')
-      return
-    }
-
     setIsLoading(true)
     setError(null)
 
     try {
-      // 1. Solicitar permiso
-      const permissionResult = await Notification.requestPermission()
-      setPermission(permissionResult)
-
-      if (permissionResult !== 'granted') {
-        setError('Permiso de notificaciones denegado')
+      // 1. Obtener token FCM
+      const token = await getFCMToken()
+      
+      if (!token) {
+        setError('No se pudo obtener el token de notificaciones')
         setIsLoading(false)
         return
       }
 
-    // 2. Suscribirse a Push
-    const subscription = await swRegistration.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(VAPID_KEY) as BufferSource
-    })
-
-      // 3. Enviar token al servidor
-      const token = JSON.stringify(subscription)
+      // 2. Registrar token en el servidor
       const response = await fetch('/api/notifications/register-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -105,6 +100,7 @@ export function PushNotificationManager({
         throw new Error('Error al registrar en el servidor')
       }
 
+      setPermission('granted')
       setIsSubscribed(true)
       onStatusChange?.(true)
       console.log('[Push] Suscripción completada')
@@ -115,28 +111,25 @@ export function PushNotificationManager({
     } finally {
       setIsLoading(false)
     }
-  }, [swRegistration, onStatusChange])
+  }, [onStatusChange])
 
   // ============================================================
   // Desuscribir
   // ============================================================
   const unsubscribeFromPush = useCallback(async () => {
-    if (!swRegistration) return
-
     setIsLoading(true)
+    setError(null)
 
     try {
-      const subscription = await swRegistration.pushManager.getSubscription()
+      // Obtener token actual para desactivarlo
+      const token = await getFCMToken()
       
-      if (subscription) {
-        // Notificar al servidor
+      if (token) {
         await fetch('/api/notifications/register-token', {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token: JSON.stringify(subscription) })
+          body: JSON.stringify({ token })
         })
-
-        await subscription.unsubscribe()
       }
 
       setIsSubscribed(false)
@@ -145,15 +138,17 @@ export function PushNotificationManager({
 
     } catch (err: any) {
       console.error('[Push] Error al desuscribir:', err)
+      setError('Error al desactivar notificaciones')
     } finally {
       setIsLoading(false)
     }
-  }, [swRegistration, onStatusChange])
+  }, [onStatusChange])
 
   // ============================================================
   // Enviar notificación de prueba
   // ============================================================
   const sendTestNotification = useCallback(async () => {
+    setError(null)
     try {
       const response = await fetch('/api/notifications/test', {
         method: 'POST'
@@ -175,12 +170,22 @@ export function PushNotificationManager({
     return null
   }
 
+  // Cargando estado inicial
+  if (isLoading && !isSubscribed) {
+    return (
+      <div className={`flex items-center gap-2 text-sm text-gray-500 ${className}`}>
+        <Loader2 className="w-4 h-4 animate-spin" />
+        <span>Verificando...</span>
+      </div>
+    )
+  }
+
   // No soportado
-  if (typeof window === 'undefined' || !('Notification' in window) || !('serviceWorker' in navigator)) {
+  if (typeof window !== 'undefined' && (!('Notification' in window) || !('serviceWorker' in navigator))) {
     return (
       <div className={`flex items-center gap-2 text-sm text-gray-500 ${className}`}>
         <BellOff className="w-4 h-4" />
-        <span>Notificaciones no soportadas</span>
+        <span>Notificaciones no soportadas en este navegador</span>
       </div>
     )
   }
@@ -201,7 +206,7 @@ export function PushNotificationManager({
         <p className="text-sm text-red-500">{error}</p>
       )}
       
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
         {isSubscribed ? (
           <>
             <button
@@ -219,7 +224,7 @@ export function PushNotificationManager({
             
             <button
               onClick={sendTestNotification}
-              className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+              className="px-3 py-2 text-sm text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-lg transition-colors"
             >
               Enviar prueba
             </button>
@@ -228,7 +233,7 @@ export function PushNotificationManager({
           <button
             onClick={subscribeToPush}
             disabled={isLoading}
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
           >
             {isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -246,21 +251,6 @@ export function PushNotificationManager({
 // ============================================================
 // Utilidades
 // ============================================================
-
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4)
-  const base64 = (base64String + padding)
-    .replace(/-/g, '+')
-    .replace(/_/g, '/')
-
-  const rawData = window.atob(base64)
-  const outputArray = new Uint8Array(rawData.length)
-
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i)
-  }
-  return outputArray
-}
 
 function detectDeviceType(): string {
   const ua = navigator.userAgent
