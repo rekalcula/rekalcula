@@ -1,0 +1,310 @@
+'use client'
+
+// ============================================================
+// PÁGINA: Notificaciones - app/dashboard/notifications/page.tsx
+// ============================================================
+
+import { useState, useEffect } from 'react'
+import { Bell, BellOff, CheckCircle, Loader2, Save } from 'lucide-react'
+import { PushNotificationManager } from '@/components/PushNotificationManager'
+
+// Tipos de notificaciones disponibles
+const NOTIFICATION_TYPES = [
+  {
+    id: 'alertas_productos',
+    category: 'Análisis de Negocio',
+    title: 'Alertas de productos',
+    description: 'Productos que requieren atención: declive en ventas, oportunidades de mejora, etc.',
+    defaultEnabled: true
+  },
+  {
+    id: 'oportunidades_precio',
+    category: 'Análisis de Negocio',
+    title: 'Oportunidades de precio',
+    description: 'Sugerencias para ajustar precios y mejorar rentabilidad.',
+    defaultEnabled: true
+  },
+  {
+    id: 'productos_estrella',
+    category: 'Análisis de Negocio',
+    title: 'Productos estrella',
+    description: 'Notificaciones sobre productos con alto rendimiento.',
+    defaultEnabled: true
+  },
+  {
+    id: 'alertas_tesoreria',
+    category: 'Finanzas',
+    title: 'Alertas de tesorería',
+    description: 'Avisos sobre posibles problemas de liquidez o flujo de caja.',
+    defaultEnabled: true
+  },
+  {
+    id: 'facturas_pendientes',
+    category: 'Finanzas',
+    title: 'Facturas pendientes',
+    description: 'Recordatorios de facturas por pagar o cobrar.',
+    defaultEnabled: true
+  },
+  {
+    id: 'recordatorios_fiscales',
+    category: 'Fiscal',
+    title: 'Recordatorios fiscales',
+    description: 'Fechas importantes de declaraciones e impuestos.',
+    defaultEnabled: true
+  },
+  {
+    id: 'iva_trimestral',
+    category: 'Fiscal',
+    title: 'IVA trimestral',
+    description: 'Recordatorio antes del vencimiento del IVA trimestral.',
+    defaultEnabled: true
+  },
+  {
+    id: 'resumen_semanal',
+    category: 'Resúmenes',
+    title: 'Resumen semanal',
+    description: 'Resumen de la actividad de tu negocio cada semana.',
+    defaultEnabled: true
+  },
+  {
+    id: 'resumen_mensual',
+    category: 'Resúmenes',
+    title: 'Resumen mensual',
+    description: 'Informe mensual con métricas clave de tu negocio.',
+    defaultEnabled: true
+  }
+]
+
+// Agrupar por categoría
+const groupByCategory = (notifications: typeof NOTIFICATION_TYPES) => {
+  return notifications.reduce((acc, notif) => {
+    if (!acc[notif.category]) {
+      acc[notif.category] = []
+    }
+    acc[notif.category].push(notif)
+    return acc
+  }, {} as Record<string, typeof NOTIFICATION_TYPES>)
+}
+
+export default function NotificationsPage() {
+  const [pushEnabled, setPushEnabled] = useState(false)
+  const [preferences, setPreferences] = useState<Record<string, boolean>>({})
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveMessage, setSaveMessage] = useState<string | null>(null)
+
+  // Cargar preferencias guardadas o usar defaults
+  useEffect(() => {
+    const loadPreferences = async () => {
+      try {
+        const response = await fetch('/api/notifications/preferences')
+        if (response.ok) {
+          const data = await response.json()
+          if (data.preferences) {
+            setPreferences(data.preferences)
+            return
+          }
+        }
+      } catch (error) {
+        console.log('Usando preferencias por defecto')
+      }
+      
+      // Usar defaults si no hay preferencias guardadas
+      const defaults: Record<string, boolean> = {}
+      NOTIFICATION_TYPES.forEach(n => {
+        defaults[n.id] = n.defaultEnabled
+      })
+      setPreferences(defaults)
+    }
+    
+    loadPreferences()
+  }, [])
+
+  // Toggle individual
+  const toggleNotification = (id: string) => {
+    setPreferences(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }))
+    setSaveMessage(null)
+  }
+
+  // Seleccionar/Deseleccionar todas
+  const toggleAll = (enabled: boolean) => {
+    const newPrefs: Record<string, boolean> = {}
+    NOTIFICATION_TYPES.forEach(n => {
+      newPrefs[n.id] = enabled
+    })
+    setPreferences(newPrefs)
+    setSaveMessage(null)
+  }
+
+  // Guardar preferencias
+  const savePreferences = async () => {
+    setIsSaving(true)
+    setSaveMessage(null)
+    
+    try {
+      const response = await fetch('/api/notifications/preferences', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preferences })
+      })
+      
+      if (response.ok) {
+        setSaveMessage('Preferencias guardadas correctamente')
+      } else {
+        setSaveMessage('Error al guardar preferencias')
+      }
+    } catch (error) {
+      setSaveMessage('Error al guardar preferencias')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const groupedNotifications = groupByCategory(NOTIFICATION_TYPES)
+  const enabledCount = Object.values(preferences).filter(Boolean).length
+  const allEnabled = enabledCount === NOTIFICATION_TYPES.length
+  const noneEnabled = enabledCount === 0
+
+  return (
+    <div className="p-6 max-w-3xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <Bell className="w-8 h-8 text-orange-500" />
+        <div>
+          <h1 className="text-2xl font-bold text-white">Notificaciones</h1>
+          <p className="text-gray-400 text-sm">Configura qué alertas quieres recibir</p>
+        </div>
+      </div>
+
+      {/* Activar Push Notifications */}
+      <div className="bg-gray-800 rounded-xl p-6 mb-6 border border-gray-700">
+        <div className="flex items-start gap-4">
+          <div className={`p-3 rounded-full ${pushEnabled ? 'bg-green-500/20' : 'bg-gray-700'}`}>
+            {pushEnabled ? (
+              <Bell className="w-6 h-6 text-green-400" />
+            ) : (
+              <BellOff className="w-6 h-6 text-gray-400" />
+            )}
+          </div>
+          <div className="flex-1">
+            <h2 className="text-lg font-semibold text-white mb-1">
+              Notificaciones Push
+            </h2>
+            <p className="text-gray-400 text-sm mb-4">
+              Activa las notificaciones para recibir alertas en tu dispositivo, 
+              incluso cuando no estés usando la aplicación.
+            </p>
+            <PushNotificationManager 
+              onStatusChange={setPushEnabled}
+              className="mt-2"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Tipos de Notificaciones */}
+      <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+        {/* Header con acciones */}
+        <div className="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Tipos de notificaciones</h2>
+            <p className="text-gray-400 text-sm">
+              {enabledCount} de {NOTIFICATION_TYPES.length} activadas
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => toggleAll(true)}
+              disabled={allEnabled}
+              className="px-3 py-1.5 text-xs bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Seleccionar todas
+            </button>
+            <button
+              onClick={() => toggleAll(false)}
+              disabled={noneEnabled}
+              className="px-3 py-1.5 text-xs bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Deseleccionar todas
+            </button>
+          </div>
+        </div>
+
+        {/* Lista de notificaciones por categoría */}
+        <div className="divide-y divide-gray-700">
+          {Object.entries(groupedNotifications).map(([category, notifications]) => (
+            <div key={category}>
+              {/* Categoría header */}
+              <div className="px-6 py-3 bg-gray-750 bg-opacity-50">
+                <h3 className="text-sm font-medium text-orange-400">{category}</h3>
+              </div>
+              
+              {/* Notificaciones de la categoría */}
+              {notifications.map((notif) => (
+                <div 
+                  key={notif.id}
+                  className="px-6 py-4 flex items-center justify-between hover:bg-gray-750 transition-colors"
+                >
+                  <div className="flex-1 pr-4">
+                    <h4 className="text-white font-medium">{notif.title}</h4>
+                    <p className="text-gray-400 text-sm">{notif.description}</p>
+                  </div>
+                  
+                  {/* Toggle switch */}
+                  <button
+                    onClick={() => toggleNotification(notif.id)}
+                    className={`relative w-12 h-6 rounded-full transition-colors ${
+                      preferences[notif.id] ? 'bg-orange-500' : 'bg-gray-600'
+                    }`}
+                  >
+                    <span 
+                      className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                        preferences[notif.id] ? 'translate-x-7' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+
+        {/* Footer con botón guardar */}
+        <div className="px-6 py-4 border-t border-gray-700 flex items-center justify-between bg-gray-750">
+          {saveMessage && (
+            <div className={`flex items-center gap-2 text-sm ${
+              saveMessage.includes('Error') ? 'text-red-400' : 'text-green-400'
+            }`}>
+              {!saveMessage.includes('Error') && <CheckCircle className="w-4 h-4" />}
+              {saveMessage}
+            </div>
+          )}
+          <div className="flex-1" />
+          <button
+            onClick={savePreferences}
+            disabled={isSaving}
+            className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 transition-colors"
+          >
+            {isSaving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            Guardar preferencias
+          </button>
+        </div>
+      </div>
+
+      {/* Nota informativa */}
+      <div className="mt-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+        <p className="text-gray-400 text-sm">
+          <strong className="text-gray-300">Nota:</strong> Las notificaciones push requieren 
+          que actives el permiso en tu navegador. Si no recibes notificaciones, verifica 
+          que no estén bloqueadas en la configuración de tu navegador.
+        </p>
+      </div>
+    </div>
+  )
+}

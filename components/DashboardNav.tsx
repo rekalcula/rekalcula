@@ -68,7 +68,7 @@ export default function DashboardNav() {
     { href: '/dashboard/advisor', label: 'Asesor IA' },
     { href: '/dashboard/cashflow', label: 'Cash Flow' },
     { href: '/dashboard/resultado', label: 'Resultado Empresa' },
-
+    { href: '/dashboard/notifications', label: 'Notificaciones' },
   ]
 
   return (
