@@ -254,17 +254,22 @@ export default function NotificationsPage() {
                       <p className="text-gray-400 text-sm">{notif.description}</p>
                     </div>
                     
-                    {/* Toggle switch */}
+                    {/* Toggle switch estilo iOS */}
                     <button
                       onClick={() => toggleNotification(notif.id)}
-                      className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${
-                        preferences[notif.id] ? 'bg-[#d98c21]' : 'bg-gray-600'
+                      className={`relative w-14 h-8 rounded-full transition-colors duration-300 flex-shrink-0 ${
+                        preferences[notif.id] 
+                          ? 'bg-gradient-to-r from-[#d98c21] to-[#f5a623]' 
+                          : 'bg-gray-600'
                       }`}
                     >
                       <span 
-                        className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                          preferences[notif.id] ? 'translate-x-7' : 'translate-x-1'
+                        className={`absolute top-1/2 -translate-y-1/2 w-7 h-7 bg-white rounded-full shadow-lg transition-all duration-300 ${
+                          preferences[notif.id] ? 'left-7' : 'left-0.5'
                         }`}
+                        style={{
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2)'
+                        }}
                       />
                     </button>
                   </div>
