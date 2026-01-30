@@ -43,3 +43,9 @@ next-env.d.ts
 
 
 CLAVE CLAUDE.txt
+
+# Firebase Admin SDK credentials
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
