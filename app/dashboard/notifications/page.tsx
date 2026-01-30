@@ -207,15 +207,16 @@ export default function NotificationsPage() {
 
         {/* Tipos de Notificaciones */}
         <div className="bg-[#1a1a1a] rounded-xl border border-gray-700 overflow-hidden">
-          {/* Header con acciones */}
-          <div className="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+          {/* Header con acciones - RESPONSIVE: vertical en móvil, horizontal en desktop */}
+          <div className="px-6 py-4 border-b border-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold text-white">Tipos de notificaciones</h2>
               <p className="text-gray-400 text-sm">
                 {enabledCount} de {NOTIFICATION_TYPES.length} activadas
               </p>
             </div>
-            <div className="flex gap-2">
+            {/* Botones: columna en móvil, fila en desktop */}
+            <div className="flex flex-col sm:flex-row gap-2">
               <button
                 onClick={() => toggleAll(true)}
                 disabled={allEnabled}
@@ -256,7 +257,7 @@ export default function NotificationsPage() {
                     {/* Toggle switch */}
                     <button
                       onClick={() => toggleNotification(notif.id)}
-                      className={`relative w-12 h-6 rounded-full transition-colors ${
+                      className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${
                         preferences[notif.id] ? 'bg-[#d98c21]' : 'bg-gray-600'
                       }`}
                     >
