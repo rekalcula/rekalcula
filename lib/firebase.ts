@@ -26,8 +26,6 @@ export async function getFCMToken(): Promise<string | null> {
       return null
     }
 
-    const messaging = getMessaging(app)
-    
     // Solicitar permiso
     const permission = await Notification.requestPermission()
     if (permission !== 'granted') {
@@ -35,9 +33,22 @@ export async function getFCMToken(): Promise<string | null> {
       return null
     }
 
-    // Obtener token
+    // Registrar el Service Worker manualmente
+    const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+      scope: '/firebase-cloud-messaging-push-scope'
+    })
+    
+    console.log('[Firebase] Service Worker registrado:', registration.scope)
+
+    // Esperar a que el SW esté activo
+    await navigator.serviceWorker.ready
+
+    const messaging = getMessaging(app)
+    
+    // Obtener token con el SW registrado
     const token = await getToken(messaging, {
-      vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
+      vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+      serviceWorkerRegistration: registration
     })
 
     console.log('[Firebase] Token FCM obtenido')
