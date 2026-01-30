@@ -83,11 +83,11 @@ export function PushNotificationManager({
         return
       }
 
-      // 2. Suscribirse a Push
-      const subscription = await swRegistration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_KEY)
-      })
+    // 2. Suscribirse a Push
+    const subscription = await swRegistration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(VAPID_KEY) as BufferSource
+    })
 
       // 3. Enviar token al servidor
       const token = JSON.stringify(subscription)
