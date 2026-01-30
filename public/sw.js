@@ -1,6 +1,6 @@
 ﻿// ============================================================
 // SERVICE WORKER - ReKalcula PWA + Push Notifications
-// Ubicación: public/sw.js
+// Ubicación: public/sw.js (REEMPLAZAR EL EXISTENTE)
 // ============================================================
 
 const CACHE_NAME = 'rekalcula-v2';
@@ -77,7 +77,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 // ============================================================
-// PUSH NOTIFICATIONS
+// PUSH NOTIFICATIONS - Recibir notificación
 // ============================================================
 self.addEventListener('push', (event) => {
   console.log('[SW] Push recibido:', event);
@@ -95,11 +95,11 @@ self.addEventListener('push', (event) => {
     try {
       const payload = event.data.json();
       data = {
-        title: payload.title || data.title,
-        body: payload.body || data.body,
-        icon: payload.icon || data.icon,
-        badge: payload.badge || data.badge,
-        url: payload.url || payload.click_action || data.url,
+        title: payload.notification?.title || payload.title || data.title,
+        body: payload.notification?.body || payload.body || data.body,
+        icon: payload.notification?.icon || payload.icon || data.icon,
+        badge: payload.notification?.badge || payload.badge || data.badge,
+        url: payload.fcmOptions?.link || payload.data?.url || payload.url || data.url,
         data: payload.data || {}
       };
     } catch (e) {
