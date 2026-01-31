@@ -1,3 +1,4 @@
+
 'use client'
 
 // ============================================================
@@ -24,6 +25,8 @@ export function PushNotificationManager({
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [testSuccess, setTestSuccess] = useState(false)
+  const [isTestSending, setIsTestSending] = useState(false)
 
   // ============================================================
   // Verificar estado inicial
@@ -36,7 +39,6 @@ export function PushNotificationManager({
 
     setPermission(Notification.permission)
 
-    // Verificar si ya tiene token registrado
     const checkSubscription = async () => {
       try {
         const response = await fetch('/api/notifications/test', { method: 'GET' })
@@ -55,10 +57,8 @@ export function PushNotificationManager({
 
     checkSubscription()
 
-    // Listener para mensajes en primer plano
     onForegroundMessage((payload) => {
       console.log('[Push] Mensaje en primer plano:', payload)
-      // Mostrar notificación manualmente si la app está en primer plano
       if (Notification.permission === 'granted') {
         new Notification(payload.notification?.title || 'ReKalcula', {
           body: payload.notification?.body,
@@ -76,7 +76,6 @@ export function PushNotificationManager({
     setError(null)
 
     try {
-      // 1. Obtener token FCM
       const token = await getFCMToken()
       
       if (!token) {
@@ -85,7 +84,6 @@ export function PushNotificationManager({
         return
       }
 
-      // 2. Registrar token en el servidor
       const response = await fetch('/api/notifications/register-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -121,7 +119,6 @@ export function PushNotificationManager({
     setError(null)
 
     try {
-      // Obtener token actual para desactivarlo
       const token = await getFCMToken()
       
       if (token) {
@@ -145,21 +142,29 @@ export function PushNotificationManager({
   }, [onStatusChange])
 
   // ============================================================
-  // Enviar notificación de prueba
+  // Enviar notificación de prueba — CORREGIDO
+  // Ahora muestra confirmación visual en todos los dispositivos
   // ============================================================
   const sendTestNotification = useCallback(async () => {
     setError(null)
+    setTestSuccess(false)
+    setIsTestSending(true)
     try {
       const response = await fetch('/api/notifications/test', {
         method: 'POST'
       })
       const data = await response.json()
       
-      if (!data.success) {
+      if (data.success) {
+        setTestSuccess(true)
+        setTimeout(() => setTestSuccess(false), 4000)
+      } else {
         setError(data.error)
       }
     } catch (err) {
       setError('Error al enviar prueba')
+    } finally {
+      setIsTestSending(false)
     }
   }, [])
 
@@ -170,7 +175,6 @@ export function PushNotificationManager({
     return null
   }
 
-  // Cargando estado inicial
   if (isLoading && !isSubscribed) {
     return (
       <div className={`flex items-center gap-2 text-sm text-gray-500 ${className}`}>
@@ -180,7 +184,6 @@ export function PushNotificationManager({
     )
   }
 
-  // No soportado
   if (typeof window !== 'undefined' && (!('Notification' in window) || !('serviceWorker' in navigator))) {
     return (
       <div className={`flex items-center gap-2 text-sm text-gray-500 ${className}`}>
@@ -190,7 +193,6 @@ export function PushNotificationManager({
     )
   }
 
-  // Permiso denegado permanentemente
   if (permission === 'denied') {
     return (
       <div className={`flex items-center gap-2 text-sm text-red-500 ${className}`}>
@@ -201,7 +203,7 @@ export function PushNotificationManager({
   }
 
   return (
-    <div className={`flex flex-col gap-2 ${className}`}>
+    <div className={`flex flex-col gap-3 ${className}`}>
       {error && (
         <p className="text-sm text-red-500">{error}</p>
       )}
@@ -224,9 +226,11 @@ export function PushNotificationManager({
             
             <button
               onClick={sendTestNotification}
+              disabled={isTestSending}
               className="flex items-center gap-2 px-4 py-2 text-sm bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors disabled:opacity-50"
             >
-              Enviar prueba
+              {isTestSending && <Loader2 className="w-4 h-4 animate-spin" />}
+              <span>{isTestSending ? 'Enviando...' : 'Enviar prueba'}</span>
             </button>
           </>
         ) : (
@@ -244,6 +248,14 @@ export function PushNotificationManager({
           </button>
         )}
       </div>
+
+      {/* Confirmación visual — visible en todos los dispositivos incluyendo smartphone */}
+      {testSuccess && (
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-green-500/20 border border-green-500/30 text-green-400 rounded-lg text-sm">
+          <CheckCircle className="w-4 h-4 flex-shrink-0" />
+          <span>¡Prueba enviada correctamente! Revisa tus notificaciones.</span>
+        </div>
+      )}
     </div>
   )
 }
@@ -263,15 +275,12 @@ function detectDeviceType(): string {
 function detectDeviceName(): string {
   const ua = navigator.userAgent
   
-  // Android
   const androidMatch = ua.match(/Android.*;\s*([^;)]+)/i)
   if (androidMatch) return androidMatch[1].trim()
   
-  // iOS
   if (/iPad/.test(ua)) return 'iPad'
   if (/iPhone/.test(ua)) return 'iPhone'
   
-  // Desktop browsers
   if (/Chrome/i.test(ua)) return 'Chrome'
   if (/Firefox/i.test(ua)) return 'Firefox'
   if (/Safari/i.test(ua)) return 'Safari'

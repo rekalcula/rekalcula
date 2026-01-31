@@ -1,8 +1,10 @@
+
 'use client'
 
 import TypographyManager from './TypographyManager'
 import BetaTestersManager from './BetaTestersManager'
 import FooterLinksManager from './FooterLinksManager'
+import NotificationsLab from './NotificationsLab'
 import { useState, useEffect } from 'react'
 import {
   Users,
@@ -17,7 +19,8 @@ import {
   DollarSign,
   Type,
   Sparkles,
-  Link
+  Link,
+  Bell
 } from 'lucide-react'
 import PlansManager from './PlansManager'
 import PackagesManager from './PackagesManager'
@@ -38,7 +41,7 @@ interface Stats {
 }
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'plans' | 'packages' | 'trial' | 'costs' | 'users' | 'typography' | 'beta-testers' | 'footer'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'plans' | 'packages' | 'trial' | 'costs' | 'users' | 'typography' | 'beta-testers' | 'footer' | 'notifications'>('overview')
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -68,8 +71,9 @@ export default function AdminDashboard() {
     { id: 'trial', label: 'Config Trial', icon: Clock },
     { id: 'costs', label: 'Análisis Costos', icon: DollarSign },
     { id: 'beta-testers', label: 'Beta Testers', icon: Sparkles },
+    { id: 'notifications', label: 'Notificaciones', icon: Bell },
     { id: 'typography', label: 'Tipografía', icon: Type },
-    { id: 'footer', label: 'Enlaces Footer', icon: Link },
+    { id: 'footer', label: 'enlaces Footer', icon: Link },
     { id: 'users', label: 'Usuarios', icon: Users },
   ]
 
@@ -200,6 +204,7 @@ export default function AdminDashboard() {
         {activeTab === 'trial' && <TrialConfigManager />}
         {activeTab === 'costs' && <CostAnalyzer />}
         {activeTab === 'beta-testers' && <BetaTestersManager />}
+        {activeTab === 'notifications' && <NotificationsLab />}
         {activeTab === 'typography' && <TypographyManager />}
         {activeTab === 'footer' && <FooterLinksManager />}
         {activeTab === 'users' && <UsersTable />}
