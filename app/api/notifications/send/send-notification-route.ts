@@ -1,11 +1,15 @@
+
 // ============================================================
 // API: ENVIAR NOTIFICACIÓN PUSH - app/api/notifications/send/route.ts
+// Envía push + email (si está habilitado en preferencias)
 // ============================================================
 
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
+import { clerkClient } from '@clerk/nextjs/server'
 import { createClient } from '@supabase/supabase-js'
 import { sendPushNotification, sendPushToMultiple } from '@/lib/firebase-admin'
+import { sendEmailNotification } from '@/lib/email'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,12 +17,12 @@ const supabase = createClient(
 )
 
 // ============================================================
-// POST: Enviar notificación al usuario actual
+// POST: Enviar notificación al usuario actual (push + email)
 // ============================================================
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth()
-    
+
     if (!userId) {
       return NextResponse.json(
         { success: false, error: 'No autorizado' },
@@ -36,46 +40,80 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Obtener todos los tokens activos del usuario
+    // ============================================================
+    // 1. Push notifications
+    // ============================================================
     const { data: tokens, error: tokenError } = await supabase
       .from('push_tokens')
       .select('id, token')
       .eq('user_id', userId)
       .eq('is_active', true)
 
-    if (tokenError || !tokens || tokens.length === 0) {
-      return NextResponse.json({
-        success: false,
-        error: 'No hay dispositivos registrados para notificaciones',
-        devicesCount: 0
-      })
+    let pushResult = { successCount: 0, failureCount: 0, invalidTokens: [] as string[] }
+
+    if (!tokenError && tokens && tokens.length > 0) {
+      const tokenStrings = tokens.map(t => t.token)
+      pushResult = await sendPushToMultiple(
+        tokenStrings,
+        title,
+        messageBody,
+        { url: url || '/dashboard', ...data }
+      )
+
+      if (pushResult.invalidTokens.length > 0) {
+        await supabase
+          .from('push_tokens')
+          .update({ is_active: false })
+          .in('token', pushResult.invalidTokens)
+      }
     }
 
-    // Enviar a todos los dispositivos del usuario
-    const tokenStrings = tokens.map(t => t.token)
-    const result = await sendPushToMultiple(
-      tokenStrings,
-      title,
-      messageBody,
-      {
-        url: url || '/dashboard',
-        ...data
-      }
-    )
+    // ============================================================
+    // 2. Email — verificar preferencia del usuario
+    // ============================================================
+    let emailResult: { success: boolean; error?: string } = { success: false }
 
-    // Desactivar tokens inválidos
-    if (result.invalidTokens.length > 0) {
-      await supabase
-        .from('push_tokens')
-        .update({ is_active: false })
-        .in('token', result.invalidTokens)
+    // Comprobar si el usuario tiene email habilitado en preferencias
+    const { data: prefData } = await supabase
+      .from('notification_preferences')
+      .select('preferences')
+      .eq('user_id', userId)
+      .single()
+
+    const emailEnabled = prefData?.preferences?.emailEnabled !== false // default: true
+
+    if (emailEnabled) {
+      try {
+        const client = await clerkClient()
+        const user = await client.users.getUser(userId)
+        const userEmail = user.emailAddresses.find(
+          (e: any) => e.id === user.primaryEmailAddressId
+        )?.emailAddress
+
+        if (userEmail) {
+          emailResult = await sendEmailNotification({
+            to: userEmail,
+            subject: title,
+            body: messageBody,
+            url: url || '/dashboard'
+          })
+        }
+      } catch (err) {
+        console.warn('[Send Notif] Error enviando email:', err)
+      }
     }
 
     return NextResponse.json({
-      success: result.successCount > 0,
-      sent: result.successCount,
-      failed: result.failureCount,
-      totalDevices: tokens.length
+      success: pushResult.successCount > 0 || emailResult.success,
+      push: {
+        sent: pushResult.successCount,
+        failed: pushResult.failureCount,
+        totalDevices: tokens?.length || 0
+      },
+      email: {
+        success: emailResult.success,
+        enabled: emailEnabled
+      }
     })
 
   } catch (error) {

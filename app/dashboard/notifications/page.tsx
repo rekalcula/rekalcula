@@ -1,3 +1,4 @@
+
 'use client'
 
 // ============================================================
@@ -5,7 +6,7 @@
 // ============================================================
 
 import { useState, useEffect } from 'react'
-import { Bell, BellOff, CheckCircle, Loader2, Save } from 'lucide-react'
+import { Bell, BellOff, CheckCircle, Loader2, Save, Mail } from 'lucide-react'
 import { PushNotificationManager } from '@/components/PushNotificationManager'
 
 // Tipos de notificaciones disponibles
@@ -88,6 +89,7 @@ const groupByCategory = (notifications: typeof NOTIFICATION_TYPES) => {
 
 export default function NotificationsPage() {
   const [pushEnabled, setPushEnabled] = useState(false)
+  const [emailEnabled, setEmailEnabled] = useState(true)
   const [preferences, setPreferences] = useState<Record<string, boolean>>({})
   const [isSaving, setIsSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
@@ -100,14 +102,19 @@ export default function NotificationsPage() {
         if (response.ok) {
           const data = await response.json()
           if (data.preferences) {
-            setPreferences(data.preferences)
+            // Extraer emailEnabled separadamente
+            const { emailEnabled: savedEmailEnabled, ...notifPrefs } = data.preferences
+            setPreferences(notifPrefs)
+            if (typeof savedEmailEnabled === 'boolean') {
+              setEmailEnabled(savedEmailEnabled)
+            }
             return
           }
         }
       } catch (error) {
         console.log('Usando preferencias por defecto')
       }
-      
+
       // Usar defaults si no hay preferencias guardadas
       const defaults: Record<string, boolean> = {}
       NOTIFICATION_TYPES.forEach(n => {
@@ -115,7 +122,7 @@ export default function NotificationsPage() {
       })
       setPreferences(defaults)
     }
-    
+
     loadPreferences()
   }, [])
 
@@ -138,18 +145,23 @@ export default function NotificationsPage() {
     setSaveMessage(null)
   }
 
-  // Guardar preferencias
+  // Guardar preferencias (incluye emailEnabled)
   const savePreferences = async () => {
     setIsSaving(true)
     setSaveMessage(null)
-    
+
     try {
       const response = await fetch('/api/notifications/preferences', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ preferences })
+        body: JSON.stringify({
+          preferences: {
+            ...preferences,
+            emailEnabled
+          }
+        })
       })
-      
+
       if (response.ok) {
         setSaveMessage('Preferencias guardadas correctamente')
       } else {
@@ -179,8 +191,10 @@ export default function NotificationsPage() {
           </div>
         </div>
 
-        {/* Activar Push Notifications */}
-        <div className="bg-[#1a1a1a] rounded-xl p-6 mb-6 border border-gray-700">
+        {/* ============================================================
+            Activar Push Notifications
+            ============================================================ */}
+        <div className="bg-[#1a1a1a] rounded-xl p-6 mb-4 border border-gray-700">
           <div className="flex items-start gap-4">
             <div className={`p-3 rounded-full ${pushEnabled ? 'bg-green-500/20' : 'bg-gray-700'}`}>
               {pushEnabled ? (
@@ -194,10 +208,9 @@ export default function NotificationsPage() {
                 Notificaciones Push
               </h2>
               <p className="text-gray-400 text-sm mb-4">
-                Activa las notificaciones para recibir alertas en tu dispositivo, 
-                incluso cuando no estés usando la aplicación.
+                Recibe alertas en tu dispositivo, incluso cuando no estés usando la aplicación.
               </p>
-              <PushNotificationManager 
+              <PushNotificationManager
                 onStatusChange={setPushEnabled}
                 className="mt-2"
               />
@@ -205,9 +218,50 @@ export default function NotificationsPage() {
           </div>
         </div>
 
-        {/* Tipos de Notificaciones */}
+        {/* ============================================================
+            Notificaciones por Email — NUEVO
+            ============================================================ */}
+        <div className="bg-[#1a1a1a] rounded-xl p-6 mb-6 border border-gray-700">
+          <div className="flex items-start gap-4">
+            <div className={`p-3 rounded-full ${emailEnabled ? 'bg-blue-500/20' : 'bg-gray-700'}`}>
+              <Mail className={`w-6 h-6 ${emailEnabled ? 'text-blue-400' : 'text-gray-400'}`} />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-white mb-1">
+                    Notificaciones por Email
+                  </h2>
+                  <p className="text-gray-400 text-sm">
+                    Recibe las mismas alertas por correo electrónico en la dirección con la que te registraste.
+                  </p>
+                </div>
+                {/* Toggle switch */}
+                <button
+                  onClick={() => { setEmailEnabled(!emailEnabled); setSaveMessage(null) }}
+                  className={`relative w-14 h-8 rounded-full transition-colors duration-300 flex-shrink-0 ${
+                    emailEnabled
+                      ? 'bg-gradient-to-r from-[#d98c21] to-[#f5a623]'
+                      : 'bg-gray-600'
+                  }`}
+                >
+                  <span
+                    className={`absolute top-1/2 -translate-y-1/2 w-7 h-7 bg-white rounded-full shadow-lg transition-all duration-300 ${
+                      emailEnabled ? 'left-7' : 'left-0.5'
+                    }`}
+                    style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ============================================================
+            Tipos de Notificaciones
+            ============================================================ */}
         <div className="bg-[#1a1a1a] rounded-xl border border-gray-700 overflow-hidden">
-          {/* Header con acciones - RESPONSIVE: vertical en móvil, horizontal en desktop */}
+          {/* Header con acciones */}
           <div className="px-6 py-4 border-b border-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold text-white">Tipos de notificaciones</h2>
@@ -215,7 +269,6 @@ export default function NotificationsPage() {
                 {enabledCount} de {NOTIFICATION_TYPES.length} activadas
               </p>
             </div>
-            {/* Botones: columna en móvil, fila en desktop */}
             <div className="flex flex-col sm:flex-row gap-2">
               <button
                 onClick={() => toggleAll(true)}
@@ -238,14 +291,12 @@ export default function NotificationsPage() {
           <div className="divide-y divide-gray-700">
             {Object.entries(groupedNotifications).map(([category, notifications]) => (
               <div key={category}>
-                {/* Categoría header */}
                 <div className="px-6 py-3 bg-[#262626]">
                   <h3 className="text-sm font-medium text-[#d98c21]">{category}</h3>
                 </div>
-                
-                {/* Notificaciones de la categoría */}
+
                 {notifications.map((notif) => (
-                  <div 
+                  <div
                     key={notif.id}
                     className="px-6 py-4 flex items-center justify-between hover:bg-[#262626] transition-colors"
                   >
@@ -253,23 +304,21 @@ export default function NotificationsPage() {
                       <h4 className="text-white font-medium">{notif.title}</h4>
                       <p className="text-gray-400 text-sm">{notif.description}</p>
                     </div>
-                    
-                    {/* Toggle switch estilo iOS */}
+
+                    {/* Toggle switch */}
                     <button
                       onClick={() => toggleNotification(notif.id)}
                       className={`relative w-14 h-8 rounded-full transition-colors duration-300 flex-shrink-0 ${
-                        preferences[notif.id] 
-                          ? 'bg-gradient-to-r from-[#d98c21] to-[#f5a623]' 
+                        preferences[notif.id]
+                          ? 'bg-gradient-to-r from-[#d98c21] to-[#f5a623]'
                           : 'bg-gray-600'
                       }`}
                     >
-                      <span 
+                      <span
                         className={`absolute top-1/2 -translate-y-1/2 w-7 h-7 bg-white rounded-full shadow-lg transition-all duration-300 ${
                           preferences[notif.id] ? 'left-7' : 'left-0.5'
                         }`}
-                        style={{
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2)'
-                        }}
+                        style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2)' }}
                       />
                     </button>
                   </div>
@@ -307,9 +356,9 @@ export default function NotificationsPage() {
         {/* Nota informativa */}
         <div className="mt-6 p-4 bg-[#1a1a1a] rounded-lg border border-gray-700">
           <p className="text-gray-400 text-sm">
-            <strong className="text-[#d98c21]">Nota:</strong> Las notificaciones push requieren 
-            que actives el permiso en tu navegador. Si no recibes notificaciones, verifica 
-            que no estén bloqueadas en la configuración de tu navegador.
+            <strong className="text-[#d98c21]">Nota:</strong> Las notificaciones push requieren
+            que actives el permiso en tu navegador. Los emails se envían a la dirección de correo
+            con la que te registraste en tu cuenta.
           </p>
         </div>
       </div>
