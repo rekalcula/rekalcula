@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useEffect } from 'react'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
@@ -107,7 +105,7 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-[#ACACAC] mb-1">
+          <label className="block text-sm font-medium text-gray-400 mb-1">
             Fecha inicio
           </label>
           <DatePicker
@@ -119,12 +117,12 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
             dayClassName={dayClassName}
             disabled={disabled}
             dateFormat="dd/MM/yyyy"
-            className="w-full px-3 py-2 border-2 border-[#d98c21] bg-[#0d0d0d] text-[#FFFCFF] rounded-lg focus:ring-2 focus:ring-[#d98c21] focus:border-[#d98c21] disabled:opacity-50"
+            className="w-full px-3 py-2 border-2 border-[#d98c21] bg-[#0d0d0d] text-white rounded-lg focus:ring-2 focus:ring-[#d98c21] focus:border-[#d98c21] disabled:opacity-50"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[#ACACAC] mb-1">
+          <label className="block text-sm font-medium text-gray-400 mb-1">
             Fecha fin
           </label>
           <DatePicker
@@ -137,16 +135,17 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
             dayClassName={dayClassName}
             disabled={disabled}
             dateFormat="dd/MM/yyyy"
-            className="w-full px-3 py-2 border-2 border-[#d98c21] bg-[#0d0d0d] text-[#FFFCFF] rounded-lg focus:ring-2 focus:ring-[#d98c21] focus:border-[#d98c21] disabled:opacity-50"
+            className="w-full px-3 py-2 border-2 border-[#d98c21] bg-[#0d0d0d] text-white rounded-lg focus:ring-2 focus:ring-[#d98c21] focus:border-[#d98c21] disabled:opacity-50"
           />
         </div>
       </div>
 
       {fechaInicio && fechaFin && (
-        <div className="text-sm text-[#ACACAC]">
-          <span className="font-medium text-[#FFFCFF]">{diasSeleccionados}</span> dias seleccionados
-          <span className="ml-2">
-            ({fechasConVentas.length} dias con ventas disponibles)
+        <div className="text-sm">
+          <span className="font-medium text-white">{diasSeleccionados}</span>
+          <span className="text-gray-400"> días seleccionados </span>
+          <span className="text-gray-400">
+            ({fechasConVentas.length} días con ventas disponibles)
           </span>
         </div>
       )}
@@ -157,11 +156,11 @@ export default function DateRangePicker({ onDateChange, disabled }: DateRangePic
             <IconAlertTriangle size={24} color="#D97706" className="mr-3 flex-shrink-0" />
             <div>
               <h3 className="text-sm font-semibold text-yellow-800">
-                Periodo menor a 15 dias
+                Período menor a 15 días
               </h3>
               <p className="text-sm text-yellow-700 mt-1">
-                Se recomienda al menos 15 dias de datos de ventas para realizar un analisis
-                cientificamente valido y detectar tendencias significativas.
+                Se recomienda al menos 15 días de datos de ventas para realizar un análisis
+                científicamente válido y detectar tendencias significativas.
               </p>
             </div>
           </div>
