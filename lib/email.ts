@@ -76,7 +76,7 @@ function buildEmailHTML({
           <!-- Header con logo reKalcula -->
           <tr>
             <td align="center" style="background-color: #262626; padding: 28px 24px; border-radius: 12px 12px 0 0;">
-              <span style="font-size: 22px; font-weight: 700; letter-spacing: -0.5px;"><span style="color: #ffffff;">re</span><span style="color: #d98c21;">Kalcula</span></span>
+              <span style="font-size: 22px; font-weight: 700; letter-spacing: -0.5px;"><span style="color: #d98c21;">K</span><span style="color: #ffffff;">Kalcula</span></span>
             </td>
           </tr>
           
