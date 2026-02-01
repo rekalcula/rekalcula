@@ -1,4 +1,3 @@
-
 // ============================================================
 // LIB: Email — lib/email.ts
 // Envío de emails usando Resend
@@ -67,104 +66,67 @@ function buildEmailHTML({
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #f0f0f0;
-      padding: 32px 16px;
-      color: #1a1a1a;
-    }
-    .wrapper { max-width: 520px; margin: 0 auto; }
-    .header {
-      background: #262626;
-      padding: 28px 24px;
-      border-radius: 12px 12px 0 0;
-      text-align: center;
-    }
-    .logo-text {
-      color: #d98c21;
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-    }
-    .card {
-      background: #ffffff;
-      padding: 36px 28px 32px;
-    }
-    .icon-wrap {
-      width: 48px;
-      height: 48px;
-      background: #d98c21;
-      border-radius: 12px;
-      margin: 0 auto 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .icon-wrap svg { width: 24px; height: 24px; }
-    h2 {
-      font-size: 18px;
-      font-weight: 600;
-      color: #1a1a1a;
-      margin-bottom: 10px;
-      line-height: 1.4;
-    }
-    p.desc {
-      font-size: 14px;
-      color: #666;
-      line-height: 1.6;
-      margin-bottom: 28px;
-    }
-    a.cta {
-      display: inline-block;
-      background: #d98c21;
-      color: #ffffff;
-      text-decoration: none;
-      padding: 12px 28px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      transition: background 0.2s;
-    }
-    a.cta:hover { background: #c47d1d; }
-    .footer {
-      background: #f7f7f7;
-      padding: 20px 28px;
-      border-radius: 0 0 12px 12px;
-      border-top: 1px solid #eeeeee;
-    }
-    .footer p {
-      font-size: 11px;
-      color: #999;
-      line-height: 1.5;
-    }
-    .footer a { color: #d98c21; text-decoration: none; }
-  </style>
 </head>
-<body>
-  <div class="wrapper">
-    <div class="header">
-      <div class="logo-text">reKalcula</div>
-    </div>
-    <div class="card">
-      <div class="icon-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-        </svg>
-      </div>
-      <h2>${subject}</h2>
-      <p class="desc">${body}</p>
-      <a href="${actionUrl}" class="cta">Ver en reKalcula</a>
-    </div>
-    <div class="footer">
-      <p>
-        Recibiste este correo porque tienes las notificaciones por email activadas en tu cuenta de reKalcula.<br>
-        Si no deseas recibir estos correos, <a href="${actionUrl.split('/').slice(0, 3).join('/')}/dashboard/notifications">gestiona tus preferencias aquí</a>.
-      </p>
-    </div>
-  </div>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f0f0f0;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f0f0f0; padding: 32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="520" cellspacing="0" cellpadding="0" border="0" style="max-width: 520px; width: 100%;">
+          
+          <!-- Header con logo reKalcula -->
+          <tr>
+            <td align="center" style="background-color: #262626; padding: 28px 24px; border-radius: 12px 12px 0 0;">
+              <span style="font-size: 22px; font-weight: 700; letter-spacing: -0.5px;"><span style="color: #ffffff;">re</span><span style="color: #d98c21;">Kalcula</span></span>
+            </td>
+          </tr>
+          
+          <!-- Contenido principal -->
+          <tr>
+            <td align="center" style="background-color: #ffffff; padding: 36px 28px 32px;">
+              <!-- Icono campana -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 20px;">
+                <tr>
+                  <td align="center" valign="middle" style="width: 48px; height: 48px; background-color: #d98c21; border-radius: 12px;">
+                    <span style="font-size: 24px; line-height: 48px;">🔔</span>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Título -->
+              <h2 style="font-size: 18px; font-weight: 600; color: #1a1a1a; margin: 0 0 10px 0; line-height: 1.4;">
+                ${subject}
+              </h2>
+              
+              <!-- Mensaje -->
+              <p style="font-size: 14px; color: #666666; line-height: 1.6; margin: 0 0 28px 0;">
+                ${body}
+              </p>
+              
+              <!-- Botón CTA -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td align="center" style="background-color: #d98c21; border-radius: 8px;">
+                    <a href="${actionUrl}" style="display: inline-block; padding: 12px 28px; font-size: 14px; font-weight: 600; color: #ffffff; text-decoration: none;">Ver en reKalcula</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="background-color: #f7f7f7; padding: 20px 28px; border-radius: 0 0 12px 12px; border-top: 1px solid #eeeeee;">
+              <p style="font-size: 11px; color: #999999; line-height: 1.5; margin: 0;">
+                Recibiste este correo porque tienes las notificaciones por email activadas en tu cuenta de reKalcula.<br>
+                Si no deseas recibir estos correos, <a href="${actionUrl.split('/').slice(0, 3).join('/')}/dashboard/notifications" style="color: #d98c21; text-decoration: none;">gestiona tus preferencias aquí</a>.
+              </p>
+            </td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>`
 }
