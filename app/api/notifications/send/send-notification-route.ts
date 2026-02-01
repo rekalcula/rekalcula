@@ -1,15 +1,16 @@
-
 // ============================================================
-// API: ENVIAR NOTIFICACIÓN PUSH - app/api/notifications/send/route.ts
+// API: ENVIAR NOTIFICACIÓN PUSH - app/api/admin/notifications/route.ts
 // Envía push + email (si está habilitado en preferencias)
+// Soporta envío dirigido a usuarios específicos (solo admin)
 // ============================================================
 
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { clerkClient } from '@clerk/nextjs/server'
 import { createClient } from '@supabase/supabase-js'
-import { sendPushNotification, sendPushToMultiple } from '@/lib/firebase-admin'
+import { sendPushNotification, sendPushToMultiple, sendPushToUser } from '@/lib/firebase-admin'
 import { sendEmailNotification } from '@/lib/email'
+import { isAdmin } from '@/lib/admin'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,7 +18,9 @@ const supabase = createClient(
 )
 
 // ============================================================
-// POST: Enviar notificación al usuario actual (push + email)
+// POST: Enviar notificación
+// ─ Sin targetUserIds → envía al usuario actual (push + email)
+// ─ Con targetUserIds → envía solo push a cada usuario (solo admin)
 // ============================================================
 export async function POST(request: NextRequest) {
   try {
@@ -31,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { title, body: messageBody, url, data } = body
+    const { title, body: messageBody, url, data, targetUserIds } = body
 
     if (!title || !messageBody) {
       return NextResponse.json(
@@ -41,8 +44,68 @@ export async function POST(request: NextRequest) {
     }
 
     // ============================================================
-    // 1. Push notifications
+    // BLOQUE A: Envío dirigido a usuarios específicos (solo admin)
     // ============================================================
+    if (targetUserIds && Array.isArray(targetUserIds) && targetUserIds.length > 0) {
+
+      if (!isAdmin(userId)) {
+        return NextResponse.json(
+          { success: false, error: 'Solo administradores pueden enviar a otros usuarios' },
+          { status: 403 }
+        )
+      }
+
+      // Enviar push a cada usuario en paralelo
+      const results = await Promise.all(
+        targetUserIds.map(async (targetId: string) => {
+          try {
+            const result = await sendPushToUser(
+              targetId,
+              title,
+              messageBody,
+              { url: url || '/dashboard' }
+            )
+            return {
+              userId: targetId,
+              success: result.success,
+              devicesNotified: result.devicesNotified
+            }
+          } catch (err) {
+            console.error(`[Send Notif] Error para usuario ${targetId}:`, err)
+            return { userId: targetId, success: false, devicesNotified: 0 }
+          }
+        })
+      )
+
+      const totalDevices  = results.reduce((sum, r) => sum + r.devicesNotified, 0)
+      const notifiedUsers = results.filter(r => r.devicesNotified > 0).length
+      const noDeviceUsers = results.filter(r => r.devicesNotified === 0).length
+
+      console.log(`[Send Notif] Dirigido: ${notifiedUsers}/${targetUserIds.length} usuarios, ${totalDevices} dispositivos`)
+
+      return NextResponse.json({
+        success: totalDevices > 0,
+        push: {
+          sent: totalDevices,
+          failed: noDeviceUsers,
+          totalDevices,
+          targeted: targetUserIds.length,
+          notified: notifiedUsers,
+          noDevices: noDeviceUsers === targetUserIds.length
+        },
+        email: {
+          success: false,
+          to: null,
+          error: 'No disponible en envío dirigido'
+        }
+      })
+    }
+
+    // ============================================================
+    // BLOQUE B: Envío al usuario actual (comportamiento original)
+    // ============================================================
+
+    // 1. Push notifications
     const { data: tokens, error: tokenError } = await supabase
       .from('push_tokens')
       .select('id, token')
@@ -68,12 +131,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // ============================================================
     // 2. Email — verificar preferencia del usuario
-    // ============================================================
     let emailResult: { success: boolean; error?: string } = { success: false }
 
-    // Comprobar si el usuario tiene email habilitado en preferencias
     const { data: prefData } = await supabase
       .from('notification_preferences')
       .select('preferences')
@@ -108,7 +168,8 @@ export async function POST(request: NextRequest) {
       push: {
         sent: pushResult.successCount,
         failed: pushResult.failureCount,
-        totalDevices: tokens?.length || 0
+        totalDevices: tokens?.length || 0,
+        noDevices: !tokens || tokens.length === 0
       },
       email: {
         success: emailResult.success,
