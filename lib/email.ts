@@ -93,7 +93,7 @@ function buildEmailHTML({
               </table>
               
               <!-- Título -->
-              <h2 style="font-size: 18px; font-weight: 600; color: #1a1a1a; margin: 0 0 10px 0; line-height: 1.4;">
+              <h2 style="font-size: 18px; font-weight: 600; color: #1a1a1a; margin: 0 0 16px 0; line-height: 1.4;">
                 ${subject}
               </h2>
               
@@ -106,7 +106,7 @@ function buildEmailHTML({
               <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                 <tr>
                   <td align="center" style="background-color: #d98c21; border-radius: 8px;">
-                    <a href="${actionUrl}" style="display: inline-block; padding: 12px 28px; font-size: 14px; font-weight: 600; color: #ffffff; text-decoration: none;">Ver en reKalcula</a>
+                    <a href="${actionUrl}" style="display: inline-block; padding: 14px 28px; font-size: 14px; font-weight: 600; color: #ffffff; text-decoration: none;">Ver en reKalcula</a>
                   </td>
                 </tr>
               </table>
