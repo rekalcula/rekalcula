@@ -31,7 +31,7 @@ export async function sendEmailNotification({
     const actionUrl = url ? `${appUrl}${url}` : appUrl
 
     const { data, error } = await resend.emails.send({
-      from: 'noreply@rekalcula.com',
+      from: 'ReKalcula <onboarding@resend.dev>',
       to: [to],
       subject: subject,
       html: buildEmailHTML({ subject, body, actionUrl })
