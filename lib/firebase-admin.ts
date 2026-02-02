@@ -47,8 +47,8 @@ export async function sendPushNotification(
       },
       webpush: {
         notification: {
-          icon: '/icons/icon-192x192.svg',
-          badge: '/icons/icon-72x72.svg',
+          icon: '/icons/icon-192x192.png',
+          badge: '/icons/icon-72x72.png',
           requireInteraction: true,
         },
         fcmOptions: {
@@ -104,8 +104,8 @@ export async function sendPushToMultiple(
       },
       webpush: {
         notification: {
-          icon: '/icons/icon-192x192.svg',
-          badge: '/icons/icon-72x72.svg',
+          icon: '/icons/icon-192x192.png',
+          badge: '/icons/icon-72x72.png',
           requireInteraction: true,
         },
         fcmOptions: {
