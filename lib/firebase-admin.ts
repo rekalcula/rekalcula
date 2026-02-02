@@ -1,5 +1,5 @@
 // ============================================================
-// FIREBASE ADMIN SDK - Envío de Push Notifications
+// FIREBASE ADMIN SDK - Enví­o de Push Notifications
 // ============================================================
 
 import admin from 'firebase-admin'
@@ -47,8 +47,8 @@ export async function sendPushNotification(
       },
       webpush: {
         notification: {
-          icon: '/icons/icon-192x192.png',
-          badge: '/icons/icon-72x72.png',
+          icon: '/icons/icon-192x192.svg',
+          badge: '/icons/icon-72x72.svg',
           requireInteraction: true,
         },
         fcmOptions: {
@@ -104,8 +104,8 @@ export async function sendPushToMultiple(
       },
       webpush: {
         notification: {
-          icon: '/icons/icon-192x192.png',
-          badge: '/icons/icon-72x72.png',
+          icon: '/icons/icon-192x192.svg',
+          badge: '/icons/icon-72x72.svg',
           requireInteraction: true,
         },
         fcmOptions: {
@@ -179,7 +179,7 @@ export async function sendPushToUser(
   const tokenStrings = tokens.map(t => t.token)
   const result = await sendPushToMultiple(tokenStrings, title, body, data)
 
-  // Desactivar tokens inválidos
+  // Desactivar tokens invÃ¡lidos
   if (result.invalidTokens.length > 0) {
     await supabase
       .from('push_tokens')

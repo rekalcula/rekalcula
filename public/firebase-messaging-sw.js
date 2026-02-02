@@ -3,7 +3,7 @@
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
 
-// Configuración de Firebase
+// ConfiguraciÃ³n de Firebase
 firebase.initializeApp({
   apiKey: "AIzaSyALtN3CwjcHsXNuLkdEEzXff4kBpdJopeg",
   authDomain: "rekalcula-notifications.firebaseapp.com",
@@ -23,8 +23,8 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.notification?.title || 'reKalcula';
   const notificationOptions = {
     body: payload.notification?.body || '',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png',
+    icon: '/icons/icon-192x192.svg',
+    badge: '/icons/icon-72x72.svg',
     tag: payload.data?.tag || 'default',
     data: payload.data
   };
