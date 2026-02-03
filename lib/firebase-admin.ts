@@ -47,7 +47,7 @@ export async function sendPushNotification(
       },
       webpush: {
         notification: {
-          icon: '/icons/icon-192x192.png',
+          icon: '/icons/notification-icon.png',
           badge: '/icons/icon-72x72.png',
           requireInteraction: true,
         },

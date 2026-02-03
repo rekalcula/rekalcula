@@ -23,7 +23,7 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.notification?.title || 'reKalcula';
   const notificationOptions = {
     body: payload.notification?.body || '',
-    icon: '/icons/icon-192x192.png',
+    icon: '/icons/notification-icon.png',
     badge: '/icons/icon-72x72.png',
     tag: payload.data?.tag || 'default',
     data: payload.data
