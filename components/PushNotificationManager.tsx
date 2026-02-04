@@ -1,13 +1,13 @@
-
 'use client'
 
 // ============================================================
 // COMPONENTE: PushNotificationManager
 // Ubicación: components/PushNotificationManager.tsx
+// VERSIÓN MEJORADA: Incluye aviso para notificaciones flotantes en Android
 // ============================================================
 
 import { useState, useEffect, useCallback } from 'react'
-import { Bell, BellOff, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { Bell, BellOff, CheckCircle, XCircle, Loader2, Info, Smartphone } from 'lucide-react'
 import { getFCMToken, onForegroundMessage } from '@/lib/firebase'
 
 interface PushNotificationManagerProps {
@@ -27,6 +27,19 @@ export function PushNotificationManager({
   const [error, setError] = useState<string | null>(null)
   const [testSuccess, setTestSuccess] = useState(false)
   const [isTestSending, setIsTestSending] = useState(false)
+  const [isAndroid, setIsAndroid] = useState(false)
+  const [showAndroidTip, setShowAndroidTip] = useState(false)
+  const [justActivated, setJustActivated] = useState(false)
+
+  // ============================================================
+  // Detectar Android
+  // ============================================================
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const ua = navigator.userAgent
+      setIsAndroid(/android/i.test(ua))
+    }
+  }, [])
 
   // ============================================================
   // Verificar estado inicial
@@ -62,7 +75,7 @@ export function PushNotificationManager({
       if (Notification.permission === 'granted') {
         new Notification(payload.notification?.title || 'ReKalcula', {
           body: payload.notification?.body,
-          icon: '/icons/icon-192x192.svg'
+          icon: '/icons/icon-192x192.png'
         })
       }
     })
@@ -74,6 +87,7 @@ export function PushNotificationManager({
   const subscribeToPush = useCallback(async () => {
     setIsLoading(true)
     setError(null)
+    setShowAndroidTip(false)
 
     try {
       const token = await getFCMToken()
@@ -100,7 +114,14 @@ export function PushNotificationManager({
 
       setPermission('granted')
       setIsSubscribed(true)
+      setJustActivated(true)
       onStatusChange?.(true)
+      
+      // Mostrar tip de Android si es dispositivo Android
+      if (isAndroid) {
+        setShowAndroidTip(true)
+      }
+      
       console.log('[Push] Suscripción completada')
 
     } catch (err: any) {
@@ -109,7 +130,7 @@ export function PushNotificationManager({
     } finally {
       setIsLoading(false)
     }
-  }, [onStatusChange])
+  }, [onStatusChange, isAndroid])
 
   // ============================================================
   // Desuscribir
@@ -117,6 +138,7 @@ export function PushNotificationManager({
   const unsubscribeFromPush = useCallback(async () => {
     setIsLoading(true)
     setError(null)
+    setShowAndroidTip(false)
 
     try {
       const token = await getFCMToken()
@@ -130,6 +152,7 @@ export function PushNotificationManager({
       }
 
       setIsSubscribed(false)
+      setJustActivated(false)
       onStatusChange?.(false)
       console.log('[Push] Desuscripción completada')
 
@@ -142,8 +165,7 @@ export function PushNotificationManager({
   }, [onStatusChange])
 
   // ============================================================
-  // Enviar notificación de prueba — CORREGIDO
-  // Ahora muestra confirmación visual en todos los dispositivos
+  // Enviar notificación de prueba
   // ============================================================
   const sendTestNotification = useCallback(async () => {
     setError(null)
@@ -167,6 +189,13 @@ export function PushNotificationManager({
       setIsTestSending(false)
     }
   }, [])
+
+  // ============================================================
+  // Cerrar tip de Android
+  // ============================================================
+  const dismissAndroidTip = () => {
+    setShowAndroidTip(false)
+  }
 
   // ============================================================
   // Render
@@ -249,12 +278,60 @@ export function PushNotificationManager({
         )}
       </div>
 
-      {/* Confirmación visual — visible en todos los dispositivos incluyendo smartphone */}
+      {/* Confirmación visual de prueba enviada */}
       {testSuccess && (
         <div className="flex items-center gap-2 px-4 py-2.5 bg-green-500/20 border border-green-500/30 text-green-400 rounded-lg text-sm">
           <CheckCircle className="w-4 h-4 flex-shrink-0" />
           <span>¡Prueba enviada correctamente! Revisa tus notificaciones.</span>
         </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* AVISO PARA ANDROID: Notificaciones flotantes */}
+      {/* ============================================================ */}
+      {isAndroid && showAndroidTip && justActivated && (
+        <div className="relative flex flex-col gap-2 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg text-sm">
+          {/* Botón cerrar */}
+          <button 
+            onClick={dismissAndroidTip}
+            className="absolute top-2 right-2 text-blue-400 hover:text-blue-300 p-1"
+            aria-label="Cerrar"
+          >
+            <XCircle className="w-4 h-4" />
+          </button>
+          
+          <div className="flex items-start gap-3 pr-6">
+            <Smartphone className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="flex flex-col gap-2">
+              <p className="text-blue-300 font-medium">
+                ✅ ¡Notificaciones activadas!
+              </p>
+              <p className="text-blue-200/80">
+                Para ver las notificaciones como burbujas flotantes en tu pantalla, activa las <strong>notificaciones flotantes</strong> en la configuración de Chrome:
+              </p>
+              <ol className="text-blue-200/70 text-xs space-y-1 list-decimal list-inside">
+                <li>Abre <strong>Ajustes de Chrome</strong> (toca ⋮ → Configuración)</li>
+                <li>Ve a <strong>Notificaciones</strong> → <strong>Configuración del sitio</strong></li>
+                <li>Busca <strong>rekalcula</strong> en la lista</li>
+                <li>Activa <strong>"Notificaciones flotantes"</strong></li>
+              </ol>
+              <p className="text-blue-200/60 text-xs mt-1">
+                Sin esta opción, las notificaciones aparecerán solo en el panel de notificaciones de tu teléfono.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Aviso permanente pero más discreto si ya está suscrito en Android */}
+      {isAndroid && isSubscribed && !showAndroidTip && !justActivated && (
+        <button
+          onClick={() => setShowAndroidTip(true)}
+          className="flex items-center gap-2 text-xs text-gray-500 hover:text-gray-400 transition-colors"
+        >
+          <Info className="w-3.5 h-3.5" />
+          <span>¿No ves las notificaciones flotantes? Toca aquí</span>
+        </button>
       )}
     </div>
   )
