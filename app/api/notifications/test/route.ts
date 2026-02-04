@@ -1,11 +1,12 @@
 // ============================================================
 // API: TEST NOTIFICACIÓN - app/api/notifications/test/route.ts
+// VERSIÓN CORREGIDA: Envía a TODOS los dispositivos del usuario
 // ============================================================
 
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { createClient } from '@supabase/supabase-js'
-import { sendPushNotification } from '@/lib/firebase-admin'
+import { sendPushNotification, sendPushToMultiple } from '@/lib/firebase-admin'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,7 +14,7 @@ const supabase = createClient(
 )
 
 // ============================================================
-// POST: Enviar notificación de prueba
+// POST: Enviar notificación de prueba A TODOS LOS DISPOSITIVOS
 // ============================================================
 export async function POST(request: NextRequest) {
   try {
@@ -26,16 +27,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Obtener el primer token activo del usuario
-    const { data: tokenData, error: tokenError } = await supabase
+    // Obtener TODOS los tokens activos del usuario (no solo 1)
+    const { data: tokens, error: tokenError } = await supabase
       .from('push_tokens')
       .select('token, device_type, device_name')
       .eq('user_id', userId)
       .eq('is_active', true)
-      .limit(1)
-      .single()
 
-    if (tokenError || !tokenData) {
+    if (tokenError || !tokens || tokens.length === 0) {
       return NextResponse.json({
         success: false,
         error: 'No tienes dispositivos registrados para notificaciones. Activa las notificaciones primero.',
@@ -43,9 +42,11 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Enviar notificación de prueba
-    const result = await sendPushNotification(
-      tokenData.token,
+    // Enviar a TODOS los dispositivos del usuario
+    const tokenStrings = tokens.map(t => t.token)
+    
+    const result = await sendPushToMultiple(
+      tokenStrings,
       '🎉 ¡Notificaciones activas!',
       'Las notificaciones push de ReKalcula funcionan correctamente.',
       {
@@ -54,33 +55,30 @@ export async function POST(request: NextRequest) {
       }
     )
 
-    if (!result.success) {
-      // Si el token es inválido, desactivarlo
-      if (result.error === 'token_invalid') {
-        await supabase
-          .from('push_tokens')
-          .update({ is_active: false })
-          .eq('token', tokenData.token)
-        
-        return NextResponse.json({
-          success: false,
-          error: 'El token del dispositivo ya no es válido. Por favor, reactiva las notificaciones.',
-          step: 'token_expired'
-        })
-      }
+    // Desactivar tokens inválidos automáticamente
+    if (result.invalidTokens.length > 0) {
+      await supabase
+        .from('push_tokens')
+        .update({ is_active: false })
+        .in('token', result.invalidTokens)
+      
+      console.log(`[Test Notification] Desactivados ${result.invalidTokens.length} tokens inválidos`)
+    }
 
+    if (!result.success && result.successCount === 0) {
       return NextResponse.json({
         success: false,
-        error: result.error || 'Error al enviar notificación',
+        error: 'No se pudo enviar a ningún dispositivo. Por favor, reactiva las notificaciones.',
         step: 'send_failed'
       })
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Notificación de prueba enviada',
-      device: tokenData.device_name || tokenData.device_type,
-      messageId: result.messageId
+      message: `Notificación enviada a ${result.successCount} dispositivo(s)`,
+      devicesNotified: result.successCount,
+      devicesFailed: result.failureCount,
+      devices: tokens.map(t => t.device_name || t.device_type)
     })
 
   } catch (error) {

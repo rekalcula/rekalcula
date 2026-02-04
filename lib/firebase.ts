@@ -1,6 +1,6 @@
 // ============================================================
 // FIREBASE CLIENT SDK - lib/firebase.ts  
-// VERSIÓN MEJORADA: Registro explícito de Service Worker
+// VERSIÓN CORREGIDA: Solicitar permiso PRIMERO (crítico para Android)
 // ============================================================
 
 import { initializeApp, getApps } from 'firebase/app'
@@ -19,7 +19,7 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
 
 // ============================================================
-// REGISTRAR SERVICE WORKER EXPLÍCITAMENTE
+// REGISTRAR SERVICE WORKER
 // ============================================================
 async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   try {
@@ -30,14 +30,12 @@ async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null
 
     console.log('[Firebase] Registrando Service Worker...')
     
-    // Registrar el SW
     const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
       scope: '/'
     })
 
     console.log('[Firebase] ✅ Service Worker registrado')
 
-    // Esperar a que esté activo
     await navigator.serviceWorker.ready
     console.log('[Firebase] ✅ Service Worker activo y listo')
 
@@ -50,21 +48,51 @@ async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null
 }
 
 // ============================================================
-// OBTENER TOKEN FCM - VERSIÓN MEJORADA CON SW EXPLÍCITO
+// OBTENER TOKEN FCM - VERSIÓN CORREGIDA PARA ANDROID
+// El permiso se solicita PRIMERO, antes de cualquier operación asíncrona
 // ============================================================
 export async function getFCMToken(): Promise<string | null> {
   try {
     console.log('[Firebase] ====== INICIANDO PROCESO ======')
 
-    // 1. Verificar soporte
-    const supported = await isSupported()
-    if (!supported) {
-      console.error('[Firebase] ❌ Messaging no soportado en este navegador')
+    // 1. Verificar soporte básico (síncrono)
+    if (typeof window === 'undefined') {
+      console.error('[Firebase] ❌ No hay window')
       return null
     }
-    console.log('[Firebase] ✅ Messaging soportado')
 
-    // 2. Verificar VAPID Key
+    if (!('Notification' in window)) {
+      console.error('[Firebase] ❌ Notification API no soportada')
+      return null
+    }
+
+    // 2. ⚠️ CRÍTICO PARA ANDROID: Solicitar permiso INMEDIATAMENTE
+    // Debe ser lo primero después del click del usuario
+    console.log('[Firebase] Verificando estado del permiso...')
+    let permission = Notification.permission
+    console.log('[Firebase] Permiso actual:', permission)
+
+    if (permission === 'default') {
+      console.log('[Firebase] Solicitando permiso al usuario...')
+      permission = await Notification.requestPermission()
+      console.log('[Firebase] Respuesta del usuario:', permission)
+    }
+
+    if (permission !== 'granted') {
+      console.error('[Firebase] ❌ Permiso denegado o no concedido')
+      return null
+    }
+    console.log('[Firebase] ✅ Permiso concedido')
+
+    // 3. Ahora sí verificar soporte de Firebase Messaging (asíncrono)
+    const supported = await isSupported()
+    if (!supported) {
+      console.error('[Firebase] ❌ Firebase Messaging no soportado')
+      return null
+    }
+    console.log('[Firebase] ✅ Firebase Messaging soportado')
+
+    // 4. Verificar VAPID Key
     const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
     if (!vapidKey) {
       console.error('[Firebase] ❌ VAPID Key no configurada')
@@ -72,36 +100,26 @@ export async function getFCMToken(): Promise<string | null> {
     }
     console.log('[Firebase] ✅ VAPID Key encontrada')
 
-    // 3. REGISTRAR SERVICE WORKER EXPLÍCITAMENTE (CRÍTICO PARA ANDROID)
+    // 5. Registrar Service Worker (ahora ya tenemos permiso)
     const swRegistration = await registerServiceWorker()
     if (!swRegistration) {
       console.error('[Firebase] ❌ No se pudo registrar Service Worker')
       return null
     }
 
-    // 4. Solicitar permiso
-    console.log('[Firebase] Solicitando permiso de notificaciones...')
-    const permission = await Notification.requestPermission()
-    
-    if (permission !== 'granted') {
-      console.error('[Firebase] ❌ Permiso denegado por el usuario')
-      return null
-    }
-    console.log('[Firebase] ✅ Permiso concedido')
-
-    // 5. Obtener messaging instance CON el SW registration
+    // 6. Obtener messaging instance
     console.log('[Firebase] Obteniendo messaging instance...')
     const messaging = getMessaging(app)
     console.log('[Firebase] ✅ Messaging instance obtenida')
 
-    // 6. Solicitar token FCM usando el SW registration
+    // 7. Solicitar token FCM
     console.log('[Firebase] Solicitando token FCM...')
     const token = await getToken(messaging, {
       vapidKey: vapidKey,
-      serviceWorkerRegistration: swRegistration // ← CLAVE: pasar el SW explícitamente
+      serviceWorkerRegistration: swRegistration
     })
 
-    // 7. Validar token
+    // 8. Validar token
     if (!token) {
       console.error('[Firebase] ❌ No se obtuvo token')
       return null
@@ -122,7 +140,6 @@ export async function getFCMToken(): Promise<string | null> {
   } catch (error: any) {
     console.error('[Firebase] ❌❌❌ ERROR CRÍTICO:', error)
     console.error('[Firebase] Error message:', error.message)
-    console.error('[Firebase] Error stack:', error.stack)
     return null
   }
 }
