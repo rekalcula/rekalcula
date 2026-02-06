@@ -1,5 +1,6 @@
 // ============================================================
 // FIREBASE ADMIN SDK - Envío de Push Notifications
+// Ubicación: lib/firebase-admin.ts
 // ============================================================
 
 import admin from 'firebase-admin'
@@ -28,6 +29,17 @@ function getFirebaseAdmin() {
 }
 
 // ============================================================
+// CONFIGURACIÓN DE ICONOS (centralizada)
+// ============================================================
+// icon  → Icono grande (derecha en Android) → Logo en color
+// badge → Icono pequeño (izquierda, barra estado) → Monocromático
+// ============================================================
+const NOTIFICATION_ICONS = {
+  icon: '/icons/icon-192x192.png',       // Logo K naranja (grande)
+  badge: '/icons/badge-96x96.png',       // K blanca sobre transparente (pequeño)
+}
+
+// ============================================================
 // ENVIAR NOTIFICACIÓN A UN TOKEN
 // ============================================================
 export async function sendPushNotification(
@@ -47,8 +59,9 @@ export async function sendPushNotification(
       },
       webpush: {
         notification: {
-          icon: '/icons/notification-icon.png',
-          badge: '/icons/icon-72x72.png',
+          icon: NOTIFICATION_ICONS.icon,
+          badge: NOTIFICATION_ICONS.badge,
+          tag: 'rekalcula-' + Date.now(),
           requireInteraction: true,
         },
         fcmOptions: {
@@ -104,8 +117,9 @@ export async function sendPushToMultiple(
       },
       webpush: {
         notification: {
-          icon: '/icons/icon-192x192.png',
-          badge: '/icons/icon-72x72.png',
+          icon: NOTIFICATION_ICONS.icon,
+          badge: NOTIFICATION_ICONS.badge,
+          tag: 'rekalcula-' + Date.now(),
           requireInteraction: true,
         },
         fcmOptions: {

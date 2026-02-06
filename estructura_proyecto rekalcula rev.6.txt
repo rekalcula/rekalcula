@@ -93872,17 +93872,20 @@ C:.
 |   |   vercel.svg
 |   |   window.svg
 |   |   
-|   +---icons
-|   |       icon-128x128.svg
-|   |       icon-144x144.svg
-|   |       icon-152x152.svg
-|   |       icon-192x192.svg
-|   |       icon-384x384.svg
-|   |       icon-512x512.svg
-|   |       icon-72x72.svg
-|   |       icon-96x96.svg
-|   |       
-|   \---Nueva carpeta
+|   \---icons
+|           icon-128x128.png
+|           icon-144x144.png
+|           icon-152x152.png
+|           icon-16x16.png
+|           icon-192x192.png
+|           icon-32x32.png
+|           icon-384x384.png
+|           icon-48x48.png
+|           icon-512x512.png
+|           icon-72x72.png
+|           icon-96x96.png
+|           notification-icon.png
+|           
 \---src
     \---lib
 

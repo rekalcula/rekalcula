@@ -1,6 +1,11 @@
 // ============================================================
 // API: REGISTRAR TOKEN PUSH - app/api/notifications/register-token/route.ts
 // ============================================================
+// CAMBIO CLAVE: Antes de registrar un nuevo token, desactiva
+// todos los tokens anteriores del mismo usuario + device_type.
+// Esto evita que se acumulen tokens duplicados y se envíen
+// notificaciones repetidas al mismo dispositivo.
+// ============================================================
 
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
@@ -35,15 +40,41 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Upsert: insertar o actualizar si ya existe
+    const dtype = deviceType || 'web'
+    const dname = deviceName || 'Navegador'
+
+    // =========================================================
+    // PASO 1: Desactivar tokens anteriores del mismo dispositivo
+    // =========================================================
+    // Cuando el usuario borra caché o el token se renueva,
+    // el token viejo queda en la BD como activo pero ya no sirve.
+    // Firebase intenta enviar a ambos → notificación duplicada
+    // (una llega, la del token viejo falla silenciosamente o
+    //  a veces ambas llegan si el token aún es válido brevemente).
+    // =========================================================
+    const { error: deactivateError } = await supabase
+      .from('push_tokens')
+      .update({ is_active: false })
+      .eq('user_id', userId)
+      .eq('device_type', dtype)
+      .neq('token', token)  // No desactivar el token actual si ya existe
+
+    if (deactivateError) {
+      console.warn('[Register Token] Error desactivando tokens antiguos:', deactivateError)
+      // No bloqueamos, seguimos con el registro
+    }
+
+    // =========================================================
+    // PASO 2: Upsert del nuevo token
+    // =========================================================
     const { data, error } = await supabase
       .from('push_tokens')
       .upsert(
         {
           user_id: userId,
           token: token,
-          device_type: deviceType || 'web',
-          device_name: deviceName || 'Navegador',
+          device_type: dtype,
+          device_name: dname,
           is_active: true,
           updated_at: new Date().toISOString(),
         },
@@ -63,7 +94,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('[Register Token] Token registrado para usuario:', userId)
+    console.log(`[Register Token] Token ${dtype}/${dname} registrado para usuario: ${userId}`)
 
     return NextResponse.json({
       success: true,

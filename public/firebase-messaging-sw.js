@@ -1,5 +1,12 @@
+// ============================================================
 // Firebase Messaging Service Worker
-// Usar importScripts para cargar Firebase (compatible con Service Workers)
+// Ubicación: public/firebase-messaging-sw.js
+// ============================================================
+// IMPORTANTE: No llamar a showNotification() cuando el mensaje
+// incluye campo 'notification', porque Firebase lo muestra
+// automáticamente. Si se llama, se generan DUPLICADOS.
+// ============================================================
+
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
 
@@ -13,26 +20,41 @@ firebase.initializeApp({
   appId: "1:516971826017:web:194d7d2c8f8cf20b50d320"
 });
 
-// Obtener instancia de messaging
 const messaging = firebase.messaging();
 
+// ============================================================
 // Handler para mensajes en segundo plano
+// ============================================================
+// Firebase muestra automáticamente la notificación cuando el
+// mensaje incluye el campo 'notification'. Este handler solo
+// actúa para mensajes DATA-ONLY (sin campo notification).
+// ============================================================
 messaging.onBackgroundMessage((payload) => {
   console.log('[SW] Mensaje en segundo plano recibido:', payload);
 
-  const notificationTitle = payload.notification?.title || 'reKalcula';
+  // Si el mensaje tiene campo 'notification', Firebase ya lo muestra
+  // automáticamente. NO llamar a showNotification() o se duplica.
+  if (payload.notification) {
+    console.log('[SW] Notificación mostrada automáticamente por Firebase (no duplicar)');
+    return;
+  }
+
+  // Solo para mensajes data-only (sin campo notification)
+  const notificationTitle = payload.data?.title || 'reKalcula';
   const notificationOptions = {
-    body: payload.notification?.body || '',
-    icon: '/icons/notification-icon.png',
-    badge: '/icons/icon-72x72.png',
-    tag: payload.data?.tag || 'default',
+    body: payload.data?.body || '',
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/badge-96x96.png',
+    tag: payload.data?.tag || 'rekalcula-' + Date.now(),
     data: payload.data
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
+// ============================================================
 // Handler para clicks en notificaciones
+// ============================================================
 self.addEventListener('notificationclick', (event) => {
   console.log('[SW] Click en notificación:', event);
   event.notification.close();
