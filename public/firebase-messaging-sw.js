@@ -2,9 +2,10 @@
 // Firebase Messaging Service Worker
 // Ubicación: public/firebase-messaging-sw.js
 // ============================================================
-// IMPORTANTE: No llamar a showNotification() cuando el mensaje
-// incluye campo 'notification', porque Firebase lo muestra
-// automáticamente. Si se llama, se generan DUPLICADOS.
+// ESTRATEGIA: El servidor envía mensajes DATA-ONLY (sin campo
+// 'notification'). Así Firebase NUNCA muestra nada automático.
+// Este SW es el ÚNICO que muestra la notificación.
+// Resultado: exactamente 1 notificación, con iconos correctos.
 // ============================================================
 
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
@@ -25,31 +26,27 @@ const messaging = firebase.messaging();
 // ============================================================
 // Handler para mensajes en segundo plano
 // ============================================================
-// Firebase muestra automáticamente la notificación cuando el
-// mensaje incluye el campo 'notification'. Este handler solo
-// actúa para mensajes DATA-ONLY (sin campo notification).
-// ============================================================
 messaging.onBackgroundMessage((payload) => {
-  console.log('[SW] Mensaje en segundo plano recibido:', payload);
+  console.log('[SW] Mensaje recibido:', payload);
 
-  // Si el mensaje tiene campo 'notification', Firebase ya lo muestra
-  // automáticamente. NO llamar a showNotification() o se duplica.
-  if (payload.notification) {
-    console.log('[SW] Notificación mostrada automáticamente por Firebase (no duplicar)');
-    return;
-  }
+  // Título y cuerpo vienen en data (mensaje data-only)
+  const title = payload.data?.title || payload.notification?.title || 'reKalcula';
+  const body = payload.data?.body || payload.notification?.body || '';
 
-  // Solo para mensajes data-only (sin campo notification)
-  const notificationTitle = payload.data?.title || 'reKalcula';
   const notificationOptions = {
-    body: payload.data?.body || '',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/badge-96x96.png',
+    body: body,
+    icon: payload.data?.icon || '/icons/icon-192x192.png',
+    badge: payload.data?.badge || '/icons/badge-96x96.png',
     tag: payload.data?.tag || 'rekalcula-' + Date.now(),
-    data: payload.data
+    requireInteraction: true,
+    data: {
+      url: payload.data?.url || '/dashboard/notifications',
+      ...payload.data
+    }
   };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  // Mostrar la notificación (es la ÚNICA, no hay duplicado)
+  self.registration.showNotification(title, notificationOptions);
 });
 
 // ============================================================

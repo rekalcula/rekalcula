@@ -2,6 +2,18 @@
 // FIREBASE ADMIN SDK - Envío de Push Notifications
 // Ubicación: lib/firebase-admin.ts
 // ============================================================
+// ESTRATEGIA: Mensajes DATA-ONLY (sin campo 'notification')
+// ============================================================
+// ¿Por qué? Cuando se envía el campo 'notification', Firebase
+// muestra automáticamente UNA notificación. Y si el Service
+// Worker también llama a showNotification(), se genera DUPLICADO.
+//
+// Con data-only:
+// - Firebase NO muestra nada automáticamente
+// - El Service Worker recibe el mensaje en onBackgroundMessage
+// - El SW llama a showNotification() UNA sola vez
+// - Control total sobre iconos (badge monocromático incluido)
+// ============================================================
 
 import admin from 'firebase-admin'
 
@@ -29,17 +41,6 @@ function getFirebaseAdmin() {
 }
 
 // ============================================================
-// CONFIGURACIÓN DE ICONOS (centralizada)
-// ============================================================
-// icon  → Icono grande (derecha en Android) → Logo en color
-// badge → Icono pequeño (izquierda, barra estado) → Monocromático
-// ============================================================
-const NOTIFICATION_ICONS = {
-  icon: '/icons/icon-192x192.png',       // Logo K naranja (grande)
-  badge: '/icons/badge-96x96.png',       // K blanca sobre transparente (pequeño)
-}
-
-// ============================================================
 // ENVIAR NOTIFICACIÓN A UN TOKEN
 // ============================================================
 export async function sendPushNotification(
@@ -51,24 +52,24 @@ export async function sendPushNotification(
   try {
     getFirebaseAdmin()
     
+    // ⚠️ NO incluir campo 'notification' → data-only
+    // El Service Worker se encarga de mostrar la notificación
     const message: admin.messaging.Message = {
       token,
-      notification: {
+      data: {
         title,
         body,
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/badge-96x96.png',
+        tag: 'rekalcula-' + Date.now().toString(),
+        url: '/dashboard',
+        ...(data || {}),
       },
       webpush: {
-        notification: {
-          icon: NOTIFICATION_ICONS.icon,
-          badge: NOTIFICATION_ICONS.badge,
-          tag: 'rekalcula-' + Date.now(),
-          requireInteraction: true,
-        },
-        fcmOptions: {
-          link: '/dashboard',
+        headers: {
+          Urgency: 'high',
         },
       },
-      data: data || {},
     }
 
     const response = await admin.messaging().send(message)
@@ -78,7 +79,6 @@ export async function sendPushNotification(
   } catch (error: any) {
     console.error('[Firebase] Error enviando notificación:', error)
     
-    // Detectar token inválido
     if (error.code === 'messaging/registration-token-not-registered' ||
         error.code === 'messaging/invalid-registration-token') {
       return { success: false, error: 'token_invalid' }
@@ -109,29 +109,27 @@ export async function sendPushToMultiple(
       return { success: true, successCount: 0, failureCount: 0, invalidTokens: [] }
     }
 
+    // ⚠️ NO incluir campo 'notification' → data-only
     const message: admin.messaging.MulticastMessage = {
       tokens,
-      notification: {
+      data: {
         title,
         body,
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/badge-96x96.png',
+        tag: 'rekalcula-' + Date.now().toString(),
+        url: '/dashboard',
+        ...(data || {}),
       },
       webpush: {
-        notification: {
-          icon: NOTIFICATION_ICONS.icon,
-          badge: NOTIFICATION_ICONS.badge,
-          tag: 'rekalcula-' + Date.now(),
-          requireInteraction: true,
-        },
-        fcmOptions: {
-          link: '/dashboard',
+        headers: {
+          Urgency: 'high',
         },
       },
-      data: data || {},
     }
 
     const response = await admin.messaging().sendEachForMulticast(message)
     
-    // Identificar tokens inválidos
     const invalidTokens: string[] = []
     response.responses.forEach((resp, idx) => {
       if (!resp.success) {
@@ -178,7 +176,6 @@ export async function sendPushToUser(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  // Obtener todos los tokens activos del usuario
   const { data: tokens, error } = await supabase
     .from('push_tokens')
     .select('token')
@@ -193,7 +190,6 @@ export async function sendPushToUser(
   const tokenStrings = tokens.map(t => t.token)
   const result = await sendPushToMultiple(tokenStrings, title, body, data)
 
-  // Desactivar tokens inválidos
   if (result.invalidTokens.length > 0) {
     await supabase
       .from('push_tokens')
