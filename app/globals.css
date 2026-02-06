@@ -74,3 +74,46 @@ input:-webkit-autofill:active {
   -webkit-text-fill-color: #000000 !important;
   -webkit-box-shadow: 0 0 0 30px white inset !important;
 }
+
+/* ===================================================== 
+   CORRECCIÓN: Campos de fecha en modo oscuro 
+   ===================================================== */
+
+/* Campos de fecha - modo oscuro */
+.dark input[type="date"], 
+.dark input[type="datetime-local"] {
+  color: #ffffff !important;
+  background-color: #374151 !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Campos de fecha - placeholder en modo oscuro */
+.dark input[type="date"]::placeholder,
+.dark input[type="datetime-local"]::placeholder {
+  color: #9ca3af !important;
+  opacity: 0.7 !important;
+}
+
+/* React DatePicker en modo oscuro (si se usa) */
+.dark .react-datepicker__input-container input,
+.dark .react-datepicker-wrapper input {
+  color: #ffffff !important;
+  background-color: #374151 !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Todos los inputs de fecha en modo oscuro (regla general) */
+@media (prefers-color-scheme: dark) {
+  input[type="date"], 
+  input[type="datetime-local"] {
+    color: #ffffff !important;
+    background-color: #374151 !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+  
+  input[type="date"]::placeholder,
+  input[type="datetime-local"]::placeholder {
+    color: #9ca3af !important;
+    opacity: 0.7 !important;
+  }
+}
