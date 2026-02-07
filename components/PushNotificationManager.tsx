@@ -4,11 +4,13 @@
 // COMPONENTE: PushNotificationManager
 // Ubicación: components/PushNotificationManager.tsx
 // VERSIÓN MEJORADA: Incluye aviso para notificaciones flotantes en Android
+// + POPUP PERSONALIZADO PREVIO
 // ============================================================
 
 import { useState, useEffect, useCallback } from 'react'
 import { Bell, BellOff, CheckCircle, XCircle, Loader2, Info, Smartphone } from 'lucide-react'
 import { getFCMToken, onForegroundMessage } from '@/lib/firebase'
+import NotificationPermissionDialog from './NotificationPermissionDialog'
 
 interface PushNotificationManagerProps {
   onStatusChange?: (enabled: boolean) => void
@@ -30,6 +32,11 @@ export function PushNotificationManager({
   const [isAndroid, setIsAndroid] = useState(false)
   const [showAndroidTip, setShowAndroidTip] = useState(false)
   const [justActivated, setJustActivated] = useState(false)
+  
+  // ============================================================
+  // NUEVO: Estado para popup personalizado
+  // ============================================================
+  const [showPermissionDialog, setShowPermissionDialog] = useState(false)
 
   // ============================================================
   // Detectar Android
@@ -82,9 +89,17 @@ export function PushNotificationManager({
   }, [onStatusChange])
 
   // ============================================================
-  // Solicitar permiso y suscribir
+  // NUEVO: Función para mostrar popup personalizado
   // ============================================================
-  const subscribeToPush = useCallback(async () => {
+  const handleActivateNotifications = useCallback(() => {
+    setError(null)
+    setShowPermissionDialog(true)
+  }, [])
+
+  // ============================================================
+  // MODIFICADO: Función que se ejecuta tras aceptar popup personalizado
+  // ============================================================
+  const handleConfirmPermission = useCallback(async () => {
     setIsLoading(true)
     setError(null)
     setShowAndroidTip(false)
@@ -133,7 +148,14 @@ export function PushNotificationManager({
   }, [onStatusChange, isAndroid])
 
   // ============================================================
-  // Desuscribir
+  // NUEVO: Función para cancelar popup personalizado
+  // ============================================================
+  const handleCancelPermission = useCallback(() => {
+    setShowPermissionDialog(false)
+  }, [])
+
+  // ============================================================
+  // Desuscribir (sin cambios)
   // ============================================================
   const unsubscribeFromPush = useCallback(async () => {
     setIsLoading(true)
@@ -165,7 +187,7 @@ export function PushNotificationManager({
   }, [onStatusChange])
 
   // ============================================================
-  // Enviar notificación de prueba
+  // Enviar notificación de prueba (sin cambios)
   // ============================================================
   const sendTestNotification = useCallback(async () => {
     setError(null)
@@ -191,7 +213,7 @@ export function PushNotificationManager({
   }, [])
 
   // ============================================================
-  // Cerrar tip de Android
+  // Cerrar tip de Android (sin cambios)
   // ============================================================
   const dismissAndroidTip = () => {
     setShowAndroidTip(false)
@@ -232,113 +254,124 @@ export function PushNotificationManager({
   }
 
   return (
-    <div className={`flex flex-col gap-3 ${className}`}>
-      {error && (
-        <p className="text-sm text-red-500">{error}</p>
-      )}
-      
-      <div className="flex items-center gap-3 flex-wrap">
-        {isSubscribed ? (
-          <>
+    <>
+      <div className={`flex flex-col gap-3 ${className}`}>
+        {error && (
+          <p className="text-sm text-red-500">{error}</p>
+        )}
+        
+        <div className="flex items-center gap-3 flex-wrap">
+          {isSubscribed ? (
+            <>
+              <button
+                onClick={unsubscribeFromPush}
+                disabled={isLoading}
+                className="flex items-center gap-2 px-4 py-2 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50"
+              >
+                {isLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <CheckCircle className="w-4 h-4" />
+                )}
+                <span>Notificaciones activas</span>
+              </button>
+              
+              <button
+                onClick={sendTestNotification}
+                disabled={isTestSending}
+                className="flex items-center gap-2 px-4 py-2 text-sm bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors disabled:opacity-50"
+              >
+                {isTestSending && <Loader2 className="w-4 h-4 animate-spin" />}
+                <span>{isTestSending ? 'Enviando...' : 'Enviar prueba'}</span>
+              </button>
+            </>
+          ) : (
             <button
-              onClick={unsubscribeFromPush}
+              onClick={handleActivateNotifications}
               disabled={isLoading}
-              className="flex items-center gap-2 px-4 py-2 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
             >
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <CheckCircle className="w-4 h-4" />
+                <Bell className="w-4 h-4" />
               )}
-              <span>Notificaciones activas</span>
+              <span>Activar notificaciones</span>
+            </button>
+          )}
+        </div>
+
+        {/* Confirmación visual de prueba enviada */}
+        {testSuccess && (
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-green-500/20 border border-green-500/30 text-green-400 rounded-lg text-sm">
+            <CheckCircle className="w-4 h-4 flex-shrink-0" />
+            <span>¡Prueba enviada correctamente! Revisa tus notificaciones.</span>
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* AVISO PARA ANDROID: Notificaciones flotantes */}
+        {/* ============================================================ */}
+        {isAndroid && showAndroidTip && justActivated && (
+          <div className="relative flex flex-col gap-2 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg text-sm">
+            {/* Botón cerrar */}
+            <button 
+              onClick={dismissAndroidTip}
+              className="absolute top-2 right-2 text-blue-400 hover:text-blue-300 p-1"
+              aria-label="Cerrar"
+            >
+              <XCircle className="w-4 h-4" />
             </button>
             
-            <button
-              onClick={sendTestNotification}
-              disabled={isTestSending}
-              className="flex items-center gap-2 px-4 py-2 text-sm bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors disabled:opacity-50"
-            >
-              {isTestSending && <Loader2 className="w-4 h-4 animate-spin" />}
-              <span>{isTestSending ? 'Enviando...' : 'Enviar prueba'}</span>
-            </button>
-          </>
-        ) : (
+            <div className="flex items-start gap-3 pr-6">
+              <Smartphone className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+              <div className="flex flex-col gap-2">
+                <p className="text-blue-300 font-medium">
+                  ✅ ¡Notificaciones activadas!
+                </p>
+                <p className="text-blue-200/80">
+                  Para ver las notificaciones como burbujas flotantes en tu pantalla, activa las <strong>notificaciones flotantes</strong> en la configuración de Chrome:
+                </p>
+                <ol className="text-blue-200/70 text-xs space-y-1 list-decimal list-inside">
+                  <li>Abre <strong>Ajustes de Chrome</strong> (toca ⋮ → Configuración)</li>
+                  <li>Ve a <strong>Notificaciones</strong> → <strong>Configuración del sitio</strong></li>
+                  <li>Busca <strong>rekalcula</strong> en la lista</li>
+                  <li>Activa <strong>"Notificaciones flotantes"</strong></li>
+                </ol>
+                <p className="text-blue-200/60 text-xs mt-1">
+                  Sin esta opción, las notificaciones aparecerán solo en el panel de notificaciones de tu teléfono.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Aviso permanente pero más discreto si ya está suscrito en Android */}
+        {isAndroid && isSubscribed && !showAndroidTip && !justActivated && (
           <button
-            onClick={subscribeToPush}
-            disabled={isLoading}
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
+            onClick={() => setShowAndroidTip(true)}
+            className="flex items-center gap-2 text-xs text-gray-500 hover:text-gray-400 transition-colors"
           >
-            {isLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Bell className="w-4 h-4" />
-            )}
-            <span>Activar notificaciones</span>
+            <Info className="w-3.5 h-3.5" />
+            <span>¿No ves las notificaciones flotantes? Toca aquí</span>
           </button>
         )}
       </div>
 
-      {/* Confirmación visual de prueba enviada */}
-      {testSuccess && (
-        <div className="flex items-center gap-2 px-4 py-2.5 bg-green-500/20 border border-green-500/30 text-green-400 rounded-lg text-sm">
-          <CheckCircle className="w-4 h-4 flex-shrink-0" />
-          <span>¡Prueba enviada correctamente! Revisa tus notificaciones.</span>
-        </div>
-      )}
-
       {/* ============================================================ */}
-      {/* AVISO PARA ANDROID: Notificaciones flotantes */}
+      {/* NUEVO: Popup personalizado de permisos */}
       {/* ============================================================ */}
-      {isAndroid && showAndroidTip && justActivated && (
-        <div className="relative flex flex-col gap-2 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg text-sm">
-          {/* Botón cerrar */}
-          <button 
-            onClick={dismissAndroidTip}
-            className="absolute top-2 right-2 text-blue-400 hover:text-blue-300 p-1"
-            aria-label="Cerrar"
-          >
-            <XCircle className="w-4 h-4" />
-          </button>
-          
-          <div className="flex items-start gap-3 pr-6">
-            <Smartphone className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-            <div className="flex flex-col gap-2">
-              <p className="text-blue-300 font-medium">
-                ✅ ¡Notificaciones activadas!
-              </p>
-              <p className="text-blue-200/80">
-                Para ver las notificaciones como burbujas flotantes en tu pantalla, activa las <strong>notificaciones flotantes</strong> en la configuración de Chrome:
-              </p>
-              <ol className="text-blue-200/70 text-xs space-y-1 list-decimal list-inside">
-                <li>Abre <strong>Ajustes de Chrome</strong> (toca ⋮ → Configuración)</li>
-                <li>Ve a <strong>Notificaciones</strong> → <strong>Configuración del sitio</strong></li>
-                <li>Busca <strong>rekalcula</strong> en la lista</li>
-                <li>Activa <strong>"Notificaciones flotantes"</strong></li>
-              </ol>
-              <p className="text-blue-200/60 text-xs mt-1">
-                Sin esta opción, las notificaciones aparecerán solo en el panel de notificaciones de tu teléfono.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Aviso permanente pero más discreto si ya está suscrito en Android */}
-      {isAndroid && isSubscribed && !showAndroidTip && !justActivated && (
-        <button
-          onClick={() => setShowAndroidTip(true)}
-          className="flex items-center gap-2 text-xs text-gray-500 hover:text-gray-400 transition-colors"
-        >
-          <Info className="w-3.5 h-3.5" />
-          <span>¿No ves las notificaciones flotantes? Toca aquí</span>
-        </button>
-      )}
-    </div>
+      <NotificationPermissionDialog
+        isOpen={showPermissionDialog}
+        onClose={handleCancelPermission}
+        onConfirm={handleConfirmPermission}
+      />
+    </>
   )
 }
 
 // ============================================================
-// Utilidades
+// Utilidades (sin cambios)
 // ============================================================
 
 function detectDeviceType(): string {
