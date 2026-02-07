@@ -29,7 +29,7 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: 'Inter', Arial, Helvetica, sans-serif;  /* ← También cambié esto */
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
 }
 
 /* Sobrescribir fondos blancos para mantener coherencia */
@@ -41,16 +41,12 @@ body {
   background-color: var(--background) !important;
 }
 
-/* Fix para inputs de Clerk - texto negro en campos de formulario */
-/* CORREGIDO: Excluir react-datepicker de la regla de Clerk */
+/* Fix para inputs de Clerk - MANTENER SOLO PARA CLERK */
 .cl-formFieldInput,
 .cl-input,
 .cl-formFieldInput__input,
 .cl-formFieldInput input,
 .cl-internal-input,
-input[type="email"],
-input[type="password"],
-input[type="text"]:not(.react-datepicker-ignore-onclickoutside),
 input[data-clerk-input],
 div[data-clerk-element] input {
   color: #000000 !important;
@@ -58,25 +54,42 @@ div[data-clerk-element] input {
   opacity: 1 !important;
 }
 
-/* ESPECÍFICO: Fix para react-datepicker inputs */
-.react-datepicker-ignore-onclickoutside {
+/* SOLUCIÓN AGRESIVA: React DatePicker - MÁXIMA ESPECIFICIDAD */
+.react-datepicker-wrapper .react-datepicker__input-container input[type="text"],
+.react-datepicker__input-container input[type="text"],
+div[class*="grid"] input[type="text"].w-full,
+body input[type="text"].w-full.px-3.py-2.text-white {
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
+  background-color: #0d0d0d !important;
 }
 
-/* Fix para placeholders */
+/* FUERZA BRUTA: Inputs que NO son de Clerk */
+input[type="text"]:not([data-clerk-input]):not(.cl-input):not(.cl-formFieldInput):not(.cl-formFieldInput__input) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* Fix para placeholders - SOLO CLERK */
 .cl-formFieldInput::placeholder,
-.cl-input::placeholder,
-input::placeholder {
+.cl-input::placeholder {
   color: #666666 !important;
   opacity: 0.6 !important;
 }
 
-/* Fix para estados focus y autofill */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-input:-webkit-autofill:active {
+/* Placeholders para campos de fecha */
+.react-datepicker__input-container input::placeholder,
+input[type="text"]:not([data-clerk-input])::placeholder {
+  color: #9ca3af !important;
+  opacity: 0.7 !important;
+}
+
+/* Fix para estados focus y autofill - SOLO CLERK */
+.cl-formFieldInput:-webkit-autofill,
+.cl-input:-webkit-autofill,
+input[data-clerk-input]:-webkit-autofill {
   -webkit-text-fill-color: #000000 !important;
   -webkit-box-shadow: 0 0 0 30px white inset !important;
 }
@@ -93,14 +106,7 @@ input:-webkit-autofill:active {
   -webkit-text-fill-color: #ffffff !important;
 }
 
-/* Campos de fecha - placeholder en modo oscuro */
-.dark input[type="date"]::placeholder,
-.dark input[type="datetime-local"]::placeholder {
-  color: #9ca3af !important;
-  opacity: 0.7 !important;
-}
-
-/* React DatePicker en modo oscuro (si se usa) */
+/* React DatePicker en modo oscuro */
 .dark .react-datepicker__input-container input,
 .dark .react-datepicker-wrapper input {
   color: #ffffff !important;
@@ -108,18 +114,13 @@ input:-webkit-autofill:active {
   -webkit-text-fill-color: #ffffff !important;
 }
 
-/* Todos los inputs de fecha en modo oscuro (regla general) */
+/* Media query para dark mode automático */
 @media (prefers-color-scheme: dark) {
   input[type="date"], 
-  input[type="datetime-local"] {
+  input[type="datetime-local"],
+  .react-datepicker__input-container input {
     color: #ffffff !important;
     background-color: #374151 !important;
     -webkit-text-fill-color: #ffffff !important;
-  }
-  
-  input[type="date"]::placeholder,
-  input[type="datetime-local"]::placeholder {
-    color: #9ca3af !important;
-    opacity: 0.7 !important;
   }
 }
