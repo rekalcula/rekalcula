@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth()
 
-    if (!userId || !isAdmin(userId)) {
+    if (!userId || !(await isAdmin(userId))) {
       return NextResponse.json(
         { success: false, error: 'No autorizado' },
         { status: 401 }
