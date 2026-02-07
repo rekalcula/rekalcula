@@ -1,5 +1,7 @@
 ﻿import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { auth } from '@clerk/nextjs/server'
+import { isAdmin } from '@/lib/admin'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,6 +11,11 @@ const supabase = createClient(
 // GET - Obtener configuración actual
 export async function GET() {
   try {
+    const { userId } = await auth()
+    if (!userId || !(await isAdmin(userId))) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+
     const { data, error } = await supabase
       .from('typography_config')
       .select('*')
@@ -37,6 +44,11 @@ export async function GET() {
 // POST - Guardar nueva configuración
 export async function POST(request: Request) {
   try {
+    const { userId } = await auth()
+    if (!userId || !(await isAdmin(userId))) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+
     const body = await request.json()
     
     const {
@@ -162,6 +174,11 @@ export async function POST(request: Request) {
 // PUT - Restablecer configuración por defecto
 export async function PUT() {
   try {
+    const { userId } = await auth()
+    if (!userId || !(await isAdmin(userId))) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+
     const defaultConfig = {
       base_font_size_mobile: 16,
       base_font_size_tablet: 16,

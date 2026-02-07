@@ -1,8 +1,15 @@
 ﻿import { supabase } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
+import { isAdmin } from '@/lib/admin'
 
 export async function GET() {
   try {
+    const { userId } = await auth()
+    if (!userId || !(await isAdmin(userId))) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+
     const { data: stats, error: statsError } = await supabase
       .from('ai_usage_stats_30d')
       .select('*')

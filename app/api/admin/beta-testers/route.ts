@@ -12,7 +12,7 @@ import {
 export async function GET() {
   try {
     const { userId } = await auth()
-    if (!userId || !isAdmin(userId)) {
+    if (!userId || !(await isAdmin(userId))) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
@@ -37,7 +37,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const { userId: adminId } = await auth()
-    if (!adminId || !isAdmin(adminId)) {
+    if (!adminId || !(await isAdmin(adminId))) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const { userId: adminId } = await auth()
-    if (!adminId || !isAdmin(adminId)) {
+    if (!adminId || !(await isAdmin(adminId))) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 

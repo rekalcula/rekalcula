@@ -239,7 +239,9 @@ export async function GET(request: NextRequest) {
       {
         success: false,
         error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        ...(process.env.NODE_ENV === 'development' 
+          ? { details: error instanceof Error ? error.message : 'Unknown error' }
+          : {})
       },
       { status: 500 }
     )

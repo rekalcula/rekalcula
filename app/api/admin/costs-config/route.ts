@@ -1,9 +1,19 @@
 import { supabase } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
+import { isAdmin } from '@/lib/admin'
 
 // GET: Obtener configuración actual de costos
 export async function GET() {
   try {
+    const { userId } = await auth()
+    if (!userId || !(await isAdmin(userId))) {
+      return NextResponse.json(
+        { success: false, error: 'No autorizado' },
+        { status: 401 }
+      )
+    }
+
     const { data, error } = await supabase
       .from('ai_costs_config')
       .select('*')
@@ -41,6 +51,14 @@ export async function GET() {
 // POST: Actualizar configuración de costos
 export async function POST(request: Request) {
   try {
+    const { userId } = await auth()
+    if (!userId || !(await isAdmin(userId))) {
+      return NextResponse.json(
+        { success: false, error: 'No autorizado' },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
 
     const { invoice_cost, ticket_cost, analysis_cost } = body
