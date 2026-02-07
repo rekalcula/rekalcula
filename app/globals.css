@@ -42,7 +42,7 @@ body {
 }
 
 /* Fix para inputs de Clerk - texto negro en campos de formulario */
-/* Fix para inputs de Clerk - texto negro en campos de formulario */
+/* CORREGIDO: Excluir react-datepicker de la regla de Clerk */
 .cl-formFieldInput,
 .cl-input,
 .cl-formFieldInput__input,
@@ -50,12 +50,18 @@ body {
 .cl-internal-input,
 input[type="email"],
 input[type="password"],
-input[type="text"],
+input[type="text"]:not(.react-datepicker-ignore-onclickoutside),
 input[data-clerk-input],
 div[data-clerk-element] input {
   color: #000000 !important;
   -webkit-text-fill-color: #000000 !important;
   opacity: 1 !important;
+}
+
+/* ESPECÍFICO: Fix para react-datepicker inputs */
+.react-datepicker-ignore-onclickoutside {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
 }
 
 /* Fix para placeholders */
