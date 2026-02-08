@@ -8,6 +8,18 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+// ============================================================
+// Sanitización XSS - Previene inyección de código en emails
+// ============================================================
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
 interface SendEmailNotificationParams {
   to: string
   subject: string
@@ -33,8 +45,12 @@ export async function sendEmailNotification({
     const { data, error } = await resend.emails.send({
       from: 'ReKalcula <onboarding@resend.dev>',
       to: [to],
-      subject: subject,
-      html: buildEmailHTML({ subject, body, actionUrl })
+      subject: escapeHtml(subject),
+      html: buildEmailHTML({
+        subject: escapeHtml(subject),
+        body: escapeHtml(body),
+        actionUrl: encodeURI(actionUrl)
+      })
     })
 
     if (error) {
