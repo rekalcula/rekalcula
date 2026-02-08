@@ -2,6 +2,50 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabase } from '@/lib/supabase'
 
+// ============================================================
+// SANITIZACIÓN DE ENTRADA
+// ============================================================
+function sanitizeString(value: any, maxLength: number = 255): string | null {
+  if (value === null || value === undefined) return null
+  return String(value)
+    .trim()
+    .slice(0, maxLength)
+    .replace(/<[^>]*>/g, '')      // Eliminar tags HTML
+    .replace(/[<>"'`;]/g, '')     // Eliminar caracteres peligrosos
+}
+
+function sanitizePhone(value: any): string | null {
+  if (!value) return null
+  // Solo permitir dígitos, espacios, +, -, (, )
+  return String(value)
+    .trim()
+    .slice(0, 20)
+    .replace(/[^\d\s+\-()]/g, '')
+}
+
+function sanitizeEmail(value: any): string | null {
+  if (!value) return null
+  const email = String(value).trim().toLowerCase().slice(0, 255)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email) ? email : null
+}
+
+function sanitizeTaxId(value: any): string | null {
+  if (!value) return null
+  // NIF/CIF: solo letras y números
+  return String(value)
+    .trim()
+    .toUpperCase()
+    .slice(0, 15)
+    .replace(/[^A-Z0-9]/g, '')
+}
+
+function isValidUUID(value: any): boolean {
+  if (!value) return false
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  return uuidRegex.test(String(value))
+}
+
 // GET - Obtener configuración del negocio
 export async function GET() {
   try {
@@ -44,16 +88,28 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { 
-      business_name, 
-      business_type_id, 
-      custom_business_type,
-      address, 
-      phone, 
-      email, 
-      tax_id,
-      loadTemplates 
-    } = body
+
+    // 🔒 SANITIZAR TODOS LOS CAMPOS DE ENTRADA
+    const business_name = sanitizeString(body.business_name, 150)
+    const custom_business_type = sanitizeString(body.custom_business_type, 100)
+    const address = sanitizeString(body.address, 300)
+    const phone = sanitizePhone(body.phone)
+    const email = sanitizeEmail(body.email)
+    const tax_id = sanitizeTaxId(body.tax_id)
+    const loadTemplates = body.loadTemplates === true
+
+    // Validar business_type_id si se proporciona
+    const business_type_id = body.business_type_id && isValidUUID(body.business_type_id) 
+      ? body.business_type_id 
+      : null
+
+    // Validación mínima: nombre del negocio obligatorio
+    if (!business_name) {
+      return NextResponse.json(
+        { error: 'El nombre del negocio es obligatorio' },
+        { status: 400 }
+      )
+    }
 
     // Verificar si ya existe configuración
     const { data: existing } = await supabase
@@ -119,6 +175,9 @@ export async function POST(request: NextRequest) {
 
 // Función para cargar plantillas de productos
 async function loadProductTemplates(userId: string, businessTypeId: string) {
+  // 🔒 Validar UUID antes de consultar
+  if (!isValidUUID(businessTypeId)) return
+
   // Obtener plantillas para este tipo de negocio
   const { data: templates } = await supabase
     .from('product_templates')
@@ -128,18 +187,21 @@ async function loadProductTemplates(userId: string, businessTypeId: string) {
 
   if (!templates || templates.length === 0) return
 
+  // 🔒 Limitar cantidad de plantillas para evitar abuso
+  const limitedTemplates = templates.slice(0, 100)
+
   // Agrupar por categoría
-  const categories = [...new Set(templates.map(t => t.category_name))]
+  const categories = [...new Set(limitedTemplates.map(t => t.category_name))]
 
   // Crear categorías
   const categoryMap: Record<string, string> = {}
   for (const catName of categories) {
-    const template = templates.find(t => t.category_name === catName)
+    const template = limitedTemplates.find(t => t.category_name === catName)
     const { data: category } = await supabase
       .from('product_categories')
       .insert({
         user_id: userId,
-        name: catName,
+        name: sanitizeString(catName, 100) || catName,
         icon: template?.category_icon || '📦'
       })
       .select()
@@ -151,7 +213,7 @@ async function loadProductTemplates(userId: string, businessTypeId: string) {
   }
 
   // Crear productos
-  for (const template of templates) {
+  for (const template of limitedTemplates) {
     await supabase
       .from('products')
       .insert({

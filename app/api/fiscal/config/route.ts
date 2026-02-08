@@ -8,6 +8,57 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+// ============================================================
+// VALIDACIÓN DE VALORES PERMITIDOS
+// ============================================================
+const VALORES_PERMITIDOS = {
+  tipo_entidad: ['autonomo', 'sl', 'sa'],
+  regimen_fiscal: ['general', 'simplificado', 'recargo_equivalencia', 'modulos'],
+  tipo_iva: ['general', 'reducido', 'superreducido', 'exento'],
+}
+
+const RANGOS_NUMERICOS = {
+  retencion_irpf: { min: 0, max: 30 },
+  porcentaje_iva: { min: 0, max: 21 },
+  tipo_impuesto_sociedades: { min: 0, max: 30 },
+  umbral_alerta_1: { min: 0, max: 1000000 },
+  umbral_alerta_2: { min: 0, max: 1000000 },
+  facturacion_estimada_anual: { min: 0, max: 99999999 },
+  gastos_estimados_anual: { min: 0, max: 99999999 },
+}
+
+function validarConfig(config: any): string | null {
+  // Validar tipo_entidad
+  if (!VALORES_PERMITIDOS.tipo_entidad.includes(config.tipo_entidad)) {
+    return 'Tipo de entidad no válido'
+  }
+
+  // Validar regimen_fiscal
+  if (!VALORES_PERMITIDOS.regimen_fiscal.includes(config.regimen_fiscal)) {
+    return 'Régimen fiscal no válido'
+  }
+
+  // Validar tipo_iva
+  if (config.tipo_iva && !VALORES_PERMITIDOS.tipo_iva.includes(config.tipo_iva)) {
+    return 'Tipo de IVA no válido'
+  }
+
+  // Validar rangos numéricos
+  for (const [campo, rango] of Object.entries(RANGOS_NUMERICOS)) {
+    const valor = config[campo]
+    if (valor !== null && valor !== undefined) {
+      if (typeof valor !== 'number' || isNaN(valor)) {
+        return `${campo} debe ser un número válido`
+      }
+      if (valor < rango.min || valor > rango.max) {
+        return `${campo} debe estar entre ${rango.min} y ${rango.max}`
+      }
+    }
+  }
+
+  return null // Sin errores
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth()
@@ -39,9 +90,18 @@ export async function POST(request: NextRequest) {
 
     const config: FiscalConfig = await request.json()
 
+    // 🔒 VALIDACIÓN DE VALORES PERMITIDOS Y RANGOS
+    const errorValidacion = validarConfig(config)
+    if (errorValidacion) {
+      return NextResponse.json(
+        { success: false, error: errorValidacion },
+        { status: 400 }
+      )
+    }
+
     // 🔥 VALIDACIÓN: SL/SA solo pueden tener régimen general
     if ((config.tipo_entidad === 'sl' || config.tipo_entidad === 'sa') && config.regimen_fiscal !== 'general') {
-      config.regimen_fiscal = 'general' // Corregir automáticamente
+      config.regimen_fiscal = 'general'
     }
 
     // 🔥 FILTRAR SOLO CAMPOS VÁLIDOS
@@ -86,10 +146,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, config: result.data })
   } catch (error) {
     console.error('Error guardando config fiscal:', error)
+    // 🔒 CORREGIDO: Eliminado campo 'details' que exponía errores internos
     return NextResponse.json({ 
       success: false, 
-      error: 'Error guardando configuración', 
-      details: error instanceof Error ? error.message : 'Unknown error' 
+      error: 'Error guardando configuración'
     }, { status: 500 })
   }
 }
