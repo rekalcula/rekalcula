@@ -56,6 +56,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Solo se permiten imágenes o PDFs' }, { status: 400 })
     }
 
+    // Límite de tamaño: 10MB
+    const MAX_FILE_SIZE = 10 * 1024 * 1024
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json({ 
+        error: 'El archivo es demasiado grande. Máximo 10MB.',
+        code: 'FILE_TOO_LARGE'
+      }, { status: 400 })
+    }
+
     // Convertir a buffer y base64
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)

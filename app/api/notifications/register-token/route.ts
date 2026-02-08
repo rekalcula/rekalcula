@@ -94,8 +94,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log(`[Register Token] Token ${dtype}/${dname} registrado para usuario: ${userId}`)
-
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[Register Token] Token ${dtype}/${dname} registrado`)
+    }
     return NextResponse.json({
       success: true,
       message: 'Token registrado correctamente',
