@@ -8,9 +8,9 @@
 // Resultado: exactamente 1 notificación, con iconos correctos.
 // ============================================================
 
-// Usar versiones compatibles con Firebase SDK v12.x del proyecto
-importScripts('https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/11.8.1/firebase-messaging-compat.js');
+// Usar versiones estables y compatibles de Firebase
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
 // Configuración de Firebase
 try {
