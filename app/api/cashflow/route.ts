@@ -440,6 +440,16 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { type, id, action } = body;
 
+    // 🔒 Validar type
+    if (type !== 'invoice' && type !== 'sale') {
+      return NextResponse.json({ error: 'Tipo no válido' }, { status: 400 });
+    }
+
+    // 🔒 Validar UUID
+    if (!id || typeof id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+      return NextResponse.json({ error: 'ID no válido' }, { status: 400 });
+    }
+
     if (action === 'mark_paid') {
       const table = type === 'invoice' ? 'invoices' : 'sales';
       const { error } = await supabase.from(table).update({ 
@@ -447,7 +457,10 @@ export async function POST(request: NextRequest) {
         actual_payment_date: new Date().toISOString().split('T')[0]
       }).eq('id', id).eq('user_id', userId);
 
-      if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+      if (error) {
+        console.error('Error actualizando pago:', error);
+        return NextResponse.json({ success: false, error: 'Error al actualizar el pago' }, { status: 500 });
+      }
       return NextResponse.json({ success: true });
     }
     

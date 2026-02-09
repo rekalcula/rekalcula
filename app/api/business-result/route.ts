@@ -77,6 +77,15 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const periodoParam = searchParams.get('periodo') || 'all'
 
+    // 🔒 CORREGIDO: Validar período permitido
+    const PERIODOS_VALIDOS = ['all', 'mes', '3meses', '6meses']
+    if (!PERIODOS_VALIDOS.includes(periodoParam)) {
+      return NextResponse.json(
+        { success: false, error: 'Período no válido' },
+        { status: 400 }
+      )
+    }
+
     const now = new Date()
     let startDate: Date
     let endDate: Date
@@ -217,9 +226,6 @@ export async function GET(request: NextRequest) {
     // IMPORTANTE: Multiplicar por los meses del período
     const costosFijos = costosFijosMensuales * mesesEnPeriodo
 
-    console.log('[business-result] Período:', periodoLabel, '| Meses:', mesesEnPeriodo)
-    console.log('[business-result] Costos fijos mensuales:', costosFijosMensuales, '| Total período:', costosFijos)
-
     // ========================================
     // 4. OBTENER FACTURAS/GASTOS (TODO EL PERÍODO)
     // ========================================
@@ -255,16 +261,8 @@ export async function GET(request: NextRequest) {
 
     const beneficioOperativo = margenBruto - costosFijos
 
-    console.log('[business-result] Cálculo:', {
-      ingresosBrutos,
-      costosVariables,
-      costosFijos,
-      beneficioOperativo
-    })
-
     // ========================================
     // 6. CALCULAR CARGA FISCAL
-    // ========================================
     const ivaAIngresar = Math.max(0, ivaRepercutido - ivaSoportado)
     
     const irpfEstimado = config.tipoEntidad === 'autonomo' && beneficioOperativo > 0

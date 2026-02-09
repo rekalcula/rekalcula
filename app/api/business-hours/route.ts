@@ -16,7 +16,28 @@ interface BusinessHour {
   afternoon_close: string | null
 }
 
+// 🔒 VALIDACIÓN: Formato HH:MM
+function isValidTime(time: string | null): boolean {
+  if (time === null) return true
+  return /^([01]\d|2[0-3]):([0-5]\d)$/.test(time)
+}
+
+// 🔒 VALIDACIÓN: Cada entrada de horario
+function validarHorario(hour: BusinessHour): string | null {
+  if (!Number.isInteger(hour.day_of_week) || hour.day_of_week < 0 || hour.day_of_week > 6) {
+    return `day_of_week inválido: ${hour.day_of_week}. Debe ser 0-6`
+  }
+  if (!hour.is_closed) {
+    if (!isValidTime(hour.morning_open) || !isValidTime(hour.morning_close) ||
+        !isValidTime(hour.afternoon_open) || !isValidTime(hour.afternoon_close)) {
+      return `Formato de hora inválido en día ${hour.day_of_week}. Usar HH:MM`
+    }
+  }
+  return null
+}
+
 // GET: Obtener configuración de horarios
+
 export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth()
@@ -66,6 +87,19 @@ export async function POST(request: NextRequest) {
     // Validar que hay 7 días (0-6: Lunes a Domingo)
     if (hours.length !== 7) {
       return NextResponse.json({ error: 'Debe configurar los 7 días de la semana' }, { status: 400 })
+    }
+
+    // 🔒 VALIDACIÓN: Cada día debe ser válido y sin duplicados
+    const diasVistos = new Set<number>()
+    for (const hour of hours) {
+      const errorHorario = validarHorario(hour)
+      if (errorHorario) {
+        return NextResponse.json({ error: errorHorario }, { status: 400 })
+      }
+      if (diasVistos.has(hour.day_of_week)) {
+        return NextResponse.json({ error: `Día ${hour.day_of_week} duplicado` }, { status: 400 })
+      }
+      diasVistos.add(hour.day_of_week)
     }
 
     // Borrar horarios existentes del usuario

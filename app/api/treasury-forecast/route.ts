@@ -1,146 +1,167 @@
-// IMPORTANTE: Adapta el import de createClient según tu configuración de Supabase
-// Ejemplo: import { createClient } from '@/lib/supabase/server';
-// O: import { createServerClient } from '@supabase/ssr';
+import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
+import { createClient } from '@supabase/supabase-js'
 
-import { NextResponse } from 'next/server';
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
-// TODO: Importar tu utilidad de Supabase aquí
-// import { createClient } from '@/lib/supabase/server';
+// 🔒 VALIDACIÓN de period_type
+const PERIOD_TYPES_VALIDOS = ['monthly', 'weekly']
 
-export async function GET(request: Request) {
+// 🔒 VALIDACIÓN de fecha ISO
+function isValidDate(dateStr: any): boolean {
+  if (!dateStr || typeof dateStr !== 'string') return false
+  const date = new Date(dateStr)
+  return !isNaN(date.getTime())
+}
+
+// 🔒 VALIDACIÓN de UUID
+function isValidUUID(value: any): boolean {
+  if (!value || typeof value !== 'string') return false
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+}
+
+// 🔒 VALIDACIÓN de forecast_data
+function isValidForecastData(data: any): boolean {
+  if (!Array.isArray(data) || data.length === 0 || data.length > 52) return false
+  return data.every((period: any) =>
+    typeof period.period_date === 'string' &&
+    typeof period.initial_balance === 'number' &&
+    typeof period.planned_income === 'number' &&
+    typeof period.planned_expenses === 'number' &&
+    typeof period.final_balance === 'number' &&
+    period.planned_income >= 0 &&
+    period.planned_expenses >= 0
+  )
+}
+
+export async function GET(request: NextRequest) {
   try {
-    // TODO: Descomentar cuando tengas el import correcto
-    // const supabase = await createClient();
-    
-    // const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    // if (userError || !user) {
-    //   return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-    // }
+    const { userId } = await auth()
 
-    // const { data, error } = await supabase
-    //   .from('treasury_forecasts')
-    //   .select('*')
-    //   .eq('user_id', user.id)
-    //   .order('created_at', { ascending: false })
-    //   .limit(1)
-    //   .single();
+    if (!userId) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
 
-    // if (error && error.code !== 'PGRST116') {
-    //   return NextResponse.json({ error: error.message }, { status: 500 });
-    // }
+    const { data, error } = await supabase
+      .from('treasury_forecasts')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
 
-    // return NextResponse.json({ data: data || null });
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error obteniendo previsión:', error)
+      return NextResponse.json({ error: 'Error interno' }, { status: 500 })
+    }
 
-    // Respuesta temporal para testing
-    return NextResponse.json({ data: null });
+    return NextResponse.json({ data: data || null })
   } catch (error) {
-    console.error('Error obteniendo previsión:', error);
-    return NextResponse.json({ error: 'Error interno' }, { status: 500 });
+    console.error('Error en GET treasury-forecast:', error)
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 })
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    // TODO: Descomentar cuando tengas el import correcto
-    // const supabase = await createClient();
-    
-    // const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    // if (userError || !user) {
-    //   return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-    // }
+    const { userId } = await auth()
 
-    const body = await request.json();
-    const { period_type, start_date, forecast_data } = body;
-
-    if (!period_type || !start_date || !forecast_data) {
-      return NextResponse.json({ error: 'Datos incompletos' }, { status: 400 });
+    if (!userId) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    // TODO: Descomentar cuando tengas el import correcto
-    // const { data, error } = await supabase
-    //   .from('treasury_forecasts')
-    //   .insert({
-    //     user_id: user.id,
-    //     period_type,
-    //     start_date,
-    //     forecast_data
-    //   })
-    //   .select()
-    //   .single();
+    const body = await request.json()
+    const { period_type, start_date, forecast_data } = body
 
-    // if (error) {
-    //   return NextResponse.json({ error: error.message }, { status: 500 });
-    // }
+    // 🔒 Validaciones
+    if (!period_type || !PERIOD_TYPES_VALIDOS.includes(period_type)) {
+      return NextResponse.json({ error: 'Tipo de período no válido' }, { status: 400 })
+    }
 
-    // return NextResponse.json({ data });
+    if (!isValidDate(start_date)) {
+      return NextResponse.json({ error: 'Fecha de inicio no válida' }, { status: 400 })
+    }
 
-    // Respuesta temporal para testing
-    return NextResponse.json({ 
-      data: { 
-        id: 'temp-id', 
-        period_type, 
-        start_date, 
-        forecast_data 
-      } 
-    });
+    if (!forecast_data || !isValidForecastData(forecast_data)) {
+      return NextResponse.json({ error: 'Datos de previsión no válidos' }, { status: 400 })
+    }
+
+    const { data, error } = await supabase
+      .from('treasury_forecasts')
+      .insert({
+        user_id: userId,
+        period_type,
+        start_date,
+        forecast_data
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error creando previsión:', error)
+      return NextResponse.json({ error: 'Error al guardar' }, { status: 500 })
+    }
+
+    return NextResponse.json({ data })
   } catch (error) {
-    console.error('Error creando previsión:', error);
-    return NextResponse.json({ error: 'Error interno' }, { status: 500 });
+    console.error('Error en POST treasury-forecast:', error)
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 })
   }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
   try {
-    // TODO: Descomentar cuando tengas el import correcto
-    // const supabase = await createClient();
-    
-    // const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    // if (userError || !user) {
-    //   return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-    // }
+    const { userId } = await auth()
 
-    const body = await request.json();
-    const { id, period_type, start_date, forecast_data } = body;
-
-    if (!id || !period_type || !start_date || !forecast_data) {
-      return NextResponse.json({ error: 'Datos incompletos' }, { status: 400 });
+    if (!userId) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    // TODO: Descomentar cuando tengas el import correcto
-    // const { data, error } = await supabase
-    //   .from('treasury_forecasts')
-    //   .update({
-    //     period_type,
-    //     start_date,
-    //     forecast_data,
-    //     updated_at: new Date().toISOString()
-    //   })
-    //   .eq('id', id)
-    //   .eq('user_id', user.id)
-    //   .select()
-    //   .single();
+    const body = await request.json()
+    const { id, period_type, start_date, forecast_data } = body
 
-    // if (error) {
-    //   return NextResponse.json({ error: error.message }, { status: 500 });
-    // }
+    // 🔒 Validaciones
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: 'ID no válido' }, { status: 400 })
+    }
 
-    // return NextResponse.json({ data });
+    if (!period_type || !PERIOD_TYPES_VALIDOS.includes(period_type)) {
+      return NextResponse.json({ error: 'Tipo de período no válido' }, { status: 400 })
+    }
 
-    // Respuesta temporal para testing
-    return NextResponse.json({ 
-      data: { 
-        id, 
-        period_type, 
-        start_date, 
+    if (!isValidDate(start_date)) {
+      return NextResponse.json({ error: 'Fecha de inicio no válida' }, { status: 400 })
+    }
+
+    if (!forecast_data || !isValidForecastData(forecast_data)) {
+      return NextResponse.json({ error: 'Datos de previsión no válidos' }, { status: 400 })
+    }
+
+    // 🔒 eq('user_id', userId) asegura que solo puedes editar tus propias previsiones
+    const { data, error } = await supabase
+      .from('treasury_forecasts')
+      .update({
+        period_type,
+        start_date,
         forecast_data,
         updated_at: new Date().toISOString()
-      } 
-    });
+      })
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error actualizando previsión:', error)
+      return NextResponse.json({ error: 'Error al actualizar' }, { status: 500 })
+    }
+
+    return NextResponse.json({ data })
   } catch (error) {
-    console.error('Error actualizando previsión:', error);
-    return NextResponse.json({ error: 'Error interno' }, { status: 500 });
+    console.error('Error en PUT treasury-forecast:', error)
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 })
   }
 }

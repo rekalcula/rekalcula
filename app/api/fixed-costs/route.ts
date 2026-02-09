@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabase } from '@/lib/supabase'
 
+// 🔒 VALIDACIÓN
+function isValidUUID(value: any): boolean {
+  if (!value || typeof value !== 'string') return false
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+}
+
+function sanitizeString(value: any, maxLength: number = 255): string {
+  return String(value || '').trim().slice(0, maxLength).replace(/<[^>]*>/g, '').replace(/[<>"'`;]/g, '')
+}
+
 // GET - Obtener costos fijos
 export async function GET() {
   try {
@@ -74,9 +84,9 @@ export async function POST(request: NextRequest) {
         .from('fixed_cost_categories')
         .insert({
           user_id: userId,
-          name: data.name,
-          icon: data.icon || '📦',
-          color: data.color || '#3B82F6',
+          name: sanitizeString(data.name, 100),
+          icon: sanitizeString(data.icon, 10) || '📦',
+          color: /^#[0-9A-Fa-f]{6}$/.test(data.color) ? data.color : '#3B82F6',
           is_system: false
         })
         .select()
@@ -89,8 +99,8 @@ export async function POST(request: NextRequest) {
       // Crear costo fijo con campos de IVA y nómina
       const insertData: any = {
         user_id: userId,
-        name: data.name,
-        description: data.description,
+        name: sanitizeString(data.name, 150),
+        description: sanitizeString(data.description, 500),
         frequency: data.frequency || 'monthly',
         is_active: true,
         // Campos de IVA
@@ -142,13 +152,17 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const { id, ...data } = body
 
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: 'ID no válido' }, { status: 400 })
+    }
+
     const updateData: any = {
       updated_at: new Date().toISOString()
     }
 
     // Campos básicos
-    if (data.name !== undefined) updateData.name = data.name
-    if (data.description !== undefined) updateData.description = data.description
+    if (data.name !== undefined) updateData.name = sanitizeString(data.name, 150)
+    if (data.description !== undefined) updateData.description = sanitizeString(data.description, 500)
     if (data.frequency !== undefined) updateData.frequency = data.frequency
     if (data.is_active !== undefined) updateData.is_active = data.is_active
     if (data.category_id !== undefined) updateData.category_id = data.category_id
@@ -191,8 +205,8 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
-    if (!id) {
-      return NextResponse.json({ error: 'ID requerido' }, { status: 400 })
+    if (!id || !isValidUUID(id)) {
+      return NextResponse.json({ error: 'ID no válido' }, { status: 400 })
     }
 
     await supabase
