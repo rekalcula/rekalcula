@@ -11,6 +11,12 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+// 🔒 VALIDACIÓN
+function isValidUUID(value: any): boolean {
+  if (!value || typeof value !== 'string') return false
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+}
+
 // --------------------------------------------------------
 // GET: Obtener historial de recomendaciones
 // --------------------------------------------------------
@@ -43,7 +49,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query
 
     if (error) {
-      console.error('Error obteniendo historial:', error)
+      console.error('Error obteniendo historial')
       return NextResponse.json(
         { success: false, error: 'Error obteniendo historial' },
         { status: 500 }
@@ -70,7 +76,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error en API history GET:', error)
+    console.error('Error en API history GET')
     return NextResponse.json(
       { success: false, error: 'Error interno' },
       { status: 500 }
@@ -133,7 +139,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error guardando historial:', error)
+      console.error('Error guardando historial')
       return NextResponse.json(
         { success: false, error: 'Error guardando historial' },
         { status: 500 }
@@ -147,7 +153,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error en API history POST:', error)
+    console.error('Error en API history POST')
     return NextResponse.json(
       { success: false, error: 'Error interno' },
       { status: 500 }
@@ -172,9 +178,9 @@ export async function DELETE(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const id = searchParams.get('id')
 
-    if (!id) {
+    if (!id || !isValidUUID(id)) {
       return NextResponse.json(
-        { success: false, error: 'ID requerido' },
+        { success: false, error: 'ID no válido' },
         { status: 400 }
       )
     }
@@ -186,7 +192,7 @@ export async function DELETE(request: NextRequest) {
       .eq('user_id', userId)
 
     if (error) {
-      console.error('Error eliminando registro:', error)
+      console.error('Error eliminando registro')
       return NextResponse.json(
         { success: false, error: 'Error eliminando registro' },
         { status: 500 }
@@ -199,7 +205,7 @@ export async function DELETE(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error en API history DELETE:', error)
+    console.error('Error en API history DELETE')
     return NextResponse.json(
       { success: false, error: 'Error interno' },
       { status: 500 }

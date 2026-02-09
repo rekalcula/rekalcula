@@ -169,7 +169,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error en API impact:', error)
+    console.error('Error en API impact')
     return NextResponse.json(
       { success: false, error: 'Error interno' },
       { status: 500 }

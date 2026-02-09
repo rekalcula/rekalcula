@@ -33,7 +33,18 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams
-    const periodo = (searchParams.get('periodo') || 'mes') as 'dia' | 'semana' | 'mes'
+    const periodoParam = searchParams.get('periodo') || 'mes'
+    
+    // 🔒 Validar periodo
+    const validPeriods = ['dia', 'semana', 'mes']
+    if (!validPeriods.includes(periodoParam)) {
+      return NextResponse.json(
+        { success: false, error: 'Período inválido' },
+        { status: 400 }
+      )
+    }
+    
+    const periodo = periodoParam as 'dia' | 'semana' | 'mes'
 
     const { inicioActual, finActual, inicioAnterior, finAnterior } = calcularRangoFechas(periodo)
 
@@ -106,7 +117,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error en API metrics:', error)
+    console.error('Error en API metrics')
     return NextResponse.json(
       { success: false, error: 'Error interno' },
       { status: 500 }
