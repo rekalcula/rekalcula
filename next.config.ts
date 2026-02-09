@@ -48,7 +48,7 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.clerk.accounts.dev https://*.clerk.dev https://challenges.cloudflare.com https://*.firebaseio.com https://*.googleapis.com",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.clerk.accounts.dev https://*.clerk.dev https://challenges.cloudflare.com https://*.firebaseio.com https://*.googleapis.com https://www.gstatic.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: blob: https://*.supabase.co https://img.clerk.com https://*.clerk.dev",
