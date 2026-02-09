@@ -8,6 +8,22 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+// 🔒 VALIDACIONES
+function isValidUUID(value: any): boolean {
+  if (!value || typeof value !== 'string') return false
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+}
+
+function sanitizeString(value: any, maxLength: number = 255): string {
+  return String(value || '').trim().slice(0, maxLength).replace(/<[^>]*>/g, '').replace(/[<>"'`;]/g, '')
+}
+
+function validatePrice(value: any): number {
+  const price = parseFloat(value)
+  if (isNaN(price) || price < 0) return 0
+  return Math.round(price * 100) / 100
+}
+
 // GET: Público - cualquiera puede ver planes activos
 export async function GET() {
   try {
@@ -21,7 +37,8 @@ export async function GET() {
 
     return NextResponse.json({ success: true, plans: data })
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error('Error en GET plans')
+    return NextResponse.json({ error: 'Error al obtener planes' }, { status: 500 })
   }
 }
 
@@ -38,11 +55,11 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from('plans')
       .insert({
-        name: body.name,
-        slug: body.slug,
-        description: body.description,
-        price_monthly: body.price_monthly,
-        price_yearly: body.price_yearly,
+        name: sanitizeString(body.name, 100),
+        slug: sanitizeString(body.slug, 50).toLowerCase().replace(/[^a-z0-9-]/g, '-'),
+        description: sanitizeString(body.description, 500),
+        price_monthly: validatePrice(body.price_monthly),
+        price_yearly: validatePrice(body.price_yearly),
         invoices_limit: body.invoices_limit,
         tickets_limit: body.tickets_limit,
         analyses_limit: body.analyses_limit,
@@ -60,7 +77,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, plan: data })
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error('Error en POST plans')
+    return NextResponse.json({ error: 'Error al crear plan' }, { status: 500 })
   }
 }
 
@@ -75,8 +93,8 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const { id, ...updateData } = body
 
-    if (!id) {
-      return NextResponse.json({ error: 'ID requerido' }, { status: 400 })
+    if (!id || !isValidUUID(id)) {
+      return NextResponse.json({ error: 'ID no válido' }, { status: 400 })
     }
 
     const { data, error } = await supabase
@@ -93,7 +111,8 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ success: true, plan: data })
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error('Error en PUT plans')
+    return NextResponse.json({ error: 'Error al actualizar plan' }, { status: 500 })
   }
 }
 
@@ -108,8 +127,8 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
-    if (!id) {
-      return NextResponse.json({ error: 'ID requerido' }, { status: 400 })
+    if (!id || !isValidUUID(id)) {
+      return NextResponse.json({ error: 'ID no válido' }, { status: 400 })
     }
 
     const { error } = await supabase
@@ -121,6 +140,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error('Error en DELETE plans')
+    return NextResponse.json({ error: 'Error al eliminar plan' }, { status: 500 })
   }
 }
