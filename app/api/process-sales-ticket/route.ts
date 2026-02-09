@@ -31,6 +31,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No se ha proporcionado archivo' }, { status: 400 })
     }
 
+    // 🔒 Validar tamaño (máximo 10MB)
+    const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json({ 
+        error: 'Archivo demasiado grande. Máximo 10MB' 
+      }, { status: 400 })
+    }
+
+    // 🔒 Validar tipo de archivo
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf']
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json({ 
+        error: 'Tipo de archivo no permitido. Solo JPG, PNG, WEBP o PDF' 
+      }, { status: 400 })
+    }
+
     // Convertir archivo a base64
     const bytes = await file.arrayBuffer()
     const base64 = Buffer.from(bytes).toString('base64')
@@ -214,7 +230,8 @@ Responde SOLO con el JSON, sin explicaciones.`
     })
 
   } catch (error) {
-    console.error('Error procesando ticket:', error)
+    // 🔒 No exponer detalles de error en logs
+    console.error('Error procesando ticket')
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
   }
 }

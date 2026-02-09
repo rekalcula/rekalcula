@@ -73,11 +73,11 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Exception in invoice-backups GET:', error)
+    console.error('Exception in invoice-backups GET')
     return NextResponse.json(
       { 
         success: false, 
-        error: error instanceof Error ? error.message : 'Error desconocido' 
+        error: 'Error al obtener backups' 
       },
       { status: 500 }
     )
@@ -143,11 +143,11 @@ export async function DELETE(request: NextRequest) {
     )
 
   } catch (error) {
-    console.error('Exception in invoice-backups DELETE:', error)
+    console.error('Exception in invoice-backups DELETE')
     return NextResponse.json(
       { 
         success: false, 
-        error: error instanceof Error ? error.message : 'Error desconocido' 
+        error: 'Error al eliminar backup' 
       },
       { status: 500 }
     )
@@ -201,11 +201,11 @@ export async function PATCH(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Exception in invoice-backups PATCH:', error)
+    console.error('Exception in invoice-backups PATCH')
     return NextResponse.json(
       { 
         success: false, 
-        error: error instanceof Error ? error.message : 'Error desconocido' 
+        error: 'Error al extender backup' 
       },
       { status: 500 }
     )

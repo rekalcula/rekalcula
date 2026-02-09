@@ -7,6 +7,20 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+// 🔒 VALIDACIONES
+function isValidUUID(value: any): boolean {
+  if (!value || typeof value !== 'string') return false
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+}
+
+function sanitizeString(value: any, maxLength: number = 255): string {
+  return String(value || '').trim().slice(0, maxLength).replace(/<[^>]*>/g, '').replace(/[<>"'`;]/g, '')
+}
+
+function sanitizeSlug(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/--+/g, '-').replace(/^-|-$/g, '')
+}
+
 // GET - Obtener formas de pago
 export async function GET(request: NextRequest) {
   try {
@@ -27,8 +41,13 @@ export async function GET(request: NextRequest) {
       .order('display_order', { ascending: true })
 
     if (type && type !== 'all') {
-      query = query.or(`payment_type.eq.${type},payment_type.eq.both`)
-    }
+          // 🔒 Validar valores permitidos
+          const validTypes = ['invoice', 'sale', 'both']
+          if (!validTypes.includes(type)) {
+            return NextResponse.json({ error: 'Tipo no válido' }, { status: 400 })
+          }
+          query = query.or(`payment_type.eq.${type},payment_type.eq.both`)
+        }
 
     const { data, error } = await query
 
@@ -89,8 +108,8 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from('payment_methods')
       .insert({
-        name,
-        slug: slug.toLowerCase().replace(/\s+/g, '-'),
+        name: sanitizeString(name, 100),
+        slug: sanitizeSlug(slug),
         days: days || 0,
         payment_type: payment_type || 'both',
         description,
@@ -131,8 +150,8 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const { id, ...updates } = body
 
-    if (!id) {
-      return NextResponse.json({ error: 'ID es requerido' }, { status: 400 })
+    if (!id || !isValidUUID(id)) {
+      return NextResponse.json({ error: 'ID no válido' }, { status: 400 })
     }
 
     const { data: existing } = await supabase
@@ -193,8 +212,8 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
-    if (!id) {
-      return NextResponse.json({ error: 'ID es requerido' }, { status: 400 })
+    if (!id || !isValidUUID(id)) {
+      return NextResponse.json({ error: 'ID no válido' }, { status: 400 })
     }
 
     const { data: existing } = await supabase

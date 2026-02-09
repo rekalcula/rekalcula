@@ -2,6 +2,22 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabase } from '@/lib/supabase'
 
+// 🔒 VALIDACIONES
+function isValidUUID(value: any): boolean {
+  if (!value || typeof value !== 'string') return false
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+}
+
+function sanitizeString(value: any, maxLength: number = 255): string {
+  return String(value || '').trim().slice(0, maxLength).replace(/<[^>]*>/g, '').replace(/[<>"'`;]/g, '')
+}
+
+function validatePrice(value: any): number {
+  const price = parseFloat(value)
+  if (isNaN(price) || price < 0) return 0
+  return Math.round(price * 100) / 100
+}
+
 // GET - Obtener productos y categorías
 export async function GET() {
   try {
@@ -27,7 +43,7 @@ export async function GET() {
     return NextResponse.json({ categories: categories || [], products: products || [] })
 
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error en GET products')
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })
   }
 }
@@ -48,9 +64,9 @@ export async function POST(request: NextRequest) {
         .from('product_categories')
         .insert({
           user_id: userId,
-          name: data.name,
-          icon: data.icon || '📦',
-          color: data.color || '#3B82F6'
+          name: sanitizeString(data.name, 100),
+          icon: sanitizeString(data.icon, 10) || '📦',
+          color: /^#[0-9A-Fa-f]{6}$/.test(data.color) ? data.color : '#3B82F6'
         })
         .select()
         .single()
@@ -59,17 +75,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, category })
 
     } else {
+      // 🔒 Validar category_id
+      if (data.category_id && !isValidUUID(data.category_id)) {
+        return NextResponse.json({ error: 'ID de categoría no válido' }, { status: 400 })
+      }
+
       const { data: product, error } = await supabase
         .from('products')
         .insert({
           user_id: userId,
           category_id: data.category_id,
-          name: data.name,
-          description: data.description,
-          sale_price: data.sale_price,
-          cost_price: data.cost_price || 0,
-          unit: data.unit || 'unidad',
-          icon: data.icon
+          name: sanitizeString(data.name, 150),
+          description: sanitizeString(data.description, 500),
+          sale_price: validatePrice(data.sale_price),
+          cost_price: validatePrice(data.cost_price),
+          unit: sanitizeString(data.unit, 50) || 'unidad',
+          icon: sanitizeString(data.icon, 10)
         })
         .select()
         .single()
@@ -79,7 +100,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error en POST products')
     return NextResponse.json({ error: 'Error al guardar' }, { status: 500 })
   }
 }
@@ -95,26 +116,39 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const { id, type, ...data } = body
 
+    if (!id || !isValidUUID(id)) {
+      return NextResponse.json({ error: 'ID no válido' }, { status: 400 })
+    }
+
     if (type === 'category') {
       const { error } = await supabase
         .from('product_categories')
-        .update({ name: data.name, icon: data.icon, color: data.color })
+        .update({ 
+          name: sanitizeString(data.name, 100), 
+          icon: sanitizeString(data.icon, 10), 
+          color: /^#[0-9A-Fa-f]{6}$/.test(data.color) ? data.color : '#3B82F6'
+        })
         .eq('id', id)
         .eq('user_id', userId)
 
       if (error) throw error
 
     } else {
+      // 🔒 Validar category_id si se envía
+      if (data.category_id && !isValidUUID(data.category_id)) {
+        return NextResponse.json({ error: 'ID de categoría no válido' }, { status: 400 })
+      }
+
       const { error } = await supabase
         .from('products')
         .update({
           category_id: data.category_id,
-          name: data.name,
-          description: data.description,
-          sale_price: data.sale_price,
-          cost_price: data.cost_price,
-          unit: data.unit,
-          icon: data.icon,
+          name: sanitizeString(data.name, 150),
+          description: sanitizeString(data.description, 500),
+          sale_price: validatePrice(data.sale_price),
+          cost_price: validatePrice(data.cost_price),
+          unit: sanitizeString(data.unit, 50),
+          icon: sanitizeString(data.icon, 10),
           is_active: data.is_active
         })
         .eq('id', id)
@@ -126,7 +160,7 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ success: true })
 
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error en PUT products')
     return NextResponse.json({ error: 'Error al actualizar' }, { status: 500 })
   }
 }
@@ -143,8 +177,8 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get('id')
     const type = searchParams.get('type')
 
-    if (!id) {
-      return NextResponse.json({ error: 'ID requerido' }, { status: 400 })
+    if (!id || !isValidUUID(id)) {
+      return NextResponse.json({ error: 'ID no válido' }, { status: 400 })
     }
 
     if (type === 'category') {
@@ -173,7 +207,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ success: true })
 
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error en DELETE products')
     return NextResponse.json({ error: 'Error al eliminar' }, { status: 500 })
   }
 }

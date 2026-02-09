@@ -10,6 +10,20 @@ const supabase = createClient(
 const DEFAULT_PAGE_SIZE = 50
 const DEFAULT_VAT_RATE = 0.21 // 21% IVA por defecto en España
 
+// 🔒 VALIDACIONES
+function isValidUUID(value: any): boolean {
+  if (!value || typeof value !== 'string') return false
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+}
+
+function isValidDate(dateString: any): boolean {
+  if (!dateString || typeof dateString !== 'string') return false
+  const regex = /^\d{4}-\d{2}-\d{2}$/
+  if (!regex.test(dateString)) return false
+  const date = new Date(dateString)
+  return date instanceof Date && !isNaN(date.getTime())
+}
+
 // GET - Obtener ventas con paginación
 export async function GET(request: NextRequest) {
   try {
@@ -92,7 +106,22 @@ export async function POST(request: NextRequest) {
     // ⭐ CÁLCULO CONTABLE CRÍTICO
     // Si el importe incluye IVA, calcular base imponible
     // ========================================
-    const inputAmount = parseFloat(body.total) || 0
+    // 🔒 Validar fecha
+    if (!body.sale_date || !isValidDate(body.sale_date)) {
+      return NextResponse.json({ error: 'Fecha inválida (formato: YYYY-MM-DD)' }, { status: 400 })
+    }
+
+    // ========================================
+    // ⚠️ CÁLCULO CONTABLE CRÍTICO
+    // Si el importe incluye IVA, calcular base imponible
+    // ========================================
+    const inputAmount = parseFloat(body.total)
+    
+    // 🔒 Validar que sea un número válido
+    if (isNaN(inputAmount) || inputAmount < 0) {
+      return NextResponse.json({ error: 'Total inválido' }, { status: 400 })
+    }
+    
     const includeVat = body.include_vat === true
     const vatRate = body.vat_rate || DEFAULT_VAT_RATE
 
@@ -179,6 +208,11 @@ export async function DELETE(request: NextRequest) {
       // Eliminación múltiple
       const idsArray = ids.split(',')
       
+      // 🔒 Validar todos los UUIDs
+      if (!idsArray.every(id => isValidUUID(id.trim()))) {
+        return NextResponse.json({ error: 'IDs no válidos' }, { status: 400 })
+      }
+      
       // Primero eliminar los items
       for (const saleId of idsArray) {
         await supabase
@@ -200,6 +234,11 @@ export async function DELETE(request: NextRequest) {
 
       return NextResponse.json({ success: true, deleted: idsArray.length })
     } else if (id) {
+      // 🔒 Validar UUID
+      if (!isValidUUID(id)) {
+        return NextResponse.json({ error: 'ID no válido' }, { status: 400 })
+      }
+      
       // Eliminación individual
       // Primero eliminar los items
       await supabase
