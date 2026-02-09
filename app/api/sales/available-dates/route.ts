@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       .order('sale_date', { ascending: true })
 
     if (error) {
-      console.error('Error fetching sales dates:', error)
+      console.error('Error fetching sales dates')
       return NextResponse.json({ error: 'Error al obtener fechas' }, { status: 500 })
     }
 
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error en available-dates')
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })
   }
 }

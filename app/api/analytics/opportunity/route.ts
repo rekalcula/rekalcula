@@ -81,6 +81,14 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const selectedDay = searchParams.get('day') // 0-6 (domingo a sábado) o null para todos
+    
+    // 🔒 Validar parámetro day
+    if (selectedDay !== null) {
+      const dayNum = parseInt(selectedDay)
+      if (isNaN(dayNum) || dayNum < 0 || dayNum > 6) {
+        return NextResponse.json({ error: 'Parámetro day inválido (debe ser 0-6)' }, { status: 400 })
+      }
+    }
 
     // Obtener configuración de costos fijos del usuario
     const { data: fixedCosts } = await supabase
@@ -353,7 +361,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error en análisis de oportunidades:', error)
+    console.error('Error en análisis de oportunidades')
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })
   }
 }

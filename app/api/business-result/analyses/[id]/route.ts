@@ -7,6 +7,12 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+// 🔒 VALIDACIÓN
+function isValidUUID(value: any): boolean {
+  if (!value || typeof value !== 'string') return false
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+}
+
 // GET: Obtener detalle completo de un análisis específico
 export async function GET(
   request: NextRequest,
@@ -19,6 +25,10 @@ export async function GET(
     }
 
     const { id } = await params
+
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ success: false, error: 'ID no válido' }, { status: 400 })
+    }
 
     const { data, error } = await supabase
       .from('business_result_analyses')
@@ -36,7 +46,7 @@ export async function GET(
 
     return NextResponse.json({ success: true, analysis: data })
   } catch (error: any) {
-    console.error('Error en GET /api/business-result/analyses/[id]:', error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    console.error('Error en GET /api/business-result/analyses/[id]')
+    return NextResponse.json({ success: false, error: 'Error al obtener análisis' }, { status: 500 })
   }
 }

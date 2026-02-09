@@ -19,6 +19,12 @@ export async function GET(request: NextRequest) {
     const period = searchParams.get('period') || 'month'
     const compare = searchParams.get('compare') === 'true'
 
+    // 🔒 Validar parámetro period
+    const validPeriods = ['day', 'week', 'month', 'all']
+    if (!validPeriods.includes(period)) {
+      return NextResponse.json({ error: 'Período inválido' }, { status: 400 })
+    }
+
     const now = new Date()
     let startDate: Date
     let endDate: Date
@@ -217,7 +223,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error en analytics:', error)
+    console.error('Error en analytics')
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })
   }
 }
