@@ -7,6 +7,12 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+// 🔒 VALIDACIÓN
+function isValidUUID(value: any): boolean {
+  if (!value || typeof value !== 'string') return false
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+}
+
 // GET: Obtener lista de análisis guardados
 export async function GET(request: NextRequest) {
   try {
@@ -25,7 +31,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ success: true, analyses: data || [] })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    console.error('Error en GET advisor/analyses')
+    return NextResponse.json({ success: false, error: 'Error al obtener análisis' }, { status: 500 })
   }
 }
 
@@ -61,7 +68,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, analysis: data })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    console.error('Error en POST advisor/analyses')
+    return NextResponse.json({ success: false, error: 'Error al guardar análisis' }, { status: 500 })
   }
 }
 
@@ -82,6 +90,11 @@ export async function DELETE(request: NextRequest) {
 
     const idsArray = ids.split(',')
 
+    // 🔒 Validar todos los UUIDs
+    if (!idsArray.every(id => isValidUUID(id.trim()))) {
+      return NextResponse.json({ success: false, error: 'IDs no válidos' }, { status: 400 })
+    }
+
     const { error } = await supabase
       .from('advisor_analyses')
       .delete()
@@ -92,6 +105,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true, deleted: idsArray.length })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    console.error('Error en DELETE advisor/analyses')
+    return NextResponse.json({ success: false, error: 'Error al eliminar análisis' }, { status: 500 })
   }
 }

@@ -29,7 +29,18 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams
-    const periodo = (searchParams.get('periodo') || 'mes') as 'dia' | 'semana' | 'mes'
+    const periodoParam = searchParams.get('periodo') || 'mes'
+    
+    // 🔒 Validar periodo
+    const validPeriods = ['dia', 'semana', 'mes']
+    if (!validPeriods.includes(periodoParam)) {
+      return NextResponse.json(
+        { success: false, error: 'Período inválido' },
+        { status: 400 }
+      )
+    }
+    
+    const periodo = periodoParam as 'dia' | 'semana' | 'mes'
 
     // Obtener datos
     const { inicioActual, finActual, inicioAnterior, finAnterior } = calcularRangoFechas(periodo)
@@ -75,7 +86,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Calcular mÃ©tricas
+    // Calcular métricas
     const metricas = agregarMetricas(
       {
         ventasActuales: ventasActuales || [],
@@ -111,8 +122,8 @@ export async function GET(request: NextRequest) {
 
     const traducirSector = (s: string) => {
       const t: Record<string, string> = {
-        cafeteria: 'CafeterÃ­a', restaurante: 'Restaurante',
-        peluqueria: 'PeluquerÃ­a', tienda: 'Tienda',
+        cafeteria: 'Cafetería', restaurante: 'Restaurante',
+        peluqueria: 'Peluquería', tienda: 'Tienda',
         taller: 'Taller', desconocido: 'Negocio'
       }
       return t[s] || s
@@ -161,15 +172,15 @@ export async function GET(request: NextRequest) {
 </head>
 <body>
   <div class="header">
-    <h1>ðŸ’¡ Informe de Asesoramiento</h1>
+    <h1>💡 Informe de Asesoramiento</h1>
     <p>ReKalcula - Generado el ${fechaActual}</p>
   </div>
 
   <div class="section">
-    <h2>ðŸ“Š Resumen del AnÃ¡lisis</h2>
+    <h2>📊 Resumen del Análisis</h2>
     <div class="info-box">
       <div class="info-row">
-        <span class="info-label">PerÃ­odo analizado:</span>
+        <span class="info-label">Período analizado:</span>
         <span class="info-value">${traducirPeriodo(periodo)}</span>
       </div>
       <div class="info-row">
@@ -186,7 +197,7 @@ export async function GET(request: NextRequest) {
       </div>
       <div class="info-row">
         <span class="info-label">Total ingresos:</span>
-        <span class="info-value">â‚¬${metricas.totales.ingresos.toFixed(2)}</span>
+        <span class="info-value">€${metricas.totales.ingresos.toFixed(2)}</span>
       </div>
       <div class="info-row">
         <span class="info-label">Recomendaciones generadas:</span>
@@ -196,7 +207,7 @@ export async function GET(request: NextRequest) {
   </div>
 
   <div class="section">
-    <h2>ðŸ’¡ Recomendaciones</h2>
+    <h2>💡 Recomendaciones</h2>
     ${recomendaciones.length > 0 ? recomendaciones.map(rec => `
       <div class="recommendation ${rec.prioridad === 1 ? 'alta' : rec.prioridad === 2 ? 'media' : 'baja'}">
         <div class="rec-header">
@@ -207,20 +218,20 @@ export async function GET(request: NextRequest) {
         </div>
         <p class="rec-message">${rec.mensaje}</p>
         <div class="metrics">
-          <span class="metric">ðŸ“¦ Ventas: ${rec.datosReales.ventas}</span>
-          <span class="metric">ðŸ“Š Media: ${Math.round(rec.datosReales.mediaVentas)}</span>
-          <span class="metric">ðŸ“ˆ Tendencia: ${rec.datosReales.tendencia > 0 ? '+' : ''}${rec.datosReales.tendencia}%</span>
+          <span class="metric">📦 Ventas: ${rec.datosReales.ventas}</span>
+          <span class="metric">📊 Media: ${Math.round(rec.datosReales.mediaVentas)}</span>
+          <span class="metric">📈 Tendencia: ${rec.datosReales.tendencia > 0 ? '+' : ''}${rec.datosReales.tendencia}%</span>
         </div>
         <div class="rec-principle">
-          <strong>ðŸ“š Principio:</strong> ${rec.principio.nombre} (${rec.principio.autor}, ${rec.principio.anio})
+          <strong>📚 Principio:</strong> ${rec.principio.nombre} (${rec.principio.autor}, ${rec.principio.anio})
         </div>
       </div>
-    `).join('') : '<p class="no-data">No se detectaron recomendaciones para este perÃ­odo.</p>'}
+    `).join('') : '<p class="no-data">No se detectaron recomendaciones para este período.</p>'}
   </div>
 
   ${historial && historial.length > 0 ? `
   <div class="section">
-    <h2>âœ… Recomendaciones Aplicadas Recientemente</h2>
+    <h2>✅ Recomendaciones Aplicadas Recientemente</h2>
     ${historial.map(h => `
       <div class="info-box">
         <div class="info-row">
@@ -241,14 +252,14 @@ export async function GET(request: NextRequest) {
   ` : ''}
 
   <div class="footer">
-    <p>Este informe fue generado automÃ¡ticamente por ReKalcula.</p>
-    <p>Las recomendaciones estÃ¡n basadas en principios de psicologÃ­a del consumidor con respaldo cientÃ­fico.</p>
+    <p>Este informe fue generado automáticamente por ReKalcula.</p>
+    <p>Las recomendaciones están basadas en principios de psicología del consumidor con respaldo científico.</p>
   </div>
 </body>
 </html>
     `
 
-    // Devolver HTML (el frontend lo convertirÃ¡ a PDF)
+    // Devolver HTML (el frontend lo convertirá a PDF)
     return new NextResponse(htmlContent, {
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
@@ -257,7 +268,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error en API export-pdf:', error)
+    console.error('Error en API export-pdf')
     return NextResponse.json(
       { success: false, error: 'Error interno' },
       { status: 500 }

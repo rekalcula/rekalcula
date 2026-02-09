@@ -7,6 +7,12 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+// 🔒 VALIDACIÓN
+function isValidUUID(value: any): boolean {
+  if (!value || typeof value !== 'string') return false
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+}
+
 type RouteContext = {
   params: Promise<{ id: string }>
 }
@@ -26,6 +32,10 @@ export async function GET(
 
     const { id } = await context.params
 
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ success: false, error: 'ID no válido' }, { status: 400 })
+    }
+
     const { data, error } = await supabase
       .from('advisor_analyses')
       .select('*')
@@ -43,8 +53,9 @@ export async function GET(
 
     return NextResponse.json({ success: true, analysis: data })
   } catch (error: any) {
+    console.error('Error en GET advisor/analyses/[id]')
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: 'Error al obtener análisis' },
       { status: 500 }
     )
   }
