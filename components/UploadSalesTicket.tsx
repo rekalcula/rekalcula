@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { IconCamera, IconFolder, IconFolderOpen, IconCheckCircle, IconDocument, IconTarget, IconTrash, IconInfoCircle, IconLoader, IconRocket, IconZap, IconMoney, IconCalendar, IconXCircle, IconBarChart, IconPackage, IconLightbulb, IconPlus } from './Icons'
+import ConfirmDialog from './ConfirmDialog'
 
 // Extender tipos de input para soportar webkitdirectory
 declare module 'react' {
@@ -68,6 +69,12 @@ export default function UploadSalesTicket() {
   const [manualFormError, setManualFormError] = useState<string | null>(null)
   const [isSubmittingManual, setIsSubmittingManual] = useState(false)
 
+  // ⭐ NUEVO: Estados para diálogo de confirmación de carga masiva
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [pendingFiles, setPendingFiles] = useState<FileList | File[] | null>(null)
+  const [pendingMode, setPendingMode] = useState<'folder' | 'select' | null>(null)
+  const [pendingAutoSelect, setPendingAutoSelect] = useState(false)
+
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -108,19 +115,43 @@ export default function UploadSalesTicket() {
     setShowManualForm(false)
   }
 
+  // Función para confirmar la carga masiva
+  const handleConfirmLoad = () => {
+    if (pendingFiles && pendingMode) {
+      setMode(pendingMode)
+      loadFiles(pendingFiles, pendingAutoSelect)
+      setShowConfirmDialog(false)
+      setPendingFiles(null)
+      setPendingMode(null)
+      setPendingAutoSelect(false)
+    }
+  }
+
+  // Función para cancelar la carga masiva
+  const handleCancelLoad = () => {
+    setShowConfirmDialog(false)
+    setPendingFiles(null)
+    setPendingMode(null)
+    setPendingAutoSelect(false)
+  }
+
   const handleFolderUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault()
-    if (e.target.files) {
-      setMode('folder')
-      loadFiles(e.target.files, true)
+    if (e.target.files && e.target.files.length > 0) {
+      setPendingFiles(e.target.files)
+      setPendingMode('folder')
+      setPendingAutoSelect(true)
+      setShowConfirmDialog(true)
     }
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault()
-    if (e.target.files) {
-      setMode('select')
-      loadFiles(e.target.files, true)
+    if (e.target.files && e.target.files.length > 0) {
+      setPendingFiles(e.target.files)
+      setPendingMode('select')
+      setPendingAutoSelect(true)
+      setShowConfirmDialog(true)
     }
   }
 
@@ -129,9 +160,11 @@ export default function UploadSalesTicket() {
     e.stopPropagation()
     setDragActive(false)
 
-    if (e.dataTransfer.files) {
-      setMode('select')
-      loadFiles(e.dataTransfer.files, true)
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      setPendingFiles(e.dataTransfer.files)
+      setPendingMode('select')
+      setPendingAutoSelect(true)
+      setShowConfirmDialog(true)
     }
   }, [])
 
@@ -851,6 +884,18 @@ export default function UploadSalesTicket() {
           </p>
         </div>
       )}
+
+      {/* Diálogo de confirmación para carga masiva */}
+      <ConfirmDialog
+        isOpen={showConfirmDialog}
+        onClose={handleCancelLoad}
+        onConfirm={handleConfirmLoad}
+        title={`¿Cargar ${pendingFiles?.length || 0} archivos en este sitio?`}
+        message={`Se cargarán todos los archivos de "${pendingMode === 'folder' ? 'tickets-venta' : 'la selección'}". Haz esto solo si confías en el sitio.`}
+        confirmText="Cargar"
+        cancelText="Cancelar"
+        variant="warning"
+      />
     </div>
   )
 }
