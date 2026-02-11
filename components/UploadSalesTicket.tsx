@@ -894,7 +894,7 @@ export default function UploadSalesTicket() {
         message={`Se cargarán todos los archivos de "${pendingMode === 'folder' ? 'tickets-venta' : 'la selección'}". Haz esto solo si confías en el sitio.`}
         confirmText="Cargar"
         cancelText="Cancelar"
-        variant="warning"
+        variant="danger"
       />
     </div>
   )
