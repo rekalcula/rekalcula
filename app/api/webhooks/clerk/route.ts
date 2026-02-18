@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Webhook } from 'svix';
+import { sendWelcomeEmail } from '@/lib/email';
 
 export async function POST(req: NextRequest) {
   try {
-    // Verificar firma del webhook (recomendado en producción)
     const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
     
     if (!WEBHOOK_SECRET) {
@@ -15,7 +15,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Obtener headers
     const svix_id = req.headers.get('svix-id');
     const svix_timestamp = req.headers.get('svix-timestamp');
     const svix_signature = req.headers.get('svix-signature');
@@ -27,11 +26,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Obtener body
     const payload = await req.json();
     const body = JSON.stringify(payload);
 
-    // Verificar firma
     const wh = new Webhook(WEBHOOK_SECRET);
     let evt;
 
@@ -49,13 +46,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Inicializar Supabase
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Procesar evento de usuario creado
     if (evt.type === 'user.created') {
       const userData = evt.data;
 
@@ -86,7 +81,6 @@ export async function POST(req: NextRequest) {
         .limit(1)
         .single();
 
-      // Usar valores de la BD o por defecto
       const trialDays = trialConfig?.trial_days || 7;
       const invoicesLimit = trialConfig?.invoices_limit || 10;
       const ticketsLimit = trialConfig?.tickets_limit || 10;
@@ -146,14 +140,25 @@ export async function POST(req: NextRequest) {
         });
       }
 
+      // 7. Email de bienvenida
+      const primaryEmail = userData.email_addresses?.[0]?.email_address;
+      const name = [userData.first_name, userData.last_name]
+        .filter(Boolean).join(' ') || 'Usuario';
+
+      if (primaryEmail) {
+        const emailResult = await sendWelcomeEmail(primaryEmail, name);
+        if (!emailResult.success) {
+          console.warn('[Webhook] Email de bienvenida no enviado:', emailResult.error);
+          // No bloqueamos el flujo si el email falla
+        }
+      }
+
       console.log(`Usuario ${userData.id} creado con trial de ${trialDays} días y ${invoicesLimit}/${ticketsLimit}/${analysesLimit} créditos`);
     }
 
-    // Procesar evento de usuario eliminado
     if (evt.type === 'user.deleted') {
       const userData = evt.data;
 
-      // Limpiar datos del usuario en orden (por foreign keys)
       await supabase.from('credit_transactions').delete().eq('user_id', userData.id);
       await supabase.from('user_credits').delete().eq('user_id', userData.id);
       await supabase.from('invoices').delete().eq('user_id', userData.id);
